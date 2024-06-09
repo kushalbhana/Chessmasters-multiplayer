@@ -22,7 +22,9 @@
     "packages/*"
   ],
   "dependencies": {
+    "@types/react-icons": "^3.0.0",
     "@types/ws": "^8.5.10",
+    "react-icons": "^5.2.1",
     "ws": "^8.17.0"
   }
 }

@@ -11,11 +11,11 @@ import {
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 
-export function DialogDemo() {
+export function AuthDialogbox() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Edit Profile</Button>
+        <Button variant="outline" className=" w-40 bg-orange-500">Signin</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
