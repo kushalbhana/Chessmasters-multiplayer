@@ -1,0 +1,21 @@
+{
+  "name": "websocket",
+  "version": "1.0.0",
+  "description": "A WebSocket server example",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "tsc && node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/ws": "^8.5.10",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

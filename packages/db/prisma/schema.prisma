@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime? @map("email_verified")
+  oAuthId         String?  @unique
+  picture         String?
+  passWord        String?
+
+  gamesAsUser1    Game[]   @relation("User1Games")
+  gamesAsUser2    Game[]   @relation("User2Games")
+  move            Move[]
+}
+
+model Game {
+  id     Int      @id @default(autoincrement())
+  user1  String
+  user2  String
+  winner String?
+  draw   Boolean?  @default(false)
+  date   DateTime @default(now())
+  move  Move[]
+
+  user1Relation User    @relation("User1Games", fields: [user1], references: [id])
+  user2Relation User    @relation("User2Games", fields: [user2], references: [id])
+}
+
+model Move {
+  id       Int      @id @default(autoincrement())
+  gameId   Int
+  userId   String     
+  from     String
+  to       String
+
+  user  User      @relation(fields: [userId], references: [id])
+  game  Game      @relation(fields: [gameId], references: [id])
+}
