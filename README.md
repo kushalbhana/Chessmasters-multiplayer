@@ -1,81 +1,75 @@
-# Turborepo starter
+# Multiplayer Chess Game
 
-This is an official starter Turborepo.
+A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, WebRTC, and Chess.js.
 
-## Using this example
+## Features
 
-Run the following command:
+- **Real-Time Gameplay**: Instant communication via WebSockets.
+- **Modern Frontend**: Built with Next.js for a smooth user experience.
+- **Efficient State Management**: Redis for real-time updates and caching.
+- **Peer-to-Peer Communication**: WebRTC for direct player interaction.
+- **Robust Game Logic**: Chess.js for accurate game rule enforcement.
 
-```sh
-npx create-turbo@latest
-```
+## Technologies
 
-## What's inside?
+- **Turborepo**: Manages the monorepo and optimizes builds.
+- **Next.js**: Framework for the frontend.
+- **WebSockets**: Enables real-time, bi-directional communication.
+- **Redis**: In-memory database for state management.(Under development)
+- **WebRTC**: Facilitates direct communication between players.
+- **Chess.js**: Provides comprehensive chess game logic.
 
-This Turborepo includes the following packages/apps:
+## Setup
 
-### Apps and Packages
+### Prerequisites
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- Node.js
+- Redis Server
+- Yarn (optional but recommended for Turborepo)
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Installation Steps
 
-### Utilities
+1. **Clone the Repository**:
+    ```sh
+    git clone https://github.com/yourusername/multiplayer-chess-game.git
+    cd multiplayer-chess-game
+    ```
 
-This Turborepo has some additional tools already setup for you:
+2. **Install Dependencies**:
+    ```sh
+    yarn install
+    ```
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+3. **Setup Environment Variables**:
+    Create a `.env.local` file in the root directory and configure your environment variables as required (e.g., Redis connection details).
 
-### Build
+4. **Start Redis Server**:
+    Ensure your Redis server is running(No need for now).
 
-To build all apps and packages, run the following command:
+5. **Run the Development Server**:
+    ```sh
+    yarn dev
+    ```
 
-```
-cd my-turborepo
-pnpm build
-```
+## Project Structure
 
-### Develop
+- `apps/`: Contains the Next.js application and other apps.
+  - `next-app/`: Main frontend application built with Next.js.
+  - `socket-server/`: WebSocket server for real-time communication.
+- `packages/`: Shared packages and libraries.
+  - `Typescript-config/`: Types used over different apps.
+  - `Database/`: Database schema and singleton prisma client.
+  - `UI/`: UI Components which are common.
+  
 
-To develop all apps and packages, run the following command:
+## Contributing
 
-```
-cd my-turborepo
-pnpm dev
-```
+Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure that your code follows the project's coding standards and passes all tests.
 
-### Remote Caching
+## License
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
+## Contact
 
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+For any questions or feedback, please open an issue or contact [kushalbhana2050@gmail.com].
