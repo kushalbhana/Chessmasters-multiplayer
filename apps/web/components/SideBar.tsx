@@ -10,7 +10,7 @@ import Settings from "./shared/Settings";
 
 export default function Sidebar(){
     return (
-        <div className="w-60 h-full">
+        <div className="w-60">
             <div>
                 <Image src={chessmaster}  alt="Chessmaster Logo" className=" mt-5 p-4"></Image>
             </div>
