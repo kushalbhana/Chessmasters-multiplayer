@@ -59,14 +59,14 @@ class WebSocketManager {
                 if (room){
                   room.senderSocket = ws;
                   room.senderSocket.send(JSON.stringify({ type: 'color', color: 'white' }));
-                  room.senderSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState }));
+                  room.senderSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'white' }));
                 }
 
             } else if (!room.receiverSocket) {
                 console.log('Receiver socket connected to:', roomId);
                 room.receiverSocket = ws;
                 room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
-                room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState }));
+                room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
 
 
         

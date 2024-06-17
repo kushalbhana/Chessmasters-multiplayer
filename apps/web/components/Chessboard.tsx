@@ -30,16 +30,22 @@ export default function ChessBoard({ roomId }: any) {
 
       if (message.type === 'color') {
         setBoardOrientation(message.color);
-        setMyChance(message.color === 'white');
       }
 
       if (message.type === 'boardState') {
-        console.log('Board state on connection: ', message.boardState)
         const chess = new Chess();
         chess.load(message.boardState); 
         setGame(chess);
 
         forceUpdate === 1 ? setForceUpdate(0): setForceUpdate(1);// For forcefull re-rendering
+
+        console.log(game.turn(), message.color)
+        if(message.color === 'white'){
+          game.turn() === 'w' && message.color === 'white' ? setMyChance(true) : setMyChance(false)
+        }
+        else{
+          game.turn() === 'b' && message.color === 'black' ? setMyChance(true) : setMyChance(false)
+        }
 
       }
     };
@@ -72,31 +78,37 @@ export default function ChessBoard({ roomId }: any) {
 
     if (move.fen) gameCopy = new Chess(move.fen);
 
-    const validMove = gameCopy.move(move);
-    if (!validMove) {
-      console.error('Invalid move:', move);
-      return null;
-    }
+    try {
+        const validMove = gameCopy.move(move);
+        if (!validMove) {
+          console.log('Invalid move:', move);
+          return null;
+        }
+    
+        if (!move.fen) {
+          setMyChance(false);
+          move.fen = game.fen();
+          let boardState = gameCopy.fen()
+          if (socket) {
+            const messageType = boardOrientation === 'white' ? 'moveFromSender' : 'moveFromReceiver';
+            socket.send(JSON.stringify({ type: messageType, move, roomId, boardState: boardState }));
+          }
+        }
+    
+        highlightSquare(move.from, move.to);
+    
+        if (gameCopy.inCheck()) {
+          const queenPosition = findQueenPosition(gameCopy);
+          highlightSquare(move.to, queenPosition, '#D63326');
+          console.log(`Queen's position in check: ${queenPosition}`);
+        }
+        setGame(gameCopy);
+        return validMove;
 
-    if (!move.fen) {
-      setMyChance(false);
-      move.fen = game.fen();
-      let boardState = gameCopy.fen()
-      if (socket) {
-        const messageType = boardOrientation === 'white' ? 'moveFromSender' : 'moveFromReceiver';
-        socket.send(JSON.stringify({ type: messageType, move, roomId, boardState: boardState }));
-      }
+    } catch (error) {
+      console.log(error)
     }
-
-    highlightSquare(move.from, move.to);
-
-    if (gameCopy.inCheck()) {
-      const queenPosition = findQueenPosition(gameCopy);
-      highlightSquare(move.to, queenPosition, '#D63326');
-      console.log(`Queen's position in check: ${queenPosition}`);
-    }
-    setGame(gameCopy);
-    return validMove;
+    
   }
 
   function findQueenPosition(chessInstance: any) {
