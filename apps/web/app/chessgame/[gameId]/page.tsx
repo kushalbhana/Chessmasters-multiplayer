@@ -8,7 +8,7 @@ export default function App({ params: { gameId } }: any) {
     <div className="flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Left panel with ChessBoard */}
       <div className="flex flex-col h-full w-full md:w-auto">
-        <div className="p-2 flex-grow min-w-[800px]">
+        <div className="p-3 flex-grow min-w-[800px]">
           <ChessBoard roomId={gameId} />
         </div>
       </div>
@@ -38,8 +38,8 @@ export default function App({ params: { gameId } }: any) {
 
         {/* Buttons Section */}
         <div className="flex justify-between gap-2">
-          <Button className="bg-white w-1/2">New Game!</Button>
-          <Button className="bg-orange-500 text-slate-50 w-1/2">Exit Game!</Button>
+          <Button className="bg-white w-1/2">Resign!</Button>
+          <Button className="bg-orange-500 text-slate-50 w-1/2">Draw</Button>
         </div>
 
         {/* ChatBox */}

@@ -10,6 +10,8 @@ export default function ChessBoard({ roomId }: any) {
   const [boardOrientation, setBoardOrientation] = useState<BoardOrientation>('black');
   const [myChance, setMyChance] = useState<boolean>();
   const [customSquareStyles, setCustomSquareStyles] = useState({});
+  const [forceUpdate, setForceUpdate] = useState(1); // Add this state variable
+  
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8080');
@@ -23,13 +25,22 @@ export default function ChessBoard({ roomId }: any) {
       const message = JSON.parse(event.data);
 
       if (message.type === 'move') {
-        console.log(message.move);
         makeAMove(message.move);
       }
 
       if (message.type === 'color') {
         setBoardOrientation(message.color);
         setMyChance(message.color === 'white');
+      }
+
+      if (message.type === 'boardState') {
+        console.log('Board state on connection: ', message.boardState)
+        const chess = new Chess();
+        chess.load(message.boardState); 
+        setGame(chess);
+
+        forceUpdate === 1 ? setForceUpdate(0): setForceUpdate(1);// For forcefull re-rendering
+
       }
     };
 
@@ -55,6 +66,7 @@ export default function ChessBoard({ roomId }: any) {
   };
 
   function makeAMove(move: any) {
+    console.log('Fen at the move: ', game.fen())
     let gameCopy = new Chess(game.fen());
     setMyChance(true);
 
@@ -69,9 +81,10 @@ export default function ChessBoard({ roomId }: any) {
     if (!move.fen) {
       setMyChance(false);
       move.fen = game.fen();
+      let boardState = gameCopy.fen()
       if (socket) {
         const messageType = boardOrientation === 'white' ? 'moveFromSender' : 'moveFromReceiver';
-        socket.send(JSON.stringify({ type: messageType, move, roomId }));
+        socket.send(JSON.stringify({ type: messageType, move, roomId, boardState: boardState }));
       }
     }
 
@@ -82,7 +95,6 @@ export default function ChessBoard({ roomId }: any) {
       highlightSquare(move.to, queenPosition, '#D63326');
       console.log(`Queen's position in check: ${queenPosition}`);
     }
-
     setGame(gameCopy);
     return validMove;
   }
@@ -95,15 +107,14 @@ export default function ChessBoard({ roomId }: any) {
     for (let i = 0; i < board.length; i++) {
       for (let j = 0; j < board[i].length; j++) {
         if (board[i][j] && board[i][j].type === 'k' && board[i][j].color === checkColor) {
-          const file = String.fromCharCode(97 + j); // Convert column index to file letter
-          const rank = 8 - i; // Convert row index to rank number
+          const file = String.fromCharCode(97 + j); 
+          const rank = 8 - i; 
           return `${file}${rank}`;
         }
       }
     }
     return null;
   }
-  
 
   function onDrop(sourceSquare: any, targetSquare: any) {
     const move = makeAMove({
@@ -123,6 +134,7 @@ export default function ChessBoard({ roomId }: any) {
       <Chessboard
         id="BasicBoard"
         position={game.fen()}
+        key={forceUpdate} 
         onPieceDrop={onDrop}
         boardOrientation={boardOrientation}
         arePiecesDraggable={myChance}

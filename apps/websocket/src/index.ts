@@ -3,6 +3,9 @@ import { WebSocket, WebSocketServer } from 'ws';
 interface Room {
     senderSocket?: WebSocket | null;
     receiverSocket?: WebSocket | null;
+    boardState: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    sender?: string;
+    reciever?: string;
 }
 
 class WebSocketManager {
@@ -28,6 +31,8 @@ class WebSocketManager {
             ws.on('message', (data: string) => this.handleMessage(ws, data));
             ws.on('close', () => this.handleClose(ws));
         });
+
+        console.log('WebSocket server running on port:', this.wss.options.port);
     }
 
     private handleMessage(ws: WebSocket, data: string): void {
@@ -43,7 +48,7 @@ class WebSocketManager {
 
         // Initialize the room if it doesn't exist
         if (!this.rooms[roomId]) {
-            this.rooms[roomId] = {};
+            this.rooms[roomId] = { boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' };
         }
 
         const room = this.rooms[roomId];
@@ -54,11 +59,17 @@ class WebSocketManager {
                 if (room){
                   room.senderSocket = ws;
                   room.senderSocket.send(JSON.stringify({ type: 'color', color: 'white' }));
+                  room.senderSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState }));
                 }
+
             } else if (!room.receiverSocket) {
                 console.log('Receiver socket connected to:', roomId);
                 room.receiverSocket = ws;
-                room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }));
+                room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
+                room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState }));
+
+
+        
             } else {
                 console.log('Additional sender attempted to connect.');
                 ws.close(4000, 'Only one sender allowed');
@@ -79,10 +90,12 @@ class WebSocketManager {
 
         if (room?.senderSocket && room.receiverSocket) {
             if (message.type === 'moveFromSender') {
-                console.log('Move initiated by sender to receiver');
+                console.log('Move initiated by sender to receiver: ');
+                room.boardState = message.boardState;
                 room.receiverSocket.send(JSON.stringify({ type: 'move', move: message.move }));
             } else if (message.type === 'moveFromReceiver') {
                 console.log('Move initiated by receiver to sender');
+                room.boardState = message.boardState;
                 room.senderSocket.send(JSON.stringify({ type: 'move', move: message.move }));
             }
         }
@@ -94,17 +107,9 @@ class WebSocketManager {
             if (room?.senderSocket === ws) {
                 console.log('Sender socket disconnected in room:', roomId);
                 room.senderSocket = null;
-                if (room?.receiverSocket) {
-                    room.receiverSocket.close(4000, 'Sender disconnected');
-                    room.receiverSocket = null;
-                }
             } else if (room?.receiverSocket === ws) {
                 console.log('Receiver socket disconnected in room:', roomId);
                 room.receiverSocket = null;
-                if (room.senderSocket) {
-                    room.senderSocket.close(4000, 'Receiver disconnected');
-                    room.senderSocket = null;
-                }
             }
 
             // Clean up room if both sockets are null

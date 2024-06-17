@@ -25,10 +25,12 @@ export default function ProfileSection() {
     }
 
     if (session) {
+        console.log(session.user?.image)
         return (
             <div className="flex ml-5 gap-3 mt-5 min-h-28 items-center">
                 <Avatar>
                     <AvatarImage src={session.user?.image!} />
+
                     <AvatarFallback>{session.user?.name?.[0] || "?"}</AvatarFallback>
                 </Avatar>
                 <div>
