@@ -20,6 +20,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 
 
+import { ScrollArea } from "../ui/scroll-area"
 import { SignupForm } from "../form/SignupForm"
 
 export function AuthTab() {
@@ -64,15 +65,10 @@ export function AuthTab() {
       </TabsContent>
       <TabsContent value="password">
         <Card>
-          <CardHeader>
-            <CardTitle>Password</CardTitle>
-            <CardDescription>
-              Change your password here. After saving, you'll be logged out.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            Signup
-          </CardContent>
+            <ScrollArea className="h-[500px] w-[400px] rounded-md border p-4">
+              <SignupForm></SignupForm>
+            </ScrollArea>
+         
           <CardFooter>
 
           </CardFooter>
