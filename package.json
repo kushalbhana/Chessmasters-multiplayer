@@ -22,8 +22,10 @@
     "packages/*"
   ],
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "@types/react-icons": "^3.0.0",
     "@types/ws": "^8.5.10",
+    "axios": "^1.7.2",
     "react-icons": "^5.2.1",
     "ws": "^8.17.0"
   }

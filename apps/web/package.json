@@ -9,16 +9,21 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-toast": "^1.1.5",
     "@repo/ui": "*",
     "@tabler/icons-react": "^3.5.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/chess.js": "^0.13.7",
     "@types/react-icons": "^3.0.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "chess.js": "^1.0.0-beta.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -30,9 +35,11 @@
     "react": "^18.2.0",
     "react-chessboard": "^4.6.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.52.0",
     "react-icons": "^5.2.1",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.1.1",

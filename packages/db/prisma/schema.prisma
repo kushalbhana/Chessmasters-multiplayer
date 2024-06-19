@@ -15,9 +15,9 @@ datasource db {
 
 model User {
   id              String    @id @default(cuid())
-  name            String?
-  email           String?   @unique
-  emailVerified   DateTime? @map("email_verified")
+  name            String
+  email           String   @unique
+  emailVerified   Boolean? @default(true) 
   oAuthId         String?  @unique
   picture         String?
   passWord        String?

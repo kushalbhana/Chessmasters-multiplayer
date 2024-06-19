@@ -1,6 +1,7 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import prisma from "@repo/db/client";
+import bcrypt from "bcrypt";
 
 export const NEXT_AUTH_CONFIG = {
     providers: [
@@ -16,6 +17,8 @@ export const NEXT_AUTH_CONFIG = {
             password: { label: 'password', type: 'password', placeholder: '' },
           },
           async authorize(credentials: any) {
+
+            const hashedPassword = bcrypt.hash(credentials.password, 10);
             const user: any = await prisma.user.findUnique({
                 where: {
                     email: credentials.username
@@ -26,7 +29,9 @@ export const NEXT_AUTH_CONFIG = {
                 console.log('User not found')
                 return null;
             }
-            if (user.password === credentials.password){
+            const passwordValidation = await bcrypt.compare(credentials.password, user.password);
+            console.log(passwordValidation)
+            if (passwordValidation){
                 return {
                     id: user.id,
                     name: user.name,

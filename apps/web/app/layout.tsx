@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "../components/theme-provider";
 import Sidebar from "../components/SideBar";
 import { Providers } from "./providers";
+import { Toaster } from "../components/ui/toaster"
+
 
 
 const geistSans = localFont({
@@ -41,6 +43,8 @@ export default function RootLayout({
               </div>
               <div>
                 {children}
+                <Toaster />
+
               </div>
             </div>
         </ ThemeProvider>
