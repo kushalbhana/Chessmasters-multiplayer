@@ -8,7 +8,7 @@ export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [boardOrientation, setBoardOrientation] = useState<BoardOrientation>('black');
-  const [myChance, setMyChance] = useState<boolean>();
+  const [myChance, setMyChance] = useState<boolean>(true);
   const [customSquareStyles, setCustomSquareStyles] = useState({});
   const [forceUpdate, setForceUpdate] = useState(1); // Add this state variable
   
@@ -35,18 +35,16 @@ export default function ChessBoard({ roomId }: any) {
       if (message.type === 'boardState') {
         const chess = new Chess();
         chess.load(message.boardState); 
-        setGame(chess);
+        setGame(chess)
 
-        forceUpdate === 1 ? setForceUpdate(0): setForceUpdate(1);// For forcefull re-rendering
-
-        console.log(game.turn(), message.color)
+        console.log(chess.turn(), message.color)
         if(message.color === 'white'){
           game.turn() === 'w' && message.color === 'white' ? setMyChance(true) : setMyChance(false)
         }
         else{
-          game.turn() === 'b' && message.color === 'black' ? setMyChance(true) : setMyChance(false)
+          game.turn() === 'b' && message.color === 'black' ? setMyChance(true) : setMyChance(true)
         }
-
+        forceUpdate === 1 ? setForceUpdate(0): setForceUpdate(1);// For forcefull re-rendering
       }
     };
 

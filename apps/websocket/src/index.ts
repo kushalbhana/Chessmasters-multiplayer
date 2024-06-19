@@ -67,8 +67,6 @@ class WebSocketManager {
                 room.receiverSocket = ws;
                 room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
                 room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
-
-
         
             } else {
                 console.log('Additional sender attempted to connect.');
@@ -81,6 +79,7 @@ class WebSocketManager {
                 if(room){
                   room.receiverSocket = ws;
                   room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }));
+                  room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
                 }
             } else {
                 console.log('Additional receiver attempted to connect.');
@@ -88,15 +87,17 @@ class WebSocketManager {
             }
         }
 
-        if (room?.senderSocket && room.receiverSocket) {
+        if (room?.senderSocket || room?.receiverSocket) {
             if (message.type === 'moveFromSender') {
                 console.log('Move initiated by sender to receiver: ');
-                room.boardState = message.boardState;
-                room.receiverSocket.send(JSON.stringify({ type: 'move', move: message.move }));
+                room.boardState = message.boardState;  //Saving the move from one player
+                if (room.receiverSocket)
+                    room.receiverSocket.send(JSON.stringify({ type: 'move', move: message.move }));
             } else if (message.type === 'moveFromReceiver') {
                 console.log('Move initiated by receiver to sender');
                 room.boardState = message.boardState;
-                room.senderSocket.send(JSON.stringify({ type: 'move', move: message.move }));
+                if (room.senderSocket)
+                    room.senderSocket.send(JSON.stringify({ type: 'move', move: message.move }));
             }
         }
     }
