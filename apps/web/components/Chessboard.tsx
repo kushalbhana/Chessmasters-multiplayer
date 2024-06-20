@@ -3,6 +3,7 @@ import { Chessboard } from "react-chessboard";
 import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import { useSession } from "next-auth/react";
 
 export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
@@ -11,14 +12,12 @@ export default function ChessBoard({ roomId }: any) {
   const [myChance, setMyChance] = useState<boolean>(true);
   const [customSquareStyles, setCustomSquareStyles] = useState({});
   const [forceUpdate, setForceUpdate] = useState(1); // Add this state variable
-  
 
-  useEffect(() => {
+  useEffect(() => {   
     const socket = new WebSocket('ws://localhost:8080');
-    setSocket(socket);
 
     socket.onopen = () => {
-      socket.send(JSON.stringify({ type: 'sender', roomId }));
+      socket.send(JSON.stringify({ type: 'sender', roomId }));  
     };
 
     socket.onmessage = (event) => {

@@ -53,6 +53,8 @@ class WebSocketManager {
 
         const room = this.rooms[roomId];
 
+        console.log(message.token);
+
         if (message.type === 'sender') {
             if (!room?.senderSocket) {
                 console.log('Sender socket connected to:', roomId);

@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from 'next/navigation'; // Import useRouter
+
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
@@ -13,9 +15,11 @@ import { SignupSchema, SignupFormValues } from '@repo/typescript-config';
 import { useToast } from "../ui/use-toast";
 import { signIn } from 'next-auth/react';
 
+
 export function SignupForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const {
     register,
@@ -43,6 +47,7 @@ export function SignupForm() {
         password: data.password,
       });
 
+      router.push('/'); // Redirect to homepage
     } catch (error: any) {
       if(error.response.status === 409){
           toast({

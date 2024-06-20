@@ -19,9 +19,9 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 
-
 import { ScrollArea } from "../ui/scroll-area"
 import { SignupForm } from "../form/SignupForm"
+import { SigninForm } from "../form/SigninForm"
 
 export function AuthTab() {
   return (
@@ -32,25 +32,9 @@ export function AuthTab() {
       </TabsList>
       <TabsContent value="account">
         <Card>
-          <CardHeader>
-            <CardTitle>Signin</CardTitle>
-            <CardDescription>
-              Signin to your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="name">Email</Label>
-              <Input id="email" placeholder="johndoe@gmail.com" />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="username">Password</Label>
-              <Input id="password" placeholder="Password" />
-            </div>
+          <CardContent className="space-y-2 mt-5">
+            <SigninForm />
           </CardContent>
-          <CardFooter>
-            <Button className="w-full">Sign in with credentials</Button>
-          </CardFooter>
             <div className="flex justify-center">
               <p className="pb-2 text-slate-500">or</p>
             </div>

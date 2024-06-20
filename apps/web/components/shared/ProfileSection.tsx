@@ -1,6 +1,4 @@
 "use client";
-import { signIn, signOut } from "next-auth/react";
-import { Button } from "../ui/button";
 import { useSession } from "next-auth/react";
 import { AuthDialogbox } from "./AuthDialogbox";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -25,7 +23,7 @@ export default function ProfileSection() {
     }
 
     if (session) {
-        console.log(session.user?.image)
+        
         return (
             <div className="flex ml-5 gap-3 mt-5 min-h-28 items-center">
                 <Avatar>
