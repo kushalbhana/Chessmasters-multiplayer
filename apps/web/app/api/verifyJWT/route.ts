@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         );
       }
       return new NextResponse(
-        JSON.stringify({ message: 'Authorized token' }),
+        JSON.stringify({ message: 'Authorized token', user: decoded }),
         {
           status: 200,
           headers: { 'Access-Control-Allow-Origin': '*' },
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         );
       } else if (error instanceof jwt.JsonWebTokenError) {
         return new NextResponse(
-          JSON.stringify({ message: 'Invalid Token' }),
+          JSON.stringify({ message: 'Invalid Token', status:'401' }),
           {
             status: 498,
             headers: { 'Access-Control-Allow-Origin': '*' },

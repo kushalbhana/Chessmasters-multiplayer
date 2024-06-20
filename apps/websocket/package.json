@@ -12,7 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "@types/ws": "^8.5.10",
+    "axios": "^1.7.2",
     "ws": "^8.17.0"
   },
   "devDependencies": {

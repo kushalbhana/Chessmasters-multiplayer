@@ -47,6 +47,8 @@ export function SignupForm() {
         password: data.password,
       });
 
+      console.log(signInResponse)
+
       router.push('/'); // Redirect to homepage
     } catch (error: any) {
       if(error.response.status === 409){

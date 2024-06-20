@@ -1,4 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws';
+import jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 interface Room {
     senderSocket?: WebSocket | null;
@@ -53,10 +55,40 @@ class WebSocketManager {
 
         const room = this.rooms[roomId];
 
-        console.log(message.token);
 
         if (message.type === 'sender') {
             if (!room?.senderSocket) {
+                    // Verify the token using the route
+                    const response = axios.post(
+                        'http://localhost:3000/api/verifyJWT', // Replace with your actual route
+                        { token : message.token },
+                        {
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                        }
+                    ).then(
+                        (response) => {
+                            console.log(response.data);
+                            if(response.status === 200){
+                                ws.send(JSON.stringify({ type: 'authorization', status: '200', message:'Authorized token' }))
+                            }
+                            if(response.status === 498){
+                                ws.send(JSON.stringify({ type: 'authorization', status: '498', message:'Invalid Token' }))
+                            }
+                            if(response.status === 500){
+                                ws.send(JSON.stringify({ type: 'authorization', status: '500', message:'token expired' }))
+                            }
+                            if(response.status === 403){
+                                ws.send(JSON.stringify({ type: 'authorization', status: '403', message:'Web Token Error' }))
+                            }
+                        }
+                      ).catch((error) => {
+                        console.log(error.response.data);
+                        ws.send(JSON.stringify({ type: 'authorization', status: '401', message:'Token not valid' }))
+                      }
+                      )
+
                 console.log('Sender socket connected to:', roomId);
                 if (room){
                   room.senderSocket = ws;

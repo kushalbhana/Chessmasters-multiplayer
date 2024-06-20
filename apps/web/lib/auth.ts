@@ -21,14 +21,15 @@ export const NEXT_AUTH_CONFIG = {
           where: { email: credentials.email }
         });
 
+        const hashedPassword = await bcrypt.hash(credentials.password, 10)
+
         if (!user) {
           console.log('User not found');
           return null;
         }
 
-        const passwordValidation = await bcrypt.compare(credentials.password, user.password);
+        const passwordValidation = await bcrypt.compare(credentials.password, hashedPassword);
         if (passwordValidation) {
-          // Generate jwt to authorize at websocket server
           const token = jwt.sign(
             { userId: user.id, email: user.email },
             process.env.JWT_SECRET!,
