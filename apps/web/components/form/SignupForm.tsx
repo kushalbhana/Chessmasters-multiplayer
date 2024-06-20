@@ -10,7 +10,6 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import axios from "axios";
 import { SignupSchema, SignupFormValues } from '@repo/typescript-config';
-import { ToastAction } from "../ui/toast";
 import { useToast } from "../ui/use-toast";
 import { signIn } from 'next-auth/react';
 
@@ -32,12 +31,11 @@ export function SignupForm() {
       const response = await axios.post("http://localhost:3000/api/signup/", data, {
         headers: { "Content-Type": "application/json" }
       });
+
         toast({
           title: "Signup successful",
           description: "You have signed up successfully!",
         });
-    
-      console.log("Signup successful", response.data);
 
       const signInResponse = await signIn('credentials', {
         redirect: false,
@@ -45,7 +43,6 @@ export function SignupForm() {
         password: data.password,
       });
 
-      console.log('signin completed....')
     } catch (error: any) {
       if(error.response.status === 409){
           toast({

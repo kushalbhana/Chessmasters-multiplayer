@@ -18,10 +18,10 @@ export const NEXT_AUTH_CONFIG = {
           },
           async authorize(credentials: any) {
 
-            const hashedPassword = bcrypt.hash(credentials.password, 10);
+            const hashedPassword = await bcrypt.hash(credentials.password, 10);
             const user: any = await prisma.user.findUnique({
                 where: {
-                    email: credentials.username
+                    email: credentials.email
                 }
             });
 
@@ -29,8 +29,7 @@ export const NEXT_AUTH_CONFIG = {
                 console.log('User not found')
                 return null;
             }
-            const passwordValidation = await bcrypt.compare(credentials.password, user.password);
-            console.log(passwordValidation)
+            const passwordValidation = await bcrypt.compare(credentials.password, hashedPassword);
             if (passwordValidation){
                 return {
                     id: user.id,
@@ -65,11 +64,10 @@ export const NEXT_AUTH_CONFIG = {
               name: profile.name,
               picture: profile.picture,
               oAuthId: profile.sub,
-              // emailVerified: profile.email_verified
             },
           })
           
-          return profile.email_verified && profile.email.endsWith("@gmail.com")
+          return profile.email_verified
         }
         return true // Do different verification for other providers that don't have `email_verified`
       },
