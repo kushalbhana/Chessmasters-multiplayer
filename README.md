@@ -5,9 +5,9 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 ## Features
 
 - **Real-Time Gameplay**: Instant communication via WebSockets.
+- **Peer-to-Peer Communication**: Videocall usigng WebRTC for direct player interaction.
 - **Modern Frontend**: Built with Next.js for a smooth user experience.
 - **Efficient State Management**: Redis for real-time updates and caching.
-- **Peer-to-Peer Communication**: WebRTC for direct player interaction.
 - **Robust Game Logic**: Chess.js for accurate game rule enforcement.
 
 ## Technologies
@@ -16,8 +16,11 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 - **Next.js**: Framework for the frontend.
 - **WebSockets**: Enables real-time, bi-directional communication.
 - **Redis**: In-memory database for state management.(Under development)
-- **WebRTC**: Facilitates direct communication between players.
+- **WebRTC**: Facilitates Video conferencing between players.
+- **Coturn**: TURN server for video conferencing between two players.
+- **Mediasoup**: Enables spactators to view a game.
 - **Chess.js**: Provides comprehensive chess game logic.
+- **Stockfish**: Provide ability to play against computer.
 
 ## Setup
 
@@ -25,7 +28,7 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 
 - Node.js
 - Redis Server
-- Yarn (optional but recommended for Turborepo)
+- Docker(not necessary)
 
 ### Installation Steps
 
@@ -37,18 +40,23 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 
 2. **Install Dependencies**:
     ```sh
-    yarn install
+    npm install
     ```
 
 3. **Setup Environment Variables**:
-    Create a `.env.local` file in the root directory and configure your environment variables as required (e.g., Redis connection details).
+    Fill all `.env.local` file in the root directory as well as in apps and packages and configure your environment variables as required (e.g., Redis connection details).
 
 4. **Start Redis Server**:
     Ensure your Redis server is running(No need for now).
 
+5. **Migrate your database**:
+    ```sh
+    cd packages/db
+    npx prisma migrate dev
+    ```
 5. **Run the Development Server**:
     ```sh
-    yarn dev
+    npm run dev
     ```
 
 ## Project Structure
