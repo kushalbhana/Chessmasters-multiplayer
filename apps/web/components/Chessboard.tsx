@@ -27,7 +27,6 @@ export default function ChessBoard({ roomId }: any) {
       const socket = new WebSocket('ws://localhost:8080');
 
       socket.onopen = () => {
-        // Send the JWT token along with the initial message
         socket.send(JSON.stringify({ type: 'sender', roomId, token }));
       };
 
@@ -75,7 +74,7 @@ export default function ChessBoard({ roomId }: any) {
         socket.close();
       };
     }
-  }, [roomId, status, session]);
+  }, [roomId, status]);
 
   const highlightSquare = (sourceSquare: any, targetSquare: any, color?: any) => {
     setCustomSquareStyles({
