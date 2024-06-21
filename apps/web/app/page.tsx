@@ -7,13 +7,11 @@ async function getUser() {
 }
 
 export default async function Home() {
-  const session = await getUser();
   return (
     <div>
       <h1 className="text-3xl font-bold underline">
         
       </h1>
-        {JSON.stringify(session)}
 
     </div>
   )

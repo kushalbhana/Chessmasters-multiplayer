@@ -1,15 +1,16 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import jwt from 'jsonwebtoken';
 import axios from 'axios';
 
 interface Room {
     senderSocket?: WebSocket | null;
     receiverSocket?: WebSocket | null;
     boardState: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    sender?: string;
-    reciever?: string;
+    sender?: any;
+    reciever?: any;
 }
 
+// 'White' ---> Sender | SenderSocker
+// 'black' ---> Reciever | RecieverSocker
 class WebSocketManager {
     private static instance: WebSocketManager | null = null;
     private wss: WebSocketServer;
@@ -37,6 +38,49 @@ class WebSocketManager {
         console.log('WebSocket server running on port:', this.wss.options.port);
     }
 
+    // Handle authorization using JWT from http server
+    private async handleAuthorization(message: any, room: Room, ws: WebSocket, node: string){
+        const response = axios.post(
+            'http://localhost:3000/api/verifyJWT', 
+            { token : message.token },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+        ).then(
+            (response) => {
+                console.log(response.data);
+                
+                if(response.status === 200){
+                    ws.send(JSON.stringify({ type: 'authorization', status: '200', message:'Authorized token' }))
+
+                    if(node === 'sender'){
+                        room.sender = response.data.user.userId;
+                    }
+                    if(node === 'reciever'){
+                        room.reciever = response.data.user.userId;
+                    }
+                    
+                }
+                if(response.status === 498){
+                    ws.send(JSON.stringify({ type: 'authorization', status: '498', message:'Invalid Token' }))
+                }
+                if(response.status === 500){
+                    ws.send(JSON.stringify({ type: 'authorization', status: '500', message:'token expired' }))
+                }
+                if(response.status === 403){
+                    ws.send(JSON.stringify({ type: 'authorization', status: '403', message:'Web Token Error' }))
+                }
+            }
+          ).catch((error) => {
+            console.log(error.response);
+            ws.send(JSON.stringify({ type: 'authorization', status: '401', message:'Token not valid' }))
+          }
+          )
+    }
+
+    // Handle messages and moves
     private handleMessage(ws: WebSocket, data: string): void {
         const message = JSON.parse(data);
 
@@ -55,39 +99,14 @@ class WebSocketManager {
 
         const room = this.rooms[roomId];
 
-
         if (message.type === 'sender') {
             if (!room?.senderSocket) {
                     // Verify the token using the route
-                    const response = axios.post(
-                        'http://localhost:3000/api/verifyJWT', // Replace with your actual route
-                        { token : message.token },
-                        {
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                        }
-                    ).then(
-                        (response) => {
-                            console.log(response.data);
-                            if(response.status === 200){
-                                ws.send(JSON.stringify({ type: 'authorization', status: '200', message:'Authorized token' }))
-                            }
-                            if(response.status === 498){
-                                ws.send(JSON.stringify({ type: 'authorization', status: '498', message:'Invalid Token' }))
-                            }
-                            if(response.status === 500){
-                                ws.send(JSON.stringify({ type: 'authorization', status: '500', message:'token expired' }))
-                            }
-                            if(response.status === 403){
-                                ws.send(JSON.stringify({ type: 'authorization', status: '403', message:'Web Token Error' }))
-                            }
-                        }
-                      ).catch((error) => {
-                        console.log(error.response.data);
-                        ws.send(JSON.stringify({ type: 'authorization', status: '401', message:'Token not valid' }))
-                      }
-                      )
+                    const verify = this.handleAuthorization(message, room!, ws, 'sender')
+
+                    if(!verify){
+                        return;
+                    }
 
                 console.log('Sender socket connected to:', roomId);
                 if (room){
@@ -97,7 +116,13 @@ class WebSocketManager {
                 }
 
             } else if (!room.receiverSocket) {
-                console.log('Receiver socket connected to:', roomId);
+                console.log('Receiver socket connected to:', room);
+
+                // Verify User
+                const verify = this.handleAuthorization(message, room, ws, 'reciever')
+                if(!verify){
+                    return
+                }
                 room.receiverSocket = ws;
                 room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
                 room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
@@ -108,7 +133,13 @@ class WebSocketManager {
             }
         } else if (message.type === 'receiver') {
             if (!room?.receiverSocket) {
-                console.log('Receiver socket connected to:', roomId);
+                console.log('Receiver socket connected to:', room!);
+
+                // Verify User
+                const verify = this.handleAuthorization(message, roomId, ws, 'reciever')
+                if(!verify){
+                    return
+                }
 
                 if(room){
                   room.receiverSocket = ws;
@@ -121,7 +152,20 @@ class WebSocketManager {
             }
         }
 
+        if(message.type==='checkmate'){
+            if(room?.receiverSocket && message.winner === 'white'){
+                room?.receiverSocket.send(JSON.stringify({ type: 'checkmate', message: 'You got checkmate' }));
+            }else if(room?.senderSocket && message.winner === 'blcak'){
+                room.senderSocket.send(JSON.stringify({ type: 'checkmate', message: 'You got CHeckmate' }));
+            }else{
+                console.log('Pushing the game to redis');
+            }
+        }
+
         if (room?.senderSocket || room?.receiverSocket) {
+            console.log(room.sender);
+            console.log(room.reciever);
+
             if (message.type === 'moveFromSender') {
                 console.log('Move initiated by sender to receiver: ');
                 room.boardState = message.boardState;  //Saving the move from one player

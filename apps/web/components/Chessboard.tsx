@@ -40,8 +40,14 @@ export default function ChessBoard({ roomId }: any) {
         if (message.type === 'color') {
           setBoardOrientation(message.color);
         }
+
+        if (message.type === 'checkmate') {
+          console.log(message)
+        }
+
         if (message.type === 'authorization') {
           if(message.status !== "200"){
+            console.log(message)
             router.push('/');
           }
         }
@@ -100,9 +106,14 @@ export default function ChessBoard({ roomId }: any) {
         setMyChance(false);
         move.fen = game.fen();
         let boardState = gameCopy.fen();
+        
         if (socketRef.current) {
           const messageType = boardOrientation === 'white' ? 'moveFromSender' : 'moveFromReceiver';
           socketRef.current.send(JSON.stringify({ type: messageType, move, roomId, boardState }));
+
+          if (gameCopy.isCheckmate()){
+            socketRef.current.send(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId}));
+          }
         }
       }
 
@@ -110,7 +121,9 @@ export default function ChessBoard({ roomId }: any) {
 
       if (gameCopy.inCheck()) {
         const queenPosition = findQueenPosition(gameCopy);
-        highlightSquare(move.to, queenPosition, '#D63326');
+        setCustomSquareStyles({
+          [queenPosition!]:{ backgroundColor: '#D63326' },
+        });
       }
       setGame(gameCopy);
       return validMove;

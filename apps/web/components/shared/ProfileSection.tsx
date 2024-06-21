@@ -42,7 +42,7 @@ export default function ProfileSection() {
     return (
         <div className="flex flex-col ml-5 gap-3 mt-10 min-h-28">
             <AuthDialogbox />
-            <AuthDialogbox />
+           
         </div>
     );
 }

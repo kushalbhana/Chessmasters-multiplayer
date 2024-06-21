@@ -19,22 +19,22 @@ export default function Sidebar(){
                 <ProfileSection />
             </div>
             <div className=" flex flex-col gap-y-4">
-                <div className="hover:bg-red-400 rounded pl-4 ml-2">
+                <div className="hover:bg-red-400 bg-red-400 rounded px-4 ml-4">
                     <Home/>
                 </div>
-                <div className="hover:bg-red-400 rounded pl-4 ml-2">
+                <div className="hover:bg-red-400 rounded pl-4 ml-4">
                     <VsFriend/>
                 </div>
-                <div className="hover:bg-red-400 rounded pl-4 ml-2">
+                <div className="hover:bg-red-400 rounded pl-4 ml-4">
                     <VsRandom/>
                 </div>
-                <div className="hover:bg-red-400 rounded pl-4 ml-2">
+                <div className="hover:bg-red-400 rounded pl-4 ml-4">
                     <Spectate/>
                 </div>
-                <div className="hover:bg-red-400 rounded pl-4 ml-2">
+                <div className="hover:bg-red-400 rounded pl-4 ml-4">
                     <Settings/>
                 </div>
-                <div className="hover:bg-red-400 rounded pl-4 ml-2">
+                <div className="hover:bg-red-400 rounded pl-4 ml-4">
                     <Logout/>
                 </div>
             </div>
