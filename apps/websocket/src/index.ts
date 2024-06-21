@@ -163,16 +163,14 @@ class WebSocketManager {
         }
 
         if (room?.senderSocket || room?.receiverSocket) {
-            console.log(room.sender);
-            console.log(room.reciever);
 
             if (message.type === 'moveFromSender') {
-                console.log('Move initiated by sender to receiver: ');
+                console.log('Move initiated by sender to Sender ');
                 room.boardState = message.boardState;  //Saving the move from one player
                 if (room.receiverSocket)
                     room.receiverSocket.send(JSON.stringify({ type: 'move', move: message.move }));
             } else if (message.type === 'moveFromReceiver') {
-                console.log('Move initiated by receiver to sender');
+                console.log('Move initiated by receiver to Reciever');
                 room.boardState = message.boardState;
                 if (room.senderSocket)
                     room.senderSocket.send(JSON.stringify({ type: 'move', move: message.move }));
