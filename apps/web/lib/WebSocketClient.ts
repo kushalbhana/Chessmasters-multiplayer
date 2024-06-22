@@ -1,64 +1,65 @@
-// WebSocketClient.ts
+class WebSocketClient {
+  private static instance: WebSocketClient;
+  private socket: WebSocket;
+  private messageListeners: ((message: MessageEvent) => void)[] = [];
+  private openListeners: (() => void)[] = [];
+  private closeListeners: (() => void)[] = [];
+  private errorListeners: ((error: any) => void)[] = [];
 
-export interface WebSocketMessage {
-    type: string;
-    [key: string]: any;
+  private constructor() {
+      this.socket = new WebSocket('ws://localhost:8080');
+      this.socket.onmessage = this.handleMessage.bind(this);
+      this.socket.onopen = this.handleOpen.bind(this);
+      this.socket.onclose = this.handleClose.bind(this);
+      this.socket.onerror = this.handleError.bind(this);
   }
-  
-  class WebSocketClient {
-    private static instance: WebSocketClient;
-    private socket: WebSocket | null = null;
-  
-    private constructor() {}
-  
-    static getInstance(): WebSocketClient {
+
+  public static getInstance(): WebSocketClient {
       if (!WebSocketClient.instance) {
-        WebSocketClient.instance = new WebSocketClient();
+          WebSocketClient.instance = new WebSocketClient();
       }
       return WebSocketClient.instance;
-    }
-  
-    connect(url: string, token: string, roomId: string) {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        return;
-      }
-  
-      this.socket = new WebSocket(url);
-  
-      this.socket.onopen = () => {
-        this.send({ type: 'sender', roomId, token });
-      };
-  
-      this.socket.onclose = () => {
-        console.log('WebSocket connection closed');
-      };
-  
-      this.socket.onerror = (error) => {
-        console.error('WebSocket error', error);
-      };
-    }
-  
-    onMessage(callback: (message: WebSocketMessage) => void) {
-      if (this.socket) {
-        this.socket.onmessage = (event) => {
-          const message = JSON.parse(event.data);
-          callback(message);
-        };
-      }
-    }
-  
-    send(message: WebSocketMessage) {
-      if (this.socket) {
-        this.socket.send(JSON.stringify(message));
-      }
-    }
-  
-    close() {
-      if (this.socket) {
-        this.socket.close();
-      }
-    }
   }
-  
-  export default WebSocketClient.getInstance();
-  
+
+  private handleMessage(event: MessageEvent) {
+      this.messageListeners.forEach(listener => listener(event));
+  }
+
+  private handleOpen() {
+      this.openListeners.forEach(listener => listener());
+  }
+
+  private handleClose() {
+      this.closeListeners.forEach(listener => listener());
+  }
+
+  private handleError(error: any) {
+      this.errorListeners.forEach(listener => listener(error));
+  }
+
+  public onMessage(listener: (message: MessageEvent) => void) {
+      this.messageListeners.push(listener);
+  }
+
+  public onOpen(listener: () => void) {
+      this.openListeners.push(listener);
+  }
+
+  public onClose(listener: () => void) {
+      this.closeListeners.push(listener);
+  }
+
+  public onError(listener: (error: any) => void) {
+      this.errorListeners.push(listener);
+  }
+
+  public sendMessage(message: string) {
+      this.socket.send(message);
+  }
+
+  public close() {
+      this.socket.close();
+  }
+}
+
+export default WebSocketClient;

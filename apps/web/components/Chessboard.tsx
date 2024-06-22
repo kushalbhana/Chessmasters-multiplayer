@@ -5,6 +5,7 @@ import { Chess } from "chess.js";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import WebSocketClient from '../lib/WebSocketClient';
 
 export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
@@ -13,9 +14,7 @@ export default function ChessBoard({ roomId }: any) {
   const [customSquareStyles, setCustomSquareStyles] = useState({});
   const [forceUpdate, setForceUpdate] = useState(1);
   const { data: session, status } = useSession();
-  const socketRef = useRef<WebSocket | null>(null);
   const router = useRouter();
-  
 
   useEffect(() => {
     if (status === "loading") return; // Wait for session to load
@@ -24,13 +23,13 @@ export default function ChessBoard({ roomId }: any) {
     if (status === "authenticated" && session?.user?.jwt) {
       // @ts-ignore
       const token = session.user.jwt;
-      const socket = new WebSocket('ws://localhost:8080');
+      const socket = WebSocketClient.getInstance();
 
-      socket.onopen = () => {
-        socket.send(JSON.stringify({ type: 'sender', roomId, token }));
-      };
+      socket.onOpen(() => {
+        socket.sendMessage(JSON.stringify({ type: 'sender', roomId, token }));
+      });
 
-      socket.onmessage = (event) => {
+      socket.onMessage((event: MessageEvent) => {
         const message = JSON.parse(event.data);
 
         if (message.type === 'move') {
@@ -42,12 +41,12 @@ export default function ChessBoard({ roomId }: any) {
         }
 
         if (message.type === 'checkmate') {
-          console.log(message)
+          console.log(message);
         }
 
         if (message.type === 'authorization') {
           if(message.status !== "200"){
-            console.log(message)
+            console.log(message);
             router.push('/');
           }
         }
@@ -64,17 +63,15 @@ export default function ChessBoard({ roomId }: any) {
           }
           forceUpdate === 1 ? setForceUpdate(0) : setForceUpdate(1);
         }
-      };
+      });
 
-      socket.onclose = () => {
+      socket.onClose(() => {
         console.log('WebSocket connection closed');
-      };
+      });
 
-      socket.onerror = (error) => {
+      socket.onError((error: any) => {
         console.error('WebSocket error', error);
-      };
-
-      socketRef.current = socket;
+      });
 
       return () => {
         socket.close();
@@ -107,12 +104,13 @@ export default function ChessBoard({ roomId }: any) {
         move.fen = game.fen();
         let boardState = gameCopy.fen();
         
-        if (socketRef.current) {
+        const socket = WebSocketClient.getInstance();
+        if (socket) {
           const messageType = boardOrientation === 'white' ? 'moveFromSender' : 'moveFromReceiver';
-          socketRef.current.send(JSON.stringify({ type: messageType, move, roomId, boardState }));
+          socket.sendMessage(JSON.stringify({ type: messageType, move, roomId, boardState }));
 
           if (gameCopy.isCheckmate()){
-            socketRef.current.send(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId}));
+            socket.sendMessage(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId }));
           }
         }
       }
@@ -122,7 +120,7 @@ export default function ChessBoard({ roomId }: any) {
       if (gameCopy.inCheck()) {
         const queenPosition = findQueenPosition(gameCopy);
         setCustomSquareStyles({
-          [queenPosition!]:{ backgroundColor: '#D63326' },
+          [queenPosition!]: { backgroundColor: '#D63326' },
         });
       }
       setGame(gameCopy);
