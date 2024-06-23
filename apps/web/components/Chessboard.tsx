@@ -1,6 +1,6 @@
 "use client";
 import { Chessboard } from "react-chessboard";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { useSession } from "next-auth/react";
@@ -17,7 +17,10 @@ export default function ChessBoard({ roomId }: any) {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "loading") return; // Wait for session to load
+    if (status === "loading") return; 
+    else if (session==null){
+      router.push('/');
+    }
 
     // @ts-ignore
     if (status === "authenticated" && session?.user?.jwt) {

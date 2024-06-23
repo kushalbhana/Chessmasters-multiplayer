@@ -61,16 +61,20 @@ class WebSocketManager {
                     if(node === 'reciever'){
                         room.reciever = response.data.user.userId;
                     }
+                    return true;
                     
                 }
                 if(response.status === 498){
                     ws.send(JSON.stringify({ type: 'authorization', status: '498', message:'Invalid Token' }))
+                    return false;
                 }
                 if(response.status === 500){
                     ws.send(JSON.stringify({ type: 'authorization', status: '500', message:'token expired' }))
+                    return false
                 }
                 if(response.status === 403){
                     ws.send(JSON.stringify({ type: 'authorization', status: '403', message:'Web Token Error' }))
+                    return false;
                 }
             }
           ).catch((error) => {
