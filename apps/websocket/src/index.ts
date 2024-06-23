@@ -179,6 +179,16 @@ class WebSocketManager {
                 if (room.senderSocket)
                     room.senderSocket.send(JSON.stringify({ type: 'move', move: message.move }));
             }
+
+            if(message.type === 'textMessage'){
+                console.log(message)
+                if(ws === room.senderSocket){
+                    room.receiverSocket?.send(JSON.stringify({ type: 'textMessage', message: message.text }))
+                }else{
+                    room.senderSocket?.send(JSON.stringify({ type: 'textMessage', message: message.text }))
+                
+                }
+            }
         }
     }
 

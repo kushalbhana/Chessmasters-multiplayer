@@ -19,7 +19,7 @@ export default function ChessBoard({ roomId }: any) {
   useEffect(() => {
     if (status === "loading") return; 
     else if (session==null){
-      router.push('/');
+      router.push('/'); //If not authenticated then redirect to home page for now
     }
 
     // @ts-ignore

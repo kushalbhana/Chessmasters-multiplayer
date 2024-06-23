@@ -45,7 +45,7 @@ export default function App({ params: { gameId } }: any) {
 
         {/* ChatBox */}
         <div className="flex-grow overflow-hidden">
-          <ChatBox />
+          <ChatBox roomId={gameId} />
         </div>
       </div>
     </div>
