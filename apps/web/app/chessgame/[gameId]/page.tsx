@@ -2,7 +2,7 @@ import ChessBoard from "../../../components/Chessboard";
 import { Button } from "../../../components/ui/button";
 import { FaMicrophone, FaCamera } from "react-icons/fa";
 import ChatBox from "../../../components/Chatbox";
-import { GameOver } from "../../../components/shared/GameOver";
+
 
 export default function App({ params: { gameId } }: any) {
   return (
@@ -13,7 +13,6 @@ export default function App({ params: { gameId } }: any) {
           <ChessBoard roomId={gameId} />
         </div>
       </div>
-      <GameOver/>
       {/* Right panel with video sections and chat */}
       <div className="flex flex-col md:flex-grow md:w-1/3 h-full p-4 md:pr-4 overflow-hidden">
         {/* Video Sections */}

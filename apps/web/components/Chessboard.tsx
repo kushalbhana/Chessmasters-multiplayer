@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import { Chessboard } from "react-chessboard";
 import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
@@ -6,6 +6,7 @@ import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import WebSocketClient from '../lib/WebSocketClient';
+import GameOver from './shared/GameOver';
 
 export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
@@ -13,6 +14,8 @@ export default function ChessBoard({ roomId }: any) {
   const [myChance, setMyChance] = useState<boolean>(true);
   const [customSquareStyles, setCustomSquareStyles] = useState({});
   const [forceUpdate, setForceUpdate] = useState(1);
+  const [showCheckmateDialog, setShowCheckmateDialog] = useState(false);
+  const [gameResult, setGameResult] = useState<string>("");
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -21,6 +24,10 @@ export default function ChessBoard({ roomId }: any) {
     else if (session==null){
       router.push('/'); //If not authenticated then redirect to home page for now
     }
+  },[])
+
+  useEffect(() => {
+    if (status === "loading") return; 
 
     // @ts-ignore
     if (status === "authenticated" && session?.user?.jwt) {
@@ -45,6 +52,9 @@ export default function ChessBoard({ roomId }: any) {
 
         if (message.type === 'checkmate') {
           console.log(message);
+          setGameResult("Lost");
+          setShowCheckmateDialog(true);
+
         }
 
         if (message.type === 'authorization') {
@@ -98,7 +108,6 @@ export default function ChessBoard({ roomId }: any) {
     try {
       const validMove = gameCopy.move(move);
       if (!validMove) {
-        console.log('Invalid move:', move);
         return null;
       }
 
@@ -113,7 +122,19 @@ export default function ChessBoard({ roomId }: any) {
           socket.sendMessage(JSON.stringify({ type: messageType, move, roomId, boardState }));
 
           if (gameCopy.isCheckmate()){
-            socket.sendMessage(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId }));
+            socket.sendMessage(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId, endType: 'Winner' }));
+            setGameResult("Winner");
+            setShowCheckmateDialog(true);
+          }
+          if (gameCopy.isDraw()){
+            socket.sendMessage(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId, endType: 'Draw' }));
+            setGameResult("Draw");
+            setShowCheckmateDialog(true);
+          }
+          if (gameCopy.isStalemate()){
+            socket.sendMessage(JSON.stringify({ type: 'checkmate', winner: boardOrientation, roomId, endType: 'Stalemate' }));
+            setGameResult("Stalemate");
+            setShowCheckmateDialog(true);
           }
         }
       }
@@ -175,6 +196,7 @@ export default function ChessBoard({ roomId }: any) {
         arePiecesDraggable={myChance}
         customSquareStyles={customSquareStyles}
       />
+      <GameOver gameResult={gameResult} open={showCheckmateDialog} onClose={() => setShowCheckmateDialog(false)} />
     </div>
   );
 }
