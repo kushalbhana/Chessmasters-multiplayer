@@ -13,8 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "@types/axios": "^0.14.0",
+    "@types/ioredis": "^5.0.0",
+    "@types/redis": "^4.0.11",
     "@types/ws": "^8.5.10",
     "axios": "^1.7.2",
+    "ioredis": "^5.4.1",
+    "redis": "^4.6.15",
     "ws": "^8.17.0"
   },
   "devDependencies": {

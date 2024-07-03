@@ -1,5 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import axios from 'axios';
+import { createClient } from 'redis';
+import { RedisClientType } from 'redis';
 
 interface Room {
     senderSocket?: WebSocket | null;
@@ -15,10 +17,28 @@ class WebSocketManager {
     private static instance: WebSocketManager | null = null;
     private wss: WebSocketServer;
     private rooms: { [key: string]: Room } = {};
+    private redisClient!: RedisClientType;
 
     private constructor(port: number) {
         this.wss = new WebSocketServer({ port });
         this.initialize();
+        
+        this.initializeRedis().catch((error) => {
+            console.log(error);
+        });
+    }
+
+
+    private async initializeRedis() {
+        try {
+            this.redisClient = createClient();
+            this.redisClient.on('error', (err: any) => console.log('Redis Client Error', err));
+            await this.redisClient.connect();
+            console.log('Connected to Redis...');
+
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     public static getInstance(port: number = 8080): WebSocketManager {
@@ -53,7 +73,8 @@ class WebSocketManager {
                 console.log(response.data);
                 
                 if(response.status === 200){
-                    ws.send(JSON.stringify({ type: 'authorization', status: '200', message:'Authorized token' }))
+                    ws.send(JSON.stringify({ type: 'authorization', 
+                        status: '200', message:'Authorized token' }))
 
                     if(node === 'sender'){
                         room.sender = response.data.user.userId;
@@ -65,21 +86,26 @@ class WebSocketManager {
                     
                 }
                 if(response.status === 498){
-                    ws.send(JSON.stringify({ type: 'authorization', status: '498', message:'Invalid Token' }))
+                    ws.send(JSON.stringify({ type: 'authorization', 
+                        status: '498', message:'Invalid Token' }))
                     return false;
                 }
                 if(response.status === 500){
-                    ws.send(JSON.stringify({ type: 'authorization', status: '500', message:'token expired' }))
+                    ws.send(JSON.stringify({ type: 'authorization', 
+                        status: '500', message:'token expired' }))
                     return false
                 }
                 if(response.status === 403){
-                    ws.send(JSON.stringify({ type: 'authorization', status: '403', message:'Web Token Error' }))
+                    ws.send(JSON.stringify({ type: 'authorization', 
+                        status: '403', message:'Web Token Error' }))
                     return false;
                 }
             }
           ).catch((error) => {
             console.log(error.response);
-            ws.send(JSON.stringify({ type: 'authorization', status: '401', message:'Token not valid' }))
+            ws.send(JSON.stringify({ type: 'authorization', 
+                status: '401', 
+                message:'Token not valid' }))
           }
           )
     }
@@ -89,7 +115,8 @@ class WebSocketManager {
         const message = JSON.parse(data);
 
         if (!message.roomId) {
-            ws.send(JSON.stringify({ type: 'error', message: 'Room ID not provided' }));
+            ws.send(JSON.stringify({ type: 'error', 
+                message: 'Room ID not provided' }));
             ws.close(4000, 'Room ID not provided');
             return;
         }
