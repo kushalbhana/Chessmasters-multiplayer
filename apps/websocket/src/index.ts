@@ -6,9 +6,10 @@ import { RedisClientType } from 'redis';
 interface Room {
     senderSocket?: WebSocket | null;
     receiverSocket?: WebSocket | null;
-    boardState: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    boardState?: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     sender?: any;
     reciever?: any;
+    moves?:[];
 }
 
 // 'White' ---> Sender | SenderSocker
@@ -17,6 +18,7 @@ class WebSocketManager {
     private static instance: WebSocketManager | null = null;
     private wss: WebSocketServer;
     private rooms: { [key: string]: Room } = {};
+     
     private redisClient!: RedisClientType;
 
     private constructor(port: number) {
@@ -110,8 +112,33 @@ class WebSocketManager {
           )
     }
 
+
+    private async pushToRedis(roomId: any, move: any, room: any){
+        try {
+            const id = move.type === 'moveFromSender' ? room.sender : room.receiver;
+        
+            // Retrieve the cached moves
+            const cachedMovesString = await this.redisClient.hGet('rooms', roomId);
+
+            if(cachedMovesString){
+                const cachedParsedMoves: any = JSON.parse(cachedMovesString);
+                const cachedMoves = cachedParsedMoves?.moves.push(move);
+            
+                // Add the new move
+                cachedMoves.moves.push(move);
+            
+                await this.redisClient.hSet('rooms', roomId, JSON.stringify(cachedMoves));
+            
+                const getAllMoves = await this.redisClient.hGetAll('rooms');
+                console.log('All Moves: ',getAllMoves);
+            }
+        } catch (error) {
+            console.log(error);
+        }  
+    }
+
     // Handle messages and moves
-    private handleMessage(ws: WebSocket, data: string): void {
+    private async handleMessage(ws: WebSocket, data: string) {
         const message = JSON.parse(data);
 
         if (!message.roomId) {
@@ -125,7 +152,8 @@ class WebSocketManager {
 
         // Initialize the room if it doesn't exist
         if (!this.rooms[roomId]) {
-            this.rooms[roomId] = { boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' };
+            this.rooms[roomId] = { boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', moves:[] };
+            
         }
 
         const room = this.rooms[roomId];
@@ -146,6 +174,8 @@ class WebSocketManager {
                   room.senderSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'white' }));
                 }
 
+                
+
             } else if (!room.receiverSocket) {
                 console.log('Receiver socket connected to:', room);
 
@@ -157,6 +187,8 @@ class WebSocketManager {
                 room.receiverSocket = ws;
                 room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
                 room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
+
+                const cachedRoom = await this.redisClient.hSet('rooms', 'room', JSON.stringify(this.rooms));
         
             } else {
                 console.log('Additional sender attempted to connect.');
@@ -176,6 +208,13 @@ class WebSocketManager {
                   room.receiverSocket = ws;
                   room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }));
                   room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
+
+                  const roomEntries = Object.entries(this.rooms);
+                    for (const [key, value] of roomEntries) {
+                        // Serialize the room object to a JSON string
+                        const roomData = JSON.stringify(value);
+                        await this.redisClient.hSet('rooms', key, roomData);
+    }
                 }
             } else {
                 console.log('Additional receiver attempted to connect.');
@@ -196,6 +235,7 @@ class WebSocketManager {
         if (room?.senderSocket || room?.receiverSocket) {
 
             if (message.type === 'moveFromSender') {
+                this.pushToRedis(roomId, message, room);
                 console.log('Move initiated by sender to Sender ');
                 room.boardState = message.boardState;  //Saving the move from one player
                 if (room.receiverSocket)
