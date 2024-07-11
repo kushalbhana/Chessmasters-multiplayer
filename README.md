@@ -47,7 +47,7 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
     Fill all `.env.local` file in the root directory as well as in apps and packages and configure your environment variables as required (e.g., Redis connection details).
 
 4. **Start Redis Server**:
-    Ensure your Redis server is running(No need for now).
+    Ensure your Redis server is running.
 
 5. **Migrate your database**:
     ```sh
