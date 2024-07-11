@@ -9,7 +9,7 @@ interface Room {
     boardState?: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     sender?: any;
     reciever?: any;
-    moves?:[];
+    moves?: any;
 }
 
 // 'White' ---> Sender | SenderSocker
@@ -72,8 +72,6 @@ class WebSocketManager {
             }
         ).then(
             (response) => {
-                console.log(response.data);
-                
                 if(response.status === 200){
                     ws.send(JSON.stringify({ type: 'authorization', 
                         status: '200', message:'Authorized token' }))
@@ -113,25 +111,11 @@ class WebSocketManager {
     }
 
 
-    private async pushToRedis(roomId: any, move: any, room: any){
+    private async pushToRedis(roomId: string){
         try {
-            const id = move.type === 'moveFromSender' ? room.sender : room.receiver;
-        
+            console.log('started pushing to redis..')
             // Retrieve the cached moves
-            const cachedMovesString = await this.redisClient.hGet('rooms', roomId);
-
-            if(cachedMovesString){
-                const cachedParsedMoves: any = JSON.parse(cachedMovesString);
-                const cachedMoves = cachedParsedMoves?.moves.push(move);
-            
-                // Add the new move
-                cachedMoves.moves.push(move);
-            
-                await this.redisClient.hSet('rooms', roomId, JSON.stringify(cachedMoves));
-            
-                const getAllMoves = await this.redisClient.hGetAll('rooms');
-                console.log('All Moves: ',getAllMoves);
-            }
+            this.redisClient.hSet('rooms', roomId, JSON.stringify(this.rooms[roomId]));
         } catch (error) {
             console.log(error);
         }  
@@ -152,7 +136,7 @@ class WebSocketManager {
 
         // Initialize the room if it doesn't exist
         if (!this.rooms[roomId]) {
-            this.rooms[roomId] = { boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', moves:[] };
+            this.rooms[roomId] = { boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', moves:[{'message': 'Game started'}] };
             
         }
 
@@ -188,7 +172,7 @@ class WebSocketManager {
                 room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
                 room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
 
-                const cachedRoom = await this.redisClient.hSet('rooms', 'room', JSON.stringify(this.rooms));
+                const cachedRoom = await this.redisClient.hSet('rooms', roomId, JSON.stringify(this.rooms));
         
             } else {
                 console.log('Additional sender attempted to connect.');
@@ -196,7 +180,7 @@ class WebSocketManager {
             }
         } else if (message.type === 'receiver') {
             if (!room?.receiverSocket) {
-                console.log('Receiver socket connected to:', room!);
+                console.log('Receiver socket connected to:');
 
                 // Verify User
                 const verify = this.handleAuthorization(message, roomId, ws, 'reciever')
@@ -235,12 +219,17 @@ class WebSocketManager {
         if (room?.senderSocket || room?.receiverSocket) {
 
             if (message.type === 'moveFromSender') {
-                this.pushToRedis(roomId, message, room);
+                this.rooms[roomId]?.moves?.push(message);
+                await this.pushToRedis(roomId);
+
                 console.log('Move initiated by sender to Sender ');
                 room.boardState = message.boardState;  //Saving the move from one player
-                if (room.receiverSocket)
+                if (room.receiverSocket){
                     room.receiverSocket.send(JSON.stringify({ type: 'move', move: message.move }));
+                }
+
             } else if (message.type === 'moveFromReceiver') {
+                await this.pushToRedis(roomId);
                 console.log('Move initiated by receiver to Reciever');
                 room.boardState = message.boardState;
                 if (room.senderSocket)
