@@ -17,7 +17,7 @@ interface Room {
 class WebSocketManager {
     private static instance: WebSocketManager | null = null;
     private wss: WebSocketServer;
-    public rooms: { [key: string]: Room } = {};
+    private rooms: { [key: string]: Room } =  {};
      
     public redisClient!: RedisClientType;
 
@@ -25,7 +25,13 @@ class WebSocketManager {
         this.wss = new WebSocketServer({ port });
         this.initialize();
         
-        this.initializeRedis().catch((error) => {
+        this.initializeRedis().then(() => {
+            this.setRoomFromRedis().then(() => {
+                console.log('Rooms initialized from Redis...');
+            }).catch((error) => {
+                console.log('Error setting rooms from Redis:', error);
+            });
+        }).catch((error) => {
             console.log(error);
         });
     }
@@ -59,6 +65,32 @@ class WebSocketManager {
 
         console.log('WebSocket server running on port:', this.wss.options.port);
     }
+
+    private async setRoomFromRedis() {
+
+        try {
+            const cachedRoom = await this.redisClient.hGetAll('rooms');
+            console.log('cached Rooms from redis',typeof(cachedRoom))
+            if (cachedRoom) {
+                
+                let colledtedRooms: { [key: string]: Room } = {};
+                for (const key in cachedRoom) {
+                        const room: Room = JSON.parse(cachedRoom[key]!)
+                        colledtedRooms[key] = room;
+                    }
+                    this.rooms = colledtedRooms; 
+            }
+
+            console.log(this.rooms)
+            console.log(this.rooms)
+             
+        } catch (error) {
+            console.log(error)
+        }
+
+
+    } 
+    
 
     // Handle authorization using JWT from http server
     private async handleAuthorization(message: any, room: Room, ws: WebSocket, node: string){
@@ -161,7 +193,7 @@ class WebSocketManager {
                 
 
             } else if (!room.receiverSocket) {
-                console.log('Receiver socket connected to:', room);
+                console.log('Receiver socket connected to:');
 
                 // Verify User
                 const verify = this.handleAuthorization(message, room, ws, 'reciever')
@@ -237,7 +269,6 @@ class WebSocketManager {
             }
 
             if(message.type === 'textMessage'){
-                console.log(message)
                 if(ws === room.senderSocket){
                     room.receiverSocket?.send(JSON.stringify({ type: 'textMessage', message: message.text }))
                 }else{
