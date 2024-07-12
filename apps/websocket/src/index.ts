@@ -17,9 +17,9 @@ interface Room {
 class WebSocketManager {
     private static instance: WebSocketManager | null = null;
     private wss: WebSocketServer;
-    private rooms: { [key: string]: Room } = {};
+    public rooms: { [key: string]: Room } = {};
      
-    private redisClient!: RedisClientType;
+    public redisClient!: RedisClientType;
 
     private constructor(port: number) {
         this.wss = new WebSocketServer({ port });
@@ -50,7 +50,7 @@ class WebSocketManager {
         return WebSocketManager.instance;
     }
 
-    private initialize(): void {
+    private async initialize() {
         this.wss.on('connection', (ws: WebSocket) => {
             ws.on('error', console.error);
             ws.on('message', (data: string) => this.handleMessage(ws, data));
@@ -267,5 +267,23 @@ class WebSocketManager {
     }
 }
 
+async function getRoomFromRedis(redisClient:RedisClientType){
+    const cachedRoom = await redisClient.hGetAll('rooms');
+    if(cachedRoom){
+        let rooms: any = {};
+        for (const key in cachedRoom) {
+            if (cachedRoom.hasOwnProperty(key)) {
+                // Assuming you have a function to convert a string to a Room object
+                const room: Room = JSON.parse(cachedRoom[key]!);
+                rooms[key] = room;
+            }
+        }
+        return rooms;
+    }else{
+        return null;
+    }
+}
 // Export an instance of WebSocketManager as a singleton
 export const webSocketManager = WebSocketManager.getInstance();
+
+
