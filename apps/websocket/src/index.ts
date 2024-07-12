@@ -75,7 +75,15 @@ class WebSocketManager {
                 
                 let colledtedRooms: { [key: string]: Room } = {};
                 for (const key in cachedRoom) {
-                        const room: Room = JSON.parse(cachedRoom[key]!)
+                        let room: Room = JSON.parse(cachedRoom[key]!)
+
+                        if(room.senderSocket){
+                            room.senderSocket = null;
+                        }
+                        if(room.receiverSocket){
+                            room.receiverSocket = null;
+                        }
+                        
                         colledtedRooms[key] = room;
                     }
                     this.rooms = colledtedRooms; 
