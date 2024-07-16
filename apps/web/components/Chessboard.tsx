@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import WebSocketClient from '../lib/WebSocketClient';
 import GameOver from './shared/GameOver';
 
+
 export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
   const [boardOrientation, setBoardOrientation] = useState<BoardOrientation>('black');
@@ -17,6 +18,7 @@ export default function ChessBoard({ roomId }: any) {
   const [showCheckmateDialog, setShowCheckmateDialog] = useState(false);
   const [gameResult, setGameResult] = useState<string>("");
   const { data: session, status } = useSession();
+  const [time, setTime] = useState();
   const router = useRouter();
 
   useEffect(() => {
@@ -186,7 +188,13 @@ export default function ChessBoard({ roomId }: any) {
   }
 
   return (
-    <div>
+    <div className="flex flex-col pt-3">
+      <div className="flex items-end justify-end h-10 pb-1">
+            <div className=" bg-slate-200 p-1 h-full w-24 text-slate-900 rounded">
+                {time}
+            </div>
+            
+        </div>
       <Chessboard
         id="BasicBoard"
         position={game.fen()}
@@ -197,6 +205,13 @@ export default function ChessBoard({ roomId }: any) {
         customSquareStyles={customSquareStyles}
       />
       <GameOver gameResult={gameResult} open={showCheckmateDialog} onClose={() => setShowCheckmateDialog(false)} />
+
+      <div className="flex items-end justify-end h-10 p-1">
+            <div className=" bg-slate-200 p-1 h-full w-24 text-slate-900 rounded">
+                {time}
+            </div>
+            
+        </div>
     </div>
   );
 }
