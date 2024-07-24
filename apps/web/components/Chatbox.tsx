@@ -99,7 +99,7 @@ export function ChatBox({ roomId }: any)  {
 
   return (
     <div className="flex flex-col h-full p-4 bg-gray-800 text-white">
-      <div className="flex-1 overflow-y-auto rounded bg-gray-700" style={{ maxHeight: "25rem", scrollbarWidth: "thin" }}>
+      <div className="flex-1 overflow-y-auto rounded bg-gray-700" style={{ maxHeight: "calc(100% - 5rem)", scrollbarWidth: "thin" }}>
         {messages.map((message) => (
           <div key={message.id} className={`flex mb-2 ${message.type === "sent" ? "justify-end" : "justify-start"}`}>
             <div className={`rounded-lg py-2 px-4 max-w-xs break-words mt-1 ${message.type === "sent" ? "bg-orange-500 text-white mr-2" : "bg-blue-500 text-white ml-2"}`}>
