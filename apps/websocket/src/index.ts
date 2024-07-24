@@ -6,7 +6,7 @@ import { RedisClientType } from 'redis';
 interface Room {
     senderSocket?: WebSocket | null;
     receiverSocket?: WebSocket | null;
-    boardState?: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    boardState: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     sender?: any;
     reciever?: any;
     moves?: any;
@@ -193,6 +193,7 @@ class WebSocketManager {
 
                 console.log('Sender socket connected to:', roomId);
                 if (room){
+                    console.log('boardState before sending: ', room.boardState)
                   room.senderSocket = ws;
                   room.senderSocket.send(JSON.stringify({ type: 'color', color: 'white' }));
                   room.senderSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'white' }));
