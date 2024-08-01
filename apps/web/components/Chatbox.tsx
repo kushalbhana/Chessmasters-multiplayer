@@ -1,5 +1,5 @@
-"use client";
-import { useState, useRef, useEffect, ChangeEvent, KeyboardEvent } from "react";
+"use client"
+import React, { useState, useRef, useEffect, ChangeEvent, KeyboardEvent } from "react";
 import WebSocketClient from '../lib/WebSocketClient';
 import { useSession } from "next-auth/react";
 
@@ -33,8 +33,8 @@ export function ChatBox({ roomId }: any)  {
       const message = JSON.parse(event.data);
 
       if (message.type === 'textMessage') {
-        const messageRecieved: string = message.message.text;
-        handleReceiveMessage(messageRecieved)
+        const messageReceived: string = message.message.text;
+        handleReceiveMessage(messageReceived);
       }
     };
 
@@ -68,12 +68,11 @@ export function ChatBox({ roomId }: any)  {
       setMessages([...messages, newMessage]);
       try {
         if(socket){
-          // @ts-ignore
-          socket.sendMessage(JSON.stringify({ type: 'textMessage', text: newMessage, roomId: roomId }));
+          socket.sendMessage(JSON.stringify({ type: 'textMessage', message: newMessage, roomId: roomId }));
         }
         
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
       setInputMessage("");
     }
@@ -95,7 +94,6 @@ export function ChatBox({ roomId }: any)  {
   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSendMessage();
   };
-
 
   return (
     <div className="flex flex-col h-full p-4 bg-gray-800 text-white">
