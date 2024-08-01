@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { MdOutlineTimer } from "react-icons/md";
-import { countDown } from '@repo/store/countDown';
 
 // Define the props interface
 interface CountdownProps {

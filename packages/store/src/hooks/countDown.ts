@@ -3,7 +3,7 @@ import { countDown } from "../atoms/countDown"
 import {selector} from "recoil";
 
 export const countDownHook = selector({
-    key: 'courseDetailsState',
+    key: 'countDown',
     get: ({get}) => {
       const state = get(countDown);
   

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import WebSocketClient from '../lib/WebSocketClient';
 import GameOver from './shared/GameOver';
 import Countdown from "./shared/Countdown";
+import { useRecoilValue } from "recoil";
 import { countDownHook } from '@repo/store/src';
 
 
@@ -22,7 +23,7 @@ export default function ChessBoard({ roomId }: any) {
   const { data: session, status } = useSession();
 
   const router = useRouter();
-  // const count = countDownHook();
+  const countValue = useRecoilValue(countDownHook);
 
   useEffect(() => {
     if (status === "loading") return; 
@@ -194,6 +195,7 @@ export default function ChessBoard({ roomId }: any) {
 
   return (
     <div>
+      {countValue.localCount}
       <Chessboard
         id="BasicBoard"
         position={game.fen()}
