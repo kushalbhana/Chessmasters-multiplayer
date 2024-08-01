@@ -7,6 +7,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import WebSocketClient from '../lib/WebSocketClient';
 import GameOver from './shared/GameOver';
+import Countdown from "./shared/Countdown";
+import { countDownHook } from '@repo/store/src';
 
 export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
@@ -18,6 +20,8 @@ export default function ChessBoard({ roomId }: any) {
   const [gameResult, setGameResult] = useState<string>("");
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [time, setTime] = useState<number>(600);
+  // const count = countDownHook();
 
   useEffect(() => {
     if (status === "loading") return; 
@@ -185,8 +189,11 @@ export default function ChessBoard({ roomId }: any) {
     return true;
   }
 
+  // const count = countDown();
+
   return (
     <div>
+    <Countdown time={time} setTime={setTime} />
       <Chessboard
         id="BasicBoard"
         position={game.fen()}
@@ -197,6 +204,7 @@ export default function ChessBoard({ roomId }: any) {
         customSquareStyles={customSquareStyles}
       />
       <GameOver gameResult={gameResult} open={showCheckmateDialog} onClose={() => setShowCheckmateDialog(false)} />
+      <Countdown time={time} setTime={setTime}/>
     </div>
   );
 }

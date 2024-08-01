@@ -1,33 +1,31 @@
-"use client"
-import React, { useState, useEffect } from "react";
+"use client"; // Add this at the top of your file if needed
+
+import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { MdOutlineTimer } from "react-icons/md";
+import { countDown } from '@repo/store/countDown';
 
-import { Dispatch, SetStateAction } from 'react';
-
-interface TimerProps {
+// Define the props interface
+interface CountdownProps {
   time: number;
   setTime: Dispatch<SetStateAction<number>>;
-  countType: string;
 }
 
-
-const Countdown: React.FC = () => {
-
-  const [time, setTime] = useState(600);
+// Correctly typing the component with props
+const Countdown: React.FC<CountdownProps> = ({ time, setTime }) => {
+  // Effect to decrement the timer every second
   useEffect(() => {
     const timerId = setInterval(() => {
-      setTime((prevTime: any) => (prevTime > 0 ? prevTime - 1 : 0));
-    }, 1000);
+      setTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+    }, 2000);
 
     return () => clearInterval(timerId);
-  }, []);
+  }, [setTime]);
 
+  // Function to format time
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes < 10 ? "0" : ""}${minutes}:${
-      remainingSeconds < 10 ? "0" : ""
-    }${remainingSeconds}`;
+    return `${minutes < 10 ? "0" : ""}${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
   return (
