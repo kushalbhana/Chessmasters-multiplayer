@@ -10,6 +10,7 @@ import GameOver from './shared/GameOver';
 import Countdown from "./shared/Countdown";
 import { countDownHook } from '@repo/store/src';
 
+
 export default function ChessBoard({ roomId }: any) {
   const [game, setGame] = useState(new Chess());
   const [boardOrientation, setBoardOrientation] = useState<BoardOrientation>('black');
@@ -19,8 +20,8 @@ export default function ChessBoard({ roomId }: any) {
   const [showCheckmateDialog, setShowCheckmateDialog] = useState(false);
   const [gameResult, setGameResult] = useState<string>("");
   const { data: session, status } = useSession();
+
   const router = useRouter();
-  const [time, setTime] = useState<number>(600);
   // const count = countDownHook();
 
   useEffect(() => {
@@ -193,7 +194,6 @@ export default function ChessBoard({ roomId }: any) {
 
   return (
     <div>
-    <Countdown time={time} setTime={setTime} />
       <Chessboard
         id="BasicBoard"
         position={game.fen()}
@@ -204,7 +204,7 @@ export default function ChessBoard({ roomId }: any) {
         customSquareStyles={customSquareStyles}
       />
       <GameOver gameResult={gameResult} open={showCheckmateDialog} onClose={() => setShowCheckmateDialog(false)} />
-      <Countdown time={time} setTime={setTime}/>
+
     </div>
   );
 }
