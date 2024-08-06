@@ -31,9 +31,10 @@ export function ChatBox({ roomId }: any)  {
 
     const handleMessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data);
+      console.log(message)
 
       if (message.type === 'textMessage') {
-        const messageReceived: string = message.message.text;
+        const messageReceived: string = message.message;
         handleReceiveMessage(messageReceived);
       }
     };
@@ -79,6 +80,7 @@ export function ChatBox({ roomId }: any)  {
   };
 
   const handleReceiveMessage = (text: string) => {
+    console.log(text);
     const newMessage: Message = {
       id: Date.now(),
       text,
