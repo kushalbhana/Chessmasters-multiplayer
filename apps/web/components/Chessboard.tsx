@@ -9,7 +9,7 @@ import WebSocketClient from '../lib/WebSocketClient';
 import GameOver from './shared/GameOver';
 import Countdown from "./shared/Countdown";
 import { useRecoilValue } from "recoil";
-import { countDownHook } from '@repo/store/src';
+import countDown from "../lib/store/atom/countDown";
 
 
 export default function ChessBoard({ roomId }: any) {
@@ -23,7 +23,7 @@ export default function ChessBoard({ roomId }: any) {
   const { data: session, status } = useSession();
 
   const router = useRouter();
-  const countValue = useRecoilValue(countDownHook);
+  const countValue = useRecoilValue(countDown);
 
   useEffect(() => {
     if (status === "loading") return; 
@@ -195,7 +195,7 @@ export default function ChessBoard({ roomId }: any) {
 
   return (
     <div>
-      {countValue.localCount}
+      <Countdown/>
       <Chessboard
         id="BasicBoard"
         position={game.fen()}
@@ -206,7 +206,7 @@ export default function ChessBoard({ roomId }: any) {
         customSquareStyles={customSquareStyles}
       />
       <GameOver gameResult={gameResult} open={showCheckmateDialog} onClose={() => setShowCheckmateDialog(false)} />
-
+      <Countdown/>
     </div>
   );
 }

@@ -2,23 +2,20 @@
 
 import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { MdOutlineTimer } from "react-icons/md";
-
-// Define the props interface
-interface CountdownProps {
-  time: number;
-  setTime: Dispatch<SetStateAction<number>>;
-}
+import { useRecoilValue, useRecoilState } from "recoil";
+import countDown from "../../lib/store/atom/countDown";
 
 // Correctly typing the component with props
-const Countdown: React.FC<CountdownProps> = ({ time, setTime }) => {
-  // Effect to decrement the timer every second
+const Countdown: React.FC = () => {
+  const [time, setTime] = useRecoilState(countDown);
+
   useEffect(() => {
     const timerId = setInterval(() => {
-      setTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
-    }, 2000);
-
+      setTime({ localCount: time.localCount - 1 }); // Pass an object
+    }, 1000);
+    
     return () => clearInterval(timerId);
-  }, [setTime]);
+  }, [time]);
 
   // Function to format time
   const formatTime = (seconds: number) => {
@@ -32,7 +29,7 @@ const Countdown: React.FC<CountdownProps> = ({ time, setTime }) => {
       <div className="bg-slate-200 p-1 h-full w-24 text-slate-900 rounded">
         <div className="flex items-center justify-between h-full w-full font-bold text-lg p-1">
           <MdOutlineTimer />
-          {formatTime(time)}
+          {formatTime(time.localCount)}
         </div>
       </div>
     </div>

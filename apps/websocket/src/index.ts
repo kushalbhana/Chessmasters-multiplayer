@@ -90,7 +90,6 @@ class WebSocketManager {
             }
 
             console.log(this.rooms)
-            console.log(this.rooms)
              
         } catch (error) {
             console.log(error)
@@ -279,9 +278,9 @@ class WebSocketManager {
 
             if(message.type === 'textMessage'){
                 if(ws === room.senderSocket){
-                    room.receiverSocket?.send(JSON.stringify({ type: 'textMessage', message: message.text }))
+                    room.receiverSocket?.send(JSON.stringify({ type: 'textMessage', message: message.message.text }))
                 }else{
-                    room.senderSocket?.send(JSON.stringify({ type: 'textMessage', message: message.text }))
+                    room.senderSocket?.send(JSON.stringify({ type: 'textMessage', message: message.message.text }))
                 
                 }
             }
