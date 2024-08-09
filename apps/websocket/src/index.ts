@@ -10,6 +10,8 @@ interface Room {
     sender?: any;
     reciever?: any;
     moves?: any;
+    senderTime?: Date;
+    recieverTime?: Date;
 }
 
 // 'White' ---> Sender | SenderSocker
@@ -94,8 +96,6 @@ class WebSocketManager {
         } catch (error) {
             console.log(error)
         }
-
-
     } 
     
 
@@ -111,34 +111,41 @@ class WebSocketManager {
             }
         ).then(
             (response) => {
-                if(response.status === 200){
-                    ws.send(JSON.stringify({ type: 'authorization', 
-                        status: '200', message:'Authorized token' }))
+                switch(response.status){
+                    case 200:
+                        ws.send(JSON.stringify({ type: 'authorization', 
+                            status: '200', message:'Authorized token' }))
+    
+                        if(node === 'sender'){
+                            room.sender = response.data.user.userId;
+                        }
+                        else if(node === 'reciever'){
+                            room.reciever = response.data.user.userId;
+                        }
+                        return true;
 
-                    if(node === 'sender'){
-                        room.sender = response.data.user.userId;
-                    }
-                    if(node === 'reciever'){
-                        room.reciever = response.data.user.userId;
-                    }
-                    return true;
-                    
+                    case 498:
+                        ws.send(JSON.stringify({ type: 'authorization', 
+                            status: '498', message:'Invalid Token' }))
+                        return false;
+
+                    case 500:
+                        ws.send(JSON.stringify({ type: 'authorization', 
+                            status: '500', message:'token expired' }))
+                        return false
+
+                    case 403:
+                        ws.send(JSON.stringify({ type: 'authorization', 
+                            status: '403', message:'Web Token Error' }))
+                        return false;
+
+                    default:
+                        ws.send(JSON.stringify({ type: 'authorization', 
+                            status: '500', message:'An Unknown error occured' }))
+                        return false;
+
                 }
-                if(response.status === 498){
-                    ws.send(JSON.stringify({ type: 'authorization', 
-                        status: '498', message:'Invalid Token' }))
-                    return false;
-                }
-                if(response.status === 500){
-                    ws.send(JSON.stringify({ type: 'authorization', 
-                        status: '500', message:'token expired' }))
-                    return false
-                }
-                if(response.status === 403){
-                    ws.send(JSON.stringify({ type: 'authorization', 
-                        status: '403', message:'Web Token Error' }))
-                    return false;
-                }
+                
             }
           ).catch((error) => {
             console.log(error.response);
@@ -170,7 +177,6 @@ class WebSocketManager {
             ws.close(4000, 'Room ID not provided');
             return;
         }
-
         const roomId = message.roomId;
 
         // Initialize the room if it doesn't exist
@@ -178,7 +184,6 @@ class WebSocketManager {
             this.rooms[roomId] = { boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', moves:[{'message': 'Game started'}] };
             
         }
-
         const room = this.rooms[roomId];
 
         if (message.type === 'sender') {
@@ -194,8 +199,7 @@ class WebSocketManager {
                 if (room){
                     console.log('boardState before sending: ', room.boardState)
                   room.senderSocket = ws;
-                  room.senderSocket.send(JSON.stringify({ type: 'color', color: 'white' }));
-                  room.senderSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'white' }));
+                  room.senderSocket.send(JSON.stringify({ type: 'color', color: 'white', boardState: room.boardState }));
                 }
 
                 
@@ -209,8 +213,7 @@ class WebSocketManager {
                     return
                 }
                 room.receiverSocket = ws;
-                room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }))
-                room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
+                room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black', boardState: room.boardState }));
 
                 const cachedRoom = await this.redisClient.hSet('rooms', roomId, JSON.stringify(this.rooms));
         
@@ -230,8 +233,7 @@ class WebSocketManager {
 
                 if(room){
                   room.receiverSocket = ws;
-                  room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black' }));
-                  room.receiverSocket.send(JSON.stringify({ type: 'boardState', boardState: room.boardState, color: 'black' }));
+                  room.receiverSocket.send(JSON.stringify({ type: 'color', color: 'black', boardState: room.boardState }));
 
                   const roomEntries = Object.entries(this.rooms);
                     for (const [key, value] of roomEntries) {

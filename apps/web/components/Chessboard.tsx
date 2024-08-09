@@ -54,6 +54,18 @@ export default function ChessBoard({ roomId }: any) {
 
         if (message.type === 'color') {
           setBoardOrientation(message.color);
+          console.log('boardState: ',message.boardState)
+
+          const chess = new Chess();
+          chess.load(message.boardState);
+          setGame(chess);
+
+          if (message.color === 'white') {
+            game.turn() === 'w' && message.color === 'white' ? setMyChance(true) : setMyChance(false);
+          } else {
+            game.turn() === 'b' && message.color === 'black' ? setMyChance(true) : setMyChance(true);
+          }
+          forceUpdate === 1 ? setForceUpdate(0) : setForceUpdate(1);
         }
 
         if (message.type === 'checkmate') {
@@ -68,19 +80,6 @@ export default function ChessBoard({ roomId }: any) {
             console.log(message);
             router.push('/');
           }
-        }
-
-        if (message.type === 'boardState') {
-          const chess = new Chess();
-          chess.load(message.boardState);
-          setGame(chess);
-
-          if (message.color === 'white') {
-            game.turn() === 'w' && message.color === 'white' ? setMyChance(true) : setMyChance(false);
-          } else {
-            game.turn() === 'b' && message.color === 'black' ? setMyChance(true) : setMyChance(true);
-          }
-          forceUpdate === 1 ? setForceUpdate(0) : setForceUpdate(1);
         }
       });
 
