@@ -1,9 +1,12 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import axios from 'axios';
-import { createClient } from 'redis';
 import { RedisClientType } from 'redis';
 
-interface Room {
+import { initializeRedis } from './utils/redisUtils'
+import { setRoomFromRedis } from './utils/redisUtils'
+
+
+export interface Room {
     senderSocket?: WebSocket | null;
     receiverSocket?: WebSocket | null;
     boardState: string | 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -21,34 +24,29 @@ class WebSocketManager {
     private wss: WebSocketServer;
     private rooms: { [key: string]: Room } =  {};
      
-    public redisClient!: RedisClientType;
+    public redisClient!: RedisClientType; 
 
     private constructor(port: number) {
         this.wss = new WebSocketServer({ port });
         this.initialize();
         
-        this.initializeRedis().then(() => {
-            this.setRoomFromRedis().then(() => {
-                console.log('Rooms initialized from Redis...');
-            }).catch((error) => {
-                console.log('Error setting rooms from Redis:', error);
+        initializeRedis()
+            .then((redisClient) => {
+                this.redisClient = redisClient; // Set the redis client after initialization
+                console.log('Redis client initialized');
+                
+                setRoomFromRedis().then((colledtedRooms) => {
+                    if(colledtedRooms != null){
+                        this.rooms = colledtedRooms
+                    }
+                    console.log('Rooms initialized from Redis...');
+                }).catch((error) => {
+                    console.log('Error setting rooms from Redis:', error);
+                });
+            })
+            .catch((error) => {
+                console.log('Error initializing Redis:', error);
             });
-        }).catch((error) => {
-            console.log(error);
-        });
-    }
-
-
-    private async initializeRedis() {
-        try {
-            this.redisClient = createClient();
-            this.redisClient.on('error', (err: any) => console.log('Redis Client Error', err));
-            await this.redisClient.connect();
-            console.log('Connected to Redis...');
-
-        } catch (error) {
-            console.log(error);
-        }
     }
 
     public static getInstance(port: number = 8080): WebSocketManager {
@@ -68,37 +66,6 @@ class WebSocketManager {
         console.log('WebSocket server running on port:', this.wss.options.port);
     }
 
-    private async setRoomFromRedis() {
-
-        try {
-            const cachedRoom = await this.redisClient.hGetAll('rooms');
-            console.log('cached Rooms from redis',typeof(cachedRoom))
-            if (cachedRoom) {
-                
-                let colledtedRooms: { [key: string]: Room } = {};
-                for (const key in cachedRoom) {
-                        let room: Room = JSON.parse(cachedRoom[key]!)
-
-                        if(room.senderSocket){
-                            room.senderSocket = null;
-                        }
-                        if(room.receiverSocket){
-                            room.receiverSocket = null;
-                        }
-                        
-                        colledtedRooms[key] = room;
-                    }
-                    this.rooms = colledtedRooms; 
-            }
-
-            console.log(this.rooms)
-             
-        } catch (error) {
-            console.log(error)
-        }
-    } 
-    
-
     // Handle authorization using JWT from http server
     private async handleAuthorization(message: any, room: Room, ws: WebSocket, node: string){
         const response = axios.post(
@@ -115,6 +82,8 @@ class WebSocketManager {
                     case 200:
                         ws.send(JSON.stringify({ type: 'authorization', 
                             status: '200', message:'Authorized token' }))
+
+                        console.log('Authorization response: ', response.data);
     
                         if(node === 'sender'){
                             room.sender = response.data.user.userId;
