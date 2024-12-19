@@ -4,6 +4,7 @@ import { RedisClientType } from 'redis';
 
 import { initializeRedis } from './utils/redisUtils'
 import { setRoomFromRedis } from './utils/redisUtils'
+import { handleAuthorization } from './utils/authorization'
 
 
 export interface Room {
@@ -66,66 +67,6 @@ class WebSocketManager {
         console.log('WebSocket server running on port:', this.wss.options.port);
     }
 
-    // Handle authorization using JWT from http server
-    private async handleAuthorization(message: any, room: Room, ws: WebSocket, node: string){
-        const response = axios.post(
-            'http://localhost:3000/api/verifyJWT', 
-            { token : message.token },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-        ).then(
-            (response) => {
-                switch(response.status){
-                    case 200:
-                        ws.send(JSON.stringify({ type: 'authorization', 
-                            status: '200', message:'Authorized token' }))
-
-                        console.log('Authorization response: ', response.data);
-    
-                        if(node === 'sender'){
-                            room.sender = response.data.user.userId;
-                        }
-                        else if(node === 'reciever'){
-                            room.reciever = response.data.user.userId;
-                        }
-                        return true;
-
-                    case 498:
-                        ws.send(JSON.stringify({ type: 'authorization', 
-                            status: '498', message:'Invalid Token' }))
-                        return false;
-
-                    case 500:
-                        ws.send(JSON.stringify({ type: 'authorization', 
-                            status: '500', message:'token expired' }))
-                        return false
-
-                    case 403:
-                        ws.send(JSON.stringify({ type: 'authorization', 
-                            status: '403', message:'Web Token Error' }))
-                        return false;
-
-                    default:
-                        ws.send(JSON.stringify({ type: 'authorization', 
-                            status: '500', message:'An Unknown error occured' }))
-                        return false;
-
-                }
-                
-            }
-          ).catch((error) => {
-            console.log(error.response);
-            ws.send(JSON.stringify({ type: 'authorization', 
-                status: '401', 
-                message:'Token not valid' }))
-          }
-          )
-    }
-
-
     private async pushToRedis(roomId: string){
         try {
             console.log('started pushing to redis..')
@@ -158,7 +99,7 @@ class WebSocketManager {
         if (message.type === 'sender') {
             if (!room?.senderSocket) {
                     // Verify the token using the route
-                    const verify = this.handleAuthorization(message, room!, ws, 'sender')
+                    const verify = handleAuthorization(message, room!, ws, 'sender')
 
                     if(!verify){
                         return;
@@ -177,7 +118,7 @@ class WebSocketManager {
                 console.log('Receiver socket connected to:');
 
                 // Verify User
-                const verify = this.handleAuthorization(message, room, ws, 'reciever')
+                const verify = handleAuthorization(message, room, ws, 'receiver')
                 if(!verify){
                     return
                 }
@@ -195,7 +136,7 @@ class WebSocketManager {
                 console.log('Receiver socket connected to:');
 
                 // Verify User
-                const verify = this.handleAuthorization(message, roomId, ws, 'reciever')
+                const verify = handleAuthorization(message, roomId, ws, 'receiver')
                 if(!verify){
                     return
                 }

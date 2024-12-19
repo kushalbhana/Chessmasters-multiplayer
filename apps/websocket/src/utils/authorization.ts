@@ -1,25 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'ws';
 import { Room } from '..';
-
-// Constants for status codes and messages
-const STATUS_MESSAGES = {
-    200: 'Authorized token',
-    498: 'Invalid Token',
-    500: 'Token expired',
-    403: 'Web Token Error',
-    401: 'Token not valid',
-    UNKNOWN: 'An unknown error occurred'
-};
-
-type AuthorizationResponse = {
-    status: number;
-    data: {
-        userId: string;  // Assuming userId is directly under data, if it's nested adjust accordingly
-    };
-}
-
-type NodeType = 'sender' | 'receiver';
+import { AUTH_STATUS_MESSAGES, AuthorizationResponse, NodeType } from '@repo/typescript-config/types'
 
 // Utility function to send a structured message via WebSocket
 const sendWsMessage = (ws: WebSocket, type: string, status: string, message: string) => {
@@ -46,20 +28,22 @@ const verifyToken = async (token: string): Promise<AxiosResponse<AuthorizationRe
 
 // Function to process the response from the token verification API
 const processAuthorizationResponse = (response: AxiosResponse<AuthorizationResponse>, ws: WebSocket, room: Room, node: NodeType): boolean => {
-    const { status, data } = response;
+    const { data } = response;
+    console.log('Auth Response: ', data);
 
     // If successful, update the room and return true
-    if (status === 200) {
-        sendWsMessage(ws, 'authorization', '200', STATUS_MESSAGES[200]);
-        updateRoomUser(room, node, data.data.userId);  // Use userId directly here
+    if (response.status === 200) {
+        sendWsMessage(ws, 'authorization', '200', AUTH_STATUS_MESSAGES[200]);
+        // @ts-ignore
+        updateRoomUser(room, node, data.user.userId);  // Use userId directly here
         return true;
     }
 
     // Handle other statuses
-    const message = STATUS_MESSAGES[status as keyof typeof STATUS_MESSAGES] !== undefined 
-        ? STATUS_MESSAGES[status as keyof typeof STATUS_MESSAGES] 
-        : STATUS_MESSAGES.UNKNOWN;  // Default to 'UNKNOWN' if not found
-    sendWsMessage(ws, 'authorization', status.toString(), message);
+    const message = AUTH_STATUS_MESSAGES[response.status as keyof typeof AUTH_STATUS_MESSAGES] !== undefined 
+        ? AUTH_STATUS_MESSAGES[response.status as keyof typeof AUTH_STATUS_MESSAGES] 
+        : AUTH_STATUS_MESSAGES.UNKNOWN;  // Default to 'UNKNOWN' if not found
+    sendWsMessage(ws, 'authorization', response.status.toString(), message);
     return false;
 };
 
@@ -70,7 +54,7 @@ export const handleAuthorization = async (message: any, room: Room, ws: WebSocke
         return processAuthorizationResponse(response, ws, room, node);
     } catch (error: any) {
         console.error('Authorization error:', error?.response?.data || error.message);
-        sendWsMessage(ws, 'authorization', '401', STATUS_MESSAGES[401]);
+        sendWsMessage(ws, 'authorization', '401', AUTH_STATUS_MESSAGES[401]);
         return false;
     }
 };

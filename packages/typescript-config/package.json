@@ -8,5 +8,9 @@
   },
   "dependencies": {
     "zod": "^3.23.8"
+  },
+  "exports": {
+      "./client": "./index.ts",
+      "./types": "./types.ts"
   }
 }
