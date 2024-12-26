@@ -1,16 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'ws';
 import { Room } from '..';
+import { STATUS_MESSAGES } from '@repo/lib/status';
 
 // Constants for status codes and messages
-const STATUS_MESSAGES = {
-    200: 'Authorized token',
-    498: 'Invalid Token',
-    500: 'Token expired',
-    403: 'Web Token Error',
-    401: 'Token not valid',
-    UNKNOWN: 'An unknown error occurred'
-};
+
 
 type AuthorizationResponse = {
     status: number;

@@ -3,6 +3,7 @@
   "globalDependencies": [
     "**/.env.*local"
   ],
+  
   "tasks": {
     "build": {
       "dependsOn": [
@@ -24,3 +25,4 @@
     }
   }
 }
+
