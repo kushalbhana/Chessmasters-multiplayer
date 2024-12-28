@@ -8,6 +8,7 @@
       "prisma": "5.11.0"
   },
   "exports": {
-      "./status": "./obj/index.ts"
+      "./status": "./obj/index.ts",
+      "./types": "./types/index.ts"
   }
 }

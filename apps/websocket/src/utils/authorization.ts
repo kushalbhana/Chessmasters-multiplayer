@@ -1,19 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'ws';
-import { Room } from '..';
 import { STATUS_MESSAGES } from '@repo/lib/status';
+import { webSocketManager } from '..';
 
-// Constants for status codes and messages
+import { AuthorizationResponse } from "@repo/lib/types"
+import { NodeType } from "@repo/lib/types"
 
-
-type AuthorizationResponse = {
-    status: number;
-    data: {
-        userId: string;  // Assuming userId is directly under data, if it's nested adjust accordingly
-    };
-}
-
-type NodeType = 'sender' | 'receiver';
 
 // Utility function to send a structured message via WebSocket
 const sendWsMessage = (ws: WebSocket, type: string, status: string, message: string) => {
@@ -21,7 +13,12 @@ const sendWsMessage = (ws: WebSocket, type: string, status: string, message: str
 };
 
 // Utility function to update the room with sender/receiver user ID
-const updateRoomUser = (room: Room, node: NodeType, userId: string) => {
+const updateRoomUser = (roomId: string, node: NodeType, userId: string) => {
+    const room = webSocketManager.rooms[roomId];
+    if (!room) {
+        throw new Error(`Room with ID ${roomId} not found`);
+    }
+
     if (node === 'sender') {
         room.sender = userId;
     } else if (node === 'receiver') {
@@ -39,13 +36,14 @@ const verifyToken = async (token: string): Promise<AxiosResponse<AuthorizationRe
 };
 
 // Function to process the response from the token verification API
-const processAuthorizationResponse = (response: AxiosResponse<AuthorizationResponse>, ws: WebSocket, room: Room, node: NodeType): boolean => {
+const processAuthorizationResponse = (response: AxiosResponse<AuthorizationResponse>, ws: WebSocket, roomId: string, node: NodeType): boolean => {
     const { status, data } = response;
 
     // If successful, update the room and return true
     if (status === 200) {
         sendWsMessage(ws, 'authorization', '200', STATUS_MESSAGES[200]);
-        updateRoomUser(room, node, data.data.userId);  // Use userId directly here
+        console.log('Data: ', data.user.userId)
+        updateRoomUser(roomId, node, data.user.userId);  // Use userId directly here
         return true;
     }
 
@@ -58,10 +56,11 @@ const processAuthorizationResponse = (response: AxiosResponse<AuthorizationRespo
 };
 
 // Main function to handle the authorization process
-export const handleAuthorization = async (message: any, room: Room, ws: WebSocket, node: NodeType): Promise<boolean> => {
+export const handleAuthorization = async (message: any, roomId: string, ws: WebSocket, node: NodeType): Promise<boolean> => {
     try {
         const response = await verifyToken(message.token);
-        return processAuthorizationResponse(response, ws, room, node);
+        console.log('handleAuthorization: ', response.data)
+        return processAuthorizationResponse(response, ws, roomId, node);
     } catch (error: any) {
         console.error('Authorization error:', error?.response?.data || error.message);
         sendWsMessage(ws, 'authorization', '401', STATUS_MESSAGES[401]);
