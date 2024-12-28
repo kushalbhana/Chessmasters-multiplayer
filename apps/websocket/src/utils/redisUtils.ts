@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { Room } from '../index';
+import { Room } from '@repo/lib/types';
 
 let redisClient: RedisClientType | null = null;
 
