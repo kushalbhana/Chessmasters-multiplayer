@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export async function postVerifyJWT(token: string) {
     try {
-        const response = await axios.post('http://localhost:3000/api/verifyJWT', 
+        const response = await axios.post( `${process.env.WEBSITE_LINK}/api/verifyJWT`, 
             { token },
             { headers: { 'Content-Type': 'application/json' } }
         );
