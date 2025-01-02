@@ -1,5 +1,6 @@
 import { createClient, RedisClientType } from 'redis';
 import { Room } from '@repo/lib/types';
+import { webSocketManager } from '..';
 
 let redisClient: RedisClientType | null = null;
 
@@ -50,7 +51,15 @@ export async function setRoomFromRedis(){
             return {};
         }
     }
-
+export async function pushToRedis(roomId: string){
+        try {
+            console.log('started pushing to redis..')
+            // Retrieve the cached moves
+            webSocketManager.redisClient.hSet('rooms', roomId, JSON.stringify(webSocketManager.rooms[roomId]));
+        } catch (error) {
+            console.log(error);
+        }  
+    }
 export async function getRoomFromRedis(redisClient: RedisClientType) {
     try {
         const cachedRoom = await redisClient.hGetAll('rooms');

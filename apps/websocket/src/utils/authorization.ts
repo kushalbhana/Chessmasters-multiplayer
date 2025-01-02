@@ -29,7 +29,7 @@ const updateRoomUser = (roomId: string, node: NodeType, userId: string) => {
 // Function to verify the token by calling the verification API
 const verifyToken = async (token: string): Promise<AxiosResponse<AuthorizationResponse>> => {
     return await axios.post(
-        'http://localhost:3000/api/verifyJWT',
+        `http://localhost:3000/api/verifyJWT`,
         { token },
         { headers: { 'Content-Type': 'application/json' } }
     );
