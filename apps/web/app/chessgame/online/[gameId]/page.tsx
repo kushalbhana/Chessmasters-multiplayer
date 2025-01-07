@@ -1,8 +1,8 @@
 import React from 'react';
-import ChessBoard from '../../../components/Chessboard';
-import { Button } from '../../../components/ui/button';
+import ChessBoard from '../../../../components/Chessboard';
+import { Button } from '../../../../components/ui/button';
 import { FaMicrophone, FaCamera } from 'react-icons/fa';
-import ChatBox from '../../../components/Chatbox';
+import ChatBox from '../../../../components/Chatbox';
 
 export default function App({ params: { gameId } }: any) {
   return (

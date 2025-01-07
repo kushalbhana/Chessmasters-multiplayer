@@ -7,7 +7,7 @@ class WebSocketClient {
   private errorListeners: ((error: any) => void)[] = [];
 
   private constructor() {
-      this.socket = new WebSocket('ws://localhost:8080');
+      this.socket = new WebSocket('ws://localhost:8080/');
       this.socket.onmessage = this.handleMessage.bind(this);
       this.socket.onopen = this.handleOpen.bind(this);
       this.socket.onclose = this.handleClose.bind(this);

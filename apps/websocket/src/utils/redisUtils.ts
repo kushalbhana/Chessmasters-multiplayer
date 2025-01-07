@@ -5,23 +5,19 @@ import { webSocketManager } from '..';
 let redisClient: RedisClientType | null = null;
 
 export async function initializeRedis(): Promise<RedisClientType> {
-    if (redisClient) {
-        console.log('Reusing existing Redis connection...');
+    if (redisClient)
         return redisClient;
-    }
     
     try {
         redisClient = createClient();
-        redisClient.on('error', (err: Error) => {
-            console.error('Redis Client Error:', err);
-        });
+        redisClient.on('error', (err: Error) => console.error('Redis Client Error:', err));
 
         await redisClient.connect();
         console.log('Connected to Redis...');
         return redisClient;
     } catch (error) {
         console.error('Error connecting to Redis:', error);
-        throw error; // 🔥 Important: Throw the error to ensure the return type remains Promise<RedisClientType>
+        throw error;
     }
 }
 
@@ -34,12 +30,8 @@ export async function setRoomFromRedis(){
                 for (const key in cachedRoom) {
                         let room: Room = JSON.parse(cachedRoom[key]!)
 
-                        if(room.senderSocket){
-                            room.senderSocket = null;
-                        }
-                        if(room.receiverSocket){
-                            room.receiverSocket = null;
-                        }
+                        if(room.senderSocket) room.senderSocket = null;
+                        if(room.receiverSocket) room.receiverSocket = null;
                         
                         colledtedRooms[key] = room;
                     }

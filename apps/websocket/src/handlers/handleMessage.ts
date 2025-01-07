@@ -2,9 +2,18 @@ import WebSocket from "ws";
 import { handleAuthorization } from "../utils/authorization";
 import { webSocketManager } from "..";
 import { pushToRedis } from "../utils/redisUtils";
+import { WebSocketMessageType } from "@repo/lib/status";
 
 export async function handleMessage(ws: WebSocket, data: string) {
     const message = JSON.parse(data);
+
+    if(message.type == WebSocketMessageType.JOINLOBBY){
+        if(webSocketManager.playerInRandomQueue == null)
+            webSocketManager.playerInRandomQueue = {playerId: 'abc', playerSocket: ws};
+        else
+            console.log('Already present')
+        return;
+    }
 
     if (!message.roomId) {
         ws.send(JSON.stringify({ type: 'error', 
