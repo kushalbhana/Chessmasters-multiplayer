@@ -19,3 +19,8 @@ export interface Room {
     senderTime?: Date;
     recieverTime?: Date;
 }
+
+export type playerInQueue = {
+    playerSocket: WebSocket | null;
+    playerId: string
+}
