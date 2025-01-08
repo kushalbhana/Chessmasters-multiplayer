@@ -4,6 +4,7 @@ export const STATUS_MESSAGES = {
     500: 'Token expired',
     403: 'Web Token Error',
     401: 'Token not valid',
+    1007: 'Invalid Payload',
     UNKNOWN: 'An unknown error occurred'
 };
 
@@ -17,5 +18,6 @@ export const WebSocketMessageType = {
     UPDATE: 'update',
     BROADCAST: 'broadcast',
     AUTH: 'auth',
-    JOINLOBBY: 'JoinRandomRoom'
+    JOINLOBBY: 'JoinRandomRoom',
+    PLAYGAME: 'play_game'
   };
