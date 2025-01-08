@@ -2,9 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'ws';
 import { STATUS_MESSAGES } from '@repo/lib/status';
 import { webSocketManager } from '..';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 import { AuthorizationResponse } from "@repo/lib/types"
-import { NodeType } from "@repo/lib/types"
+import { NodeType, userWebSocketServer } from "@repo/lib/types"
 
 
 // Utility function to send a structured message via WebSocket
@@ -67,3 +68,20 @@ export const handleAuthorization = async (message: any, roomId: string, ws: WebS
         return false;
     }
 };
+
+
+export function authenticateUser(token: string): userWebSocketServer | null {
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        
+        if (decoded && typeof decoded === 'object' && decoded.userId) {
+            return {
+                userId: decoded.userId as string,
+                email: decoded.email
+            };
+        }
+        return null;
+    } catch (error) {
+        return null;
+    }
+}

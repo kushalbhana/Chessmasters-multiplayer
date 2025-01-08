@@ -4,7 +4,7 @@ import { RedisClientType } from 'redis';
 import { initializeRedis } from './utils/redisUtils'
 import { setRoomFromRedis } from './utils/redisUtils'
 import { handleMessage } from './handlers/handleMessage';
-import { Room, playerInQueue } from "@repo/lib/types"
+import { Room, playerInQueue, gameRoom } from "@repo/lib/types"
 
 // 'White' ---> Sender | SenderSocker
 // 'black' ---> Reciever | RecieverSocker
@@ -12,7 +12,8 @@ class WebSocketManager {
     private static instance: WebSocketManager | null = null;
     private wss: WebSocketServer;
     public rooms: { [key: string]: Room } =  {};
-    public playerInRandomQueue: playerInQueue | null = null
+    public playerInRandomQueue: playerInQueue | null = null;
+    public gameRoom: {[key: string]: gameRoom} = {};
      
     public redisClient!: RedisClientType; 
 

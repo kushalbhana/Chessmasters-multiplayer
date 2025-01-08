@@ -3,17 +3,48 @@ import { handleAuthorization } from "../utils/authorization";
 import { webSocketManager } from "..";
 import { pushToRedis } from "../utils/redisUtils";
 import { WebSocketMessageType } from "@repo/lib/status";
+import { userWebSocketServer } from "@repo/lib/types";
+import { STATUS_MESSAGES } from "@repo/lib/status"
+import { authenticateUser } from "../utils/authorization";
 
 export async function handleMessage(ws: WebSocket, data: string) {
     const message = JSON.parse(data);
 
-    if(message.type == WebSocketMessageType.JOINLOBBY){
-        if(webSocketManager.playerInRandomQueue == null)
-            webSocketManager.playerInRandomQueue = {playerId: 'abc', playerSocket: ws};
-        else
-            console.log('Already present')
-        return;
+    if (message.type === WebSocketMessageType.JOINLOBBY) {
+        if (!message.JWT_token) {
+            ws.send(JSON.stringify({ 
+                code: '1007', 
+                message: STATUS_MESSAGES[1007] || 'Invalid Payload: Missing JWT token.' 
+            }));
+            return;
+        }
+
+        const user: userWebSocketServer | null = authenticateUser(message.JWT_token); // Authenticate user using the JWT token
+        
+        if (user === null) {
+            ws.send(JSON.stringify({ 
+                code: '498', 
+                message: STATUS_MESSAGES[498] || 'Invalid or Expired Token.' 
+            }));
+            return;
+        }
+    
+        if (!webSocketManager.playerInRandomQueue) {  // Add player to the random queue if not already present
+            webSocketManager.playerInRandomQueue = {
+                playerId: user.userId!, 
+                playerSocket: ws
+            };
+            console.log(`Player ${user.userId} added to the random queue.`);
+        } else {
+            console.log('A player is already in the random queue.');
+            ws.send(JSON.stringify({ 
+                code: '409', 
+                message: 'A player is already in the random queue. Please wait.' 
+            }));
+        }
     }
+    
+
 
     if (!message.roomId) {
         ws.send(JSON.stringify({ type: 'error', 

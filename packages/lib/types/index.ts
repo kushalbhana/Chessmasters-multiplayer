@@ -20,7 +20,26 @@ export interface Room {
     recieverTime?: Date;
 }
 
+export type gameRoom = {
+    whiteId?: string,
+    blackId?: string,
+    whileSocket?: WebSocket | null,
+    blackSocket?: WebSocket | null,
+    boardState: string
+}
+
 export type playerInQueue = {
     playerSocket: WebSocket | null;
     playerId: string
+}
+
+export type joinLobbyMessage = {
+    type: string,
+    JWT_token: string,
+    time?: number
+}
+
+export type userWebSocketServer = {
+    userId: string,
+     email: string
 }
