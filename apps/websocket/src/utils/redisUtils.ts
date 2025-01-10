@@ -68,3 +68,8 @@ export async function getRoomFromRedis(redisClient: RedisClientType) {
         console.error('Error fetching room from Redis:', error);
     }
 }
+
+export async function hsetToRedis(id: string, data: {}, expireTime: number){
+    await webSocketManager.redisClient.hSet(id, data);
+    await webSocketManager.redisClient.expire(id, expireTime);
+}
