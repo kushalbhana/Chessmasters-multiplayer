@@ -18,7 +18,7 @@ export async function handleMessage(ws: WebSocket, data: string) {
             }));
             return;
         }
-
+        console.log(message.JWT_token)
         const user: userWebSocketServer | null = authenticateUser(message.JWT_token); // Authenticate user using the JWT token
         
         if (user === null) {

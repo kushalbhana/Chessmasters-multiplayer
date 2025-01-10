@@ -1,11 +1,12 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { RedisClientType } from 'redis';
+import dotenv from 'dotenv';
 
 import { initializeRedis } from './utils/redisUtils'
 import { setRoomFromRedis } from './utils/redisUtils'
 import { handleMessage } from './handlers/handleMessage';
 import { Room, playerInQueue, gameRoom } from "@repo/lib/types"
-
+dotenv.config({ path: '../../.env.local' });
 // 'White' ---> Sender | SenderSocker
 // 'black' ---> Reciever | RecieverSocker
 class WebSocketManager {

@@ -72,7 +72,9 @@ export const handleAuthorization = async (message: any, roomId: string, ws: WebS
 
 export function authenticateUser(token: string): userWebSocketServer | null {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        console.log('Reached here: ', token)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        console.log('Decoded ',decoded);
         
         if (decoded && typeof decoded === 'object' && decoded.userId) {
             return {
@@ -82,6 +84,7 @@ export function authenticateUser(token: string): userWebSocketServer | null {
         }
         return null;
     } catch (error) {
+        console.log(error)
         return null;
     }
 }
