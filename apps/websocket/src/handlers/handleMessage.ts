@@ -3,9 +3,10 @@ import { handleAuthorization } from "../utils/authorization";
 import { webSocketManager } from "..";
 import { pushToRedis } from "../utils/redisUtils";
 import { WebSocketMessageType } from "@repo/lib/status";
-import { userWebSocketServer } from "@repo/lib/types";
+import { userWebSocketServer, gameRoom } from "@repo/lib/types";
 import { STATUS_MESSAGES } from "@repo/lib/status"
 import { authenticateUser } from "../utils/authorization";
+import { hsetToRedis } from "../utils/redisUtils";
 
 export async function handleMessage(ws: WebSocket, data: string) {
     const message = JSON.parse(data);
@@ -37,10 +38,17 @@ export async function handleMessage(ws: WebSocket, data: string) {
             console.log(`Player ${user.userId} added to the random queue.`);
         } else {
             console.log('A player is already in the random queue.');
-            ws.send(JSON.stringify({ 
-                code: '409', 
-                message: 'A player is already in the random queue. Please wait.' 
-            }));
+            const uniqueKey = crypto.randomUUID();
+            
+            const newRoom: gameRoom = {
+                whiteId: webSocketManager.playerInRandomQueue.playerId, 
+                blackId: user.userId,
+                whiteSocket: webSocketManager.playerInRandomQueue.playerSocket,
+                blackSocket: ws,
+                boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+            }
+            webSocketManager.gameRoom[uniqueKey] = newRoom;
+            // await hsetToRedis(uniqueKey, newRoom, 1200);
         }
     }
     

@@ -23,7 +23,7 @@ export interface Room {
 export type gameRoom = {
     whiteId?: string,
     blackId?: string,
-    whileSocket?: WebSocket | null,
+    whiteSocket?: WebSocket | null,
     blackSocket?: WebSocket | null,
     boardState: string
 }
