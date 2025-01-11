@@ -21,3 +21,8 @@ export const WebSocketMessageType = {
     JOINLOBBY: 'JoinRandomRoom',
     PLAYGAME: 'play_game'
   };
+
+  export const playerType = {
+        WHITE: 'white',
+        BLACK: 'black'
+  }
