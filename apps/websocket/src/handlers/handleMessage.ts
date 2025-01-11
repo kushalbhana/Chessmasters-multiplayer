@@ -2,11 +2,10 @@ import WebSocket from "ws";
 import { handleAuthorization } from "../utils/authorization";
 import { webSocketManager } from "..";
 import { pushToRedis } from "../utils/redisUtils";
-import { WebSocketMessageType } from "@repo/lib/status";
+import { WebSocketMessageType, playerType, STATUS_MESSAGES } from "@repo/lib/status";
 import { userWebSocketServer, gameRoom } from "@repo/lib/types";
-import { STATUS_MESSAGES } from "@repo/lib/status"
 import { authenticateUser } from "../utils/authorization";
-import { hsetToRedis } from "../utils/redisUtils";
+import { CreateRoomCache } from "../utils/redisUtils";
 
 export async function handleMessage(ws: WebSocket, data: string) {
     const message = JSON.parse(data);
@@ -19,7 +18,6 @@ export async function handleMessage(ws: WebSocket, data: string) {
             }));
             return;
         }
-        console.log(message.JWT_token)
         const user: userWebSocketServer | null = authenticateUser(message.JWT_token); // Authenticate user using the JWT token
         
         if (user === null) {
@@ -29,7 +27,7 @@ export async function handleMessage(ws: WebSocket, data: string) {
             }));
             return;
         }
-    
+
         if (!webSocketManager.playerInRandomQueue) {  // Add player to the random queue if not already present
             webSocketManager.playerInRandomQueue = {
                 playerId: user.userId!, 
@@ -60,10 +58,20 @@ export async function handleMessage(ws: WebSocket, data: string) {
                 boardState: newRoom.boardState,
             };
 
-            // Save the serialized room in Redis
-            await webSocketManager.redisClient.hSet(`gameRoom:${uniqueKey}`, redisRoom);
+            const whiteHash = {
+                id: newRoom.whiteId,
+                room: uniqueKey,
+                color: playerType.WHITE
+            }
+            const blackHash = {
+                id: newRoom.blackId,
+                room: uniqueKey,
+                color: playerType.BLACK
+            }
 
-            console.log(`Game room with key ${uniqueKey} saved to Redis.`);
+            // Save the serialized room in Redis            ### Handle same user can't join same room
+            await CreateRoomCache(`gameRoom:${uniqueKey}`, redisRoom, `player:${newRoom.whiteId}`, whiteHash, `player:${newRoom.blackId}`, blackHash, 1200);
+            console.log(`Game room with key ${uniqueKey} saved to Redis.`); 
         }
     }
     

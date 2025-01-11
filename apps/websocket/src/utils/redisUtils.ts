@@ -71,7 +71,18 @@ export async function getRoomFromRedis(redisClient: RedisClientType) {
     }
 }
 
-export async function hsetToRedis(id: string, data: {}, expireTime: number){
-    await webSocketManager.redisClient.hSet(id, data);
-    await webSocketManager.redisClient.expire(id, expireTime);
+// Create room in redis and assign that room to user in redis with expiry time
+export async function CreateRoomCache(roomKey: string, data: any, whiteId: string, whiteData: any, blackId: string, blackData: any, expiryTimeInSeconds: number){
+    const multi = webSocketManager.redisClient.multi();
+
+    multi.hSet(roomKey, data);
+    multi.hSet(whiteId, whiteData);
+    multi.hSet(blackId, blackData);
+    
+    multi.expire(roomKey, expiryTimeInSeconds);
+    multi.expire(whiteId, expiryTimeInSeconds);
+    multi.expire(blackId, expiryTimeInSeconds);
+    
+    await multi.exec();
+
 }
