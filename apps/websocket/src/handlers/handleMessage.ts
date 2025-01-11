@@ -39,16 +39,31 @@ export async function handleMessage(ws: WebSocket, data: string) {
         } else {
             console.log('A player is already in the random queue.');
             const uniqueKey = crypto.randomUUID();
-            
+
             const newRoom: gameRoom = {
-                whiteId: webSocketManager.playerInRandomQueue.playerId, 
+                whiteId: webSocketManager.playerInRandomQueue.playerId,
                 blackId: user.userId,
                 whiteSocket: webSocketManager.playerInRandomQueue.playerSocket,
                 blackSocket: ws,
-                boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-            }
+                boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            };
+
+            // Save the room locally
             webSocketManager.gameRoom[uniqueKey] = newRoom;
-            // await hsetToRedis(uniqueKey, newRoom, 1200);
+
+            // Serialize `newRoom` for Redis storage
+            const redisRoom = {
+                whiteId: newRoom.whiteId || '',
+                blackId: newRoom.blackId || '',
+                whiteSocket: newRoom.whiteSocket ? 'connected' : 'disconnected',
+                blackSocket: newRoom.blackSocket ? 'connected' : 'disconnected',
+                boardState: newRoom.boardState,
+            };
+
+            // Save the serialized room in Redis
+            await webSocketManager.redisClient.hSet(`gameRoom:${uniqueKey}`, redisRoom);
+
+            console.log(`Game room with key ${uniqueKey} saved to Redis.`);
         }
     }
     

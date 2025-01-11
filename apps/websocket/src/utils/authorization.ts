@@ -69,13 +69,10 @@ export const handleAuthorization = async (message: any, roomId: string, ws: WebS
     }
 };
 
-
+// Authenticating user when trying to connet to room
 export function authenticateUser(token: string): userWebSocketServer | null {
     try {
-        console.log('Reached here: ', token)
         const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        console.log('Decoded ',decoded);
-        
         if (decoded && typeof decoded === 'object' && decoded.userId) {
             return {
                 userId: decoded.userId as string,
