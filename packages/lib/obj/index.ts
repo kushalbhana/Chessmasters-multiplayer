@@ -14,7 +14,7 @@ export const WebSocketMessageType = {
     MESSAGE: 'message',
     ERROR: 'error',
     PING: 'ping',
-    PONG: 'pong',
+    JOINROOM: 'join_room',
     UPDATE: 'update',
     BROADCAST: 'broadcast',
     AUTH: 'auth',
