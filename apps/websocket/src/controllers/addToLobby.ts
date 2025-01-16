@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { webSocketManager } from "..";
-import { playerType, STATUS_MESSAGES } from "@repo/lib/status";
+import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/status";
 import { userWebSocketServer, gameRoom } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache } from "../utils/redisUtils";
@@ -23,10 +23,23 @@ export async function addToLobby(ws: WebSocket, message: any){
         return;
     }
 
+    // ### Handle same user can't join same room
+    if(webSocketManager.playerInRandomQueue != null && webSocketManager.playerInRandomQueue.playerId == user.userId){
+        console.log('Same player tring to join the same room');
+        return;
+    }
+
     // Id user is already part of a game
     const roomExists = await webSocketManager.redisClient.exists(`player:${user.userId}`);
     if(roomExists == 1){
         console.log('Room already exists....');
+        const playerRoom: string | undefined = await webSocketManager.redisClient.hGet(`player:${user.userId}`, 'room');
+        if(playerRoom){
+            const roomInfo = await webSocketManager.redisClient.hGetAll(`gameRoom:${playerRoom}` || "");
+            roomInfo.roomId = playerRoom
+            console.log(roomInfo);
+            ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, room_info: roomInfo}));
+        }
         return;
     }
 
@@ -71,8 +84,10 @@ export async function addToLobby(ws: WebSocket, message: any){
             color: playerType.BLACK
         }
 
-        // Save the serialized room in Redis            ### Handle same user can't join same room
+        // Save the serialized room in Redis            
         await CreateRoomCache(`gameRoom:${uniqueKey}`, redisRoom, `player:${newRoom.whiteId}`, whiteHash, `player:${newRoom.blackId}`, blackHash, 1200);
+        ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey}));
+        webSocketManager.playerInRandomQueue = null;
         console.log(`Game room with key ${uniqueKey} saved to Redis.`); 
     }
 }
