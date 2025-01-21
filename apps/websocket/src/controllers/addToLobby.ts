@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import { webSocketManager } from "..";
 import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/status";
-import { userWebSocketServer, gameRoom } from "@repo/lib/types";
+import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache } from "../utils/redisUtils";
 
@@ -65,7 +65,7 @@ export async function addToLobby(ws: WebSocket, message: any){
         webSocketManager.gameRoom[uniqueKey] = newRoom;
 
         // Serialize `newRoom` for Redis storage
-        const redisRoom = {
+        const redisRoom: RedisRoom = {
             whiteId: newRoom.whiteId || '',
             blackId: newRoom.blackId || '',
             whiteSocket: newRoom.whiteSocket ? 'connected' : 'disconnected',
@@ -73,13 +73,13 @@ export async function addToLobby(ws: WebSocket, message: any){
             boardState: newRoom.boardState,
         };
 
-        const whiteHash = {
-            id: newRoom.whiteId,
+        const whiteHash: PlayerHash = {
+            id: newRoom.whiteId || '',
             room: uniqueKey,
             color: playerType.WHITE
         }
-        const blackHash = {
-            id: newRoom.blackId,
+        const blackHash: PlayerHash = {
+            id: newRoom.blackId || '',
             room: uniqueKey,
             color: playerType.BLACK
         }
