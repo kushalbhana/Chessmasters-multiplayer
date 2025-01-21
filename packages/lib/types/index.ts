@@ -43,3 +43,24 @@ export type userWebSocketServer = {
     userId: string,
      email: string
 }
+
+export enum PlayerType {
+    WHITE = "white",
+    BLACK = "black",
+}
+
+// Define type for redisRoom
+export interface RedisRoom {
+    whiteId: string;
+    blackId: string;
+    whiteSocket: 'connected' | 'disconnected';
+    blackSocket: 'connected' | 'disconnected';
+    boardState: string; // Replace with actual type if boardState has a specific structure
+}
+
+// Define type for player hash
+export interface PlayerHash {
+    id: string | "";
+    room: string;
+    color: string;
+}
