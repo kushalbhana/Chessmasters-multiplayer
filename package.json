@@ -25,12 +25,17 @@
   ],
   "dependencies": {
     "@types/axios": "^0.14.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.8",
+    "@types/next-auth": "^3.13.0",
     "@types/react-icons": "^3.0.0",
     "@types/redis": "^4.0.11",
     "@types/ws": "^8.5.10",
     "axios": "^1.7.9",
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.2",
+    "next-auth": "^4.24.11",
     "react-icons": "^5.2.1",
     "redis": "^4.6.14",
     "ws": "^8.17.0"
