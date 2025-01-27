@@ -1,10 +1,13 @@
-import { GalleryVerticalEnd } from "lucide-react"
+"use client"
+import { useState } from "react";
 import { FaChessQueen } from "react-icons/fa6";
+import { AuthTab } from "@/components/shared/auth-tab";
 
 
 import { LoginForm } from "@/components/form/login-form"
 
 export default function LoginPage() {
+  const [Loginpage, setLoginpage] = useState<boolean>(true);
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
@@ -17,8 +20,9 @@ export default function LoginPage() {
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-sm">
-            <LoginForm />
+          <div className="w-full max-w-md">
+           <AuthTab />
+            
           </div>
         </div>
       </div>
