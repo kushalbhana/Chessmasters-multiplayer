@@ -13,6 +13,9 @@ import { SigninSchema, SigninFormValues } from '@repo/typescript-config';
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+type LoginFormProps = {
+  setPage: React.Dispatch<React.SetStateAction<boolean>>;
+};
 export function LoginForm({
   className,
   ...props
@@ -111,7 +114,7 @@ export function LoginForm({
         
       </form>
       <div className="mt-5">
-        <Button variant="outline" className="w-full" 
+        <Button variant="outline" className="w-full h-12" 
             onClick={async () => {
                 await signIn("google");
             }}>
@@ -119,12 +122,6 @@ export function LoginForm({
               Login with Google
         </Button>
         
-          <div className="text-center text-md mt-4">
-            Don&apos;t have an account?{" "}
-            <a href="#" className="underline underline-offset-4">
-              Sign up
-            </a>
-          </div>
       </div>
     </>
   )
