@@ -8,12 +8,11 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import axios from "axios";
 import { SignupSchema, SignupFormValues } from '@repo/typescript-config';
 import { useToast } from "@/hooks/use-toast";
 import { signIn } from 'next-auth/react';
+import { IoLogoGoogle } from "react-icons/io5";
 
 
 export function SignupForm() {
@@ -134,12 +133,12 @@ export function SignupForm() {
         <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
 
         <div className="flex flex-col space-y-4">
-          <Button
-            className="relative group/btn flex space-x-2 items-center justify-center px-4 w-full"
-            type="button"
-          >
-            <FcGoogle className="h-4 w-4 text-neutral-300 dark:text-black" />
-            <span className="text-neutral-700 dark:text-black text-sm">Google</span>
+          <Button variant="outline" className="w-full h-12" 
+                      onClick={async () => {
+                          await signIn("google");
+                      }}>
+                      <IoLogoGoogle />
+                        Login with Google
             <BottomGradient />
           </Button>
         </div>
