@@ -13,9 +13,6 @@ import { SigninSchema, SigninFormValues } from '@repo/typescript-config';
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-type LoginFormProps = {
-  setPage: React.Dispatch<React.SetStateAction<boolean>>;
-};
 export function LoginForm({
   className,
   ...props
@@ -94,7 +91,7 @@ export function LoginForm({
                 Forgot your password?
               </a>
             </div>
-            <Input id="password" type="password" {...register("password")} required />
+            <Input id="password" placeholder="********" type="password" {...register("password")} required />
           </div>
           <Button type="submit" className={cn(
             "relative group/btn w-full",
