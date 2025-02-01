@@ -6,9 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "esbuild src/index.ts --platform=node --bundle --outdir=dist",
-    "dev": "tsc && node dist/index.js"
+    "dev": "ts-node src/index.ts"
   },
   "keywords": [],
+  "type": "commonjs",
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -19,7 +20,8 @@
     "axios": "^1.7.2",
     "ioredis": "^5.4.1",
     "redis": "^4.6.15",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "@repo/db": "*"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

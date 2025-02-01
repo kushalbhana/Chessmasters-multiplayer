@@ -4,6 +4,7 @@ import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/sta
 import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache } from "../utils/redisUtils";
+import prisma from "@repo/db/client"
 
 export async function addToLobby(ws: WebSocket, message: any){
     if (!message.JWT_token) {
@@ -83,6 +84,17 @@ export async function addToLobby(ws: WebSocket, message: any){
             room: uniqueKey,
             color: playerType.BLACK
         }
+
+        const whiteUseData = prisma.user.findUnique({
+            where: {
+                id: whiteHash.id
+            },
+            select: {
+                id: true,
+                name: true, 
+                picture: true
+            }
+        })
 
         // Save the serialized room in Redis            
         await CreateRoomCache(`gameRoom:${uniqueKey}`, redisRoom, `player:${newRoom.whiteId}`, whiteHash, `player:${newRoom.blackId}`, blackHash, 1200);

@@ -24,6 +24,9 @@
     "packages/*"
   ],
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.5",
+    "@radix-ui/react-separator": "^1.1.1",
+    "@radix-ui/react-tooltip": "^1.1.7",
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.8",
