@@ -1,4 +1,5 @@
 import WebSocket from "ws";
+import { Chess } from "chess.js";
 export type AuthorizationResponse = {
     status: number;
         user:{
@@ -25,7 +26,7 @@ export type gameRoom = {
     blackId?: string,
     whiteSocket?: WebSocket | null,
     blackSocket?: WebSocket | null,
-    boardState: string
+    game: Chess
 }
 
 export type playerInQueue = {
@@ -55,7 +56,7 @@ export interface RedisRoom {
     blackId: string;
     whiteSocket: 'connected' | 'disconnected';
     blackSocket: 'connected' | 'disconnected';
-    boardState: string; // Replace with actual type if boardState has a specific structure
+    game: Chess; // Replace with actual type if boardState has a specific structure
 }
 
 // Define type for player hash

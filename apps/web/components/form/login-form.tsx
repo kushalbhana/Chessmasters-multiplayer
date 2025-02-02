@@ -69,7 +69,7 @@ export function LoginForm({
 
   return (
     <>
-      <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit(onSubmit)} {...props}>
+      <form className={cn("flex flex-col gap-6 w-full", className)} onSubmit={handleSubmit(onSubmit)} {...props}>
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-3xl font-bold">Login to your account</h1>
           <p className="text-balance text-md text-muted-foreground">

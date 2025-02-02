@@ -1,4 +1,6 @@
 import { WebSocket } from "ws";
+import { Chess } from 'chess.js';
+
 import { webSocketManager } from "..";
 import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/status";
 import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash } from "@repo/lib/types";
@@ -53,13 +55,14 @@ export async function addToLobby(ws: WebSocket, message: any){
     } else {
         console.log('A player is already in the random queue.');
         const uniqueKey = crypto.randomUUID();
+        const chess: Chess  = new Chess();
 
         const newRoom: gameRoom = {
             whiteId: webSocketManager.playerInRandomQueue.playerId,
             blackId: user.userId,
             whiteSocket: webSocketManager.playerInRandomQueue.playerSocket,
             blackSocket: ws,
-            boardState: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            game: chess,
         };
 
         // Save the room locally
@@ -71,7 +74,7 @@ export async function addToLobby(ws: WebSocket, message: any){
             blackId: newRoom.blackId || '',
             whiteSocket: newRoom.whiteSocket ? 'connected' : 'disconnected',
             blackSocket: newRoom.blackSocket ? 'connected' : 'disconnected',
-            boardState: newRoom.boardState,
+            game: newRoom.game,
         };
 
         const whiteHash: PlayerHash = {
@@ -85,20 +88,21 @@ export async function addToLobby(ws: WebSocket, message: any){
             color: playerType.BLACK
         }
 
-        const whiteUseData = prisma.user.findUnique({
+        const allUsers = await prisma.user.findMany({
             where: {
-                id: whiteHash.id
+              id: { in: [whiteHash.id, blackHash.id] },
             },
             select: {
                 id: true,
-                name: true, 
+                name: true,
                 picture: true
             }
-        })
+          });      
 
         // Save the serialized room in Redis            
         await CreateRoomCache(`gameRoom:${uniqueKey}`, redisRoom, `player:${newRoom.whiteId}`, whiteHash, `player:${newRoom.blackId}`, blackHash, 1200);
-        ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey}));
+        ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, opponent: allUsers[0], orientation: playerType.BLACK, game: chess}));
+        newRoom.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, opponent: allUsers[1], orientation: playerType.WHITE, game: chess}));
         webSocketManager.playerInRandomQueue = null;
         console.log(`Game room with key ${uniqueKey} saved to Redis.`); 
     }
