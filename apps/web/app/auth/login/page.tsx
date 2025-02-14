@@ -1,13 +1,22 @@
 "use client"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaChessQueen } from "react-icons/fa6";
 import { AuthTab } from "@/components/shared/auth-tab";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 
-import { LoginForm } from "@/components/form/login-form"
 
 export default function LoginPage() {
   const [Loginpage, setLoginpage] = useState<boolean>(true);
+  const {data: session, status} = useSession();
+  const router = useRouter();
+
+  useEffect( () => {
+    if(status === 'authenticated')
+    router.push("/");
+  },[status]);
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

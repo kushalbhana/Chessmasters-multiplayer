@@ -33,7 +33,7 @@ export default function RootLayout({
       >
         <Providers>
           <div className="flex">
-            <div className="w-72">
+            <div className="w-96">
               <Sidebar/>
             </div>
             <div className="w-full">
