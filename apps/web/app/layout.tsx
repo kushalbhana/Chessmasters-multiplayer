@@ -26,14 +26,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+  return ( 
     <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
           <div className="flex">
-            <div className="w-96">
+            <div className="hidden md:block md:w-96">
               <Sidebar/>
             </div>
             <div className="w-full">
