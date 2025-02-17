@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 
 
 export default function LoginPage() {
-  const [Loginpage, setLoginpage] = useState<boolean>(true);
   const {data: session, status} = useSession();
   const router = useRouter();
 

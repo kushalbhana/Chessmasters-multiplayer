@@ -4,19 +4,36 @@ import WebSocketClient from "@/lib/websocket/websocket-client";
 import { WebSocketMessageType } from "@repo/lib/status";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import JoinChessGame from "@/components/playpage/joinchessgame";
-import { BackgroundLinesAnimation } from "@/components/shared/background-lines"
 import { Chessboard } from "react-chessboard";
 import { FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { NEXT_AUTH_CONFIG } from "@/lib/auth";
 
 
 export default function GameLobby() {
-    useEffect(() => {
-        const socket = WebSocketClient.getInstance();
-        
-    }, []);
-
+    
     const { data: session, status } = useSession();
+    const router = useRouter();
+ 
+    useEffect(() => {
+        const fetchData = async () => {
+            const socket = WebSocketClient.getInstance();
+    
+            if (status === 'unauthenticated') {
+                router.push('/auth/login');
+                return;
+            }
+    
+            try {
+                const response = await axios.get('http://localhost:3000/api/checkRoomExist/randomMatch');
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+    
+        fetchData();
+    }, [status]);
     
     function joinRandomRoom() {
         const socket = WebSocketClient.getInstance();
@@ -49,7 +66,7 @@ export default function GameLobby() {
                         <h1 className="text-4xl"> <FaChessRook /> </h1>
                     </div>
                     <div className="mt-10 w-full">
-                        <Button className="w-full">Play a game</Button>
+                        <Button className="w-full" onClick={joinRandomRoom}>Play a game</Button>
                     </div>
                 </div>    
             </div>

@@ -4,7 +4,7 @@ import prisma from '@repo/db/client';
 import { hash } from 'bcrypt';
 
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const data = await req.json();
     
