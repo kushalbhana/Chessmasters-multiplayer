@@ -10,9 +10,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://kushal:kushal_password_chessmasters@localhost:5432/chessmasters"
 }
-
 model User {
   id              String    @id @default(cuid())
   name            String
