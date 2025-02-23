@@ -46,28 +46,33 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 3. **Setup Environment Variables**:
     Fill all `.env.local` file in the root directory as well as in apps and packages and configure your environment variables as required (e.g., Redis connection details).
 
-4. **Start Redis Server**:
-    Ensure your Redis server is running.
+4. **Start Redis and Postgres**:
+    Ensure your Redis and postgres is running.
+   ```sh
+    docker compose up
+    ```
 
-5. **Migrate your database**:
+6. **Migrate your database**:
     ```sh
     cd packages/db
     npx prisma migrate dev
     ```
-5. **Run the Development Server**:
+5. **Run the Development Server in the root folder**:
     ```sh
     npm run dev
     ```
 
 ## Project Structure
 
-- `apps/`: Contains the Next.js application and other apps.
-  - `next-app/`: Main frontend application built with Next.js.
-  - `socket-server/`: WebSocket server for real-time communication.
+- `apps/`: Contains the Next.js and Websocket applications.
+  - `web/`: Main frontend application built with Next.js with the backend http server.
+  - `websocket/`: WebSocket server for real-time communication.
 - `packages/`: Shared packages and libraries.
   - `Typescript-config/`: Types used over different apps.
-  - `Database/`: Database schema and singleton prisma client.
+  - `db/`: Database schema and singleton prisma client.
   - `UI/`: UI Components which are common.
+  - `lib/`: Contains all the objects and types using in apps.
+  - `redis/`: Contains singleton redis client.
   
 
 ## Contributing
