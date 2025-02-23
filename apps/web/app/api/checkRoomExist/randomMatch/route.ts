@@ -8,12 +8,13 @@ export async function GET(req: NextRequest){
         const session = await getServerSession(NEXT_AUTH_CONFIG);
         const redis = RedisSingleton.getInstance();
         
-        const exists = await redis.exists(`player:${session.jwt}`);
+        const exists = await redis.exists(`player:${session.id}`);
         if (!exists) {
+            console.log('Session does not exist...')
             return NextResponse.json({message: 'The room does not exist'}, {status: 404});
           }
-
-          const playerData = await redis.hGetAll(`player:${session.jwt}`);
+          console.log(exists)
+          const playerData = await redis.hGetAll(`player:${session.id}`);
         return NextResponse.json({playerData}, {status: 200});
     } catch (error) {
         return NextResponse.json({name: 'Kushal'})
