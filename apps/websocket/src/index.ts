@@ -6,7 +6,8 @@ import { initializeRedis } from './utils/redisUtils'
 import { setRoomFromRedis } from './utils/redisUtils'
 import { handleMessage } from './handlers/handleMessage';
 import { Room, playerInQueue, gameRoom } from "@repo/lib/types"
-dotenv.config({ path: '../../.env.local' });
+dotenv.config({ path: '../../.env' });
+
 // 'White' ---> Sender | SenderSocker
 // 'black' ---> Reciever | RecieverSocker
 class WebSocketManager {
