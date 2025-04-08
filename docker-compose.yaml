@@ -7,7 +7,7 @@ services:
     ports:
       - "6379:6379"
     environment:
-      - REDIS_PASSWORD=kushal_password_chessmasters
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - redis_data:/data
@@ -19,9 +19,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=kushal
-      - POSTGRES_PASSWORD=kushal_password_chessmasters
-      - POSTGRES_DB=Chessmasters
+      - POSTGRES_USER=${DATABASE_USER_NAME}
+      - POSTGRES_PASSWORD=${DATABASE_USER_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always

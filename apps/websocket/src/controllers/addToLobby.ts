@@ -1,5 +1,6 @@
 import { WebSocket } from "ws";
 import { Chess } from 'chess.js';
+import crypto from "crypto";
 
 import { webSocketManager } from "..";
 import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/status";
@@ -7,6 +8,7 @@ import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash } from "@repo/lib/
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache } from "../utils/redisUtils";
 import prisma from "@repo/db/client"
+
 
 export async function addToLobby(ws: WebSocket, message: any){
     if (!message.JWT_token) {
@@ -100,7 +102,15 @@ export async function addToLobby(ws: WebSocket, message: any){
           });      
 
         // Save the serialized room in Redis            
-        await CreateRoomCache(`gameRoom:${uniqueKey}`, redisRoom, `player:${newRoom.whiteId}`, whiteHash, `player:${newRoom.blackId}`, blackHash, 1200);
+        await CreateRoomCache(
+            `gameRoom:${uniqueKey}`, 
+            JSON.stringify(redisRoom),  // Serialize before storing
+            `player:${newRoom.whiteId}`, 
+            JSON.stringify(whiteHash),  // Serialize before storing
+            `player:${newRoom.blackId}`, 
+            JSON.stringify(blackHash),  // Serialize before storing
+            1200
+          );          
         ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, opponent: allUsers[0], orientation: playerType.BLACK, game: chess}));
         newRoom.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, opponent: allUsers[1], orientation: playerType.WHITE, game: chess}));
         webSocketManager.playerInRandomQueue = null;
