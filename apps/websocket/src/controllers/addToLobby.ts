@@ -88,7 +88,7 @@ export async function addToLobby(ws: WebSocket, message: any){
             blackProfilePicture: user.picture,
             whiteSocket: newRoom.whiteSocket ? 'connected' : 'disconnected',
             blackSocket: newRoom.blackSocket ? 'connected' : 'disconnected',
-            game: newRoom.game,
+            game: JSON.stringify(newRoom.game),
         };
 
         const whiteHash: PlayerHash = {
@@ -105,11 +105,11 @@ export async function addToLobby(ws: WebSocket, message: any){
         // Save the serialized room in Redis            
         await CreateRoomCache(
             `gameRoom:${uniqueKey}`, 
-            JSON.stringify(redisRoom),  // Serialize before storing
+            redisRoom,  // Serialize before storing
             `player:${newRoom.whiteId}`, 
-            JSON.stringify(whiteHash),  // Serialize before storing
+            whiteHash,  // Serialize before storing
             `player:${newRoom.blackId}`, 
-            JSON.stringify(blackHash),  // Serialize before storing
+            blackHash,  // Serialize before storing
             1200
           );          
         ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, room: redisRoom}));

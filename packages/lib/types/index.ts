@@ -68,7 +68,7 @@ export interface RedisRoom {
     blackProfilePicture: string,
     whiteSocket: 'connected' | 'disconnected';
     blackSocket: 'connected' | 'disconnected';
-    game: Chess; // Replace with actual type if boardState has a specific structure
+    game: Chess | string; // Replace with actual type if boardState has a specific structure
 }
 
 // Define type for player hash

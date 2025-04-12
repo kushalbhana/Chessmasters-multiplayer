@@ -33,7 +33,7 @@ export default function RootLayout({
       >
         <Providers>
           <div className="flex">
-            <div className="hidden md:block md:w-96">
+            <div className="hidden lg:block md:w-96">
               <Sidebar/>
             </div>
             <div className="w-full">
