@@ -8,13 +8,14 @@ import { Chessboard } from "react-chessboard";
 import { FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { NEXT_AUTH_CONFIG } from "@/lib/auth";
-
+import { useRecoilState } from "recoil";
+import { roomInfo } from "@/store/selectors/getRoomSelector";
 
 export default function GameLobby() {
     
     const { data: session, status } = useSession();
     const router = useRouter();
+    const [room, setRoomInfo] = useRecoilState(roomInfo);
  
     useEffect(() => {
         const fetchData = async () => {
@@ -27,6 +28,10 @@ export default function GameLobby() {
     
             try {
                 const response = await axios.get('http://localhost:3000/api/checkRoomExist/randomMatch');
+                if(response.status == 200){
+                    console.log(response.data.newRoomData);
+                    setRoomInfo(response.data.newRoomData);
+                }
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
@@ -54,7 +59,7 @@ export default function GameLobby() {
                     <h1 className=" text-3xl font-extrabold text-center">Find an Opponent, Make Your Move!!</h1>
                     <h1 className=" text-lg font-medium text-center mt-3"> Jump into a real-time chess match against a random player and put your 
                         strategy to the test! Whether you're a beginner or a seasoned pro, every game is a new challenge. No sign-ups, no waiting—just 
-                        quick matchmaking, intense battles, and the thrill of the game. Play now and outthink your opponent! 🚀 ♟️
+                        quick matchmaking, intense battles, and the thrill of the game. Play now and outthink your opponent! 🚀 
                     </h1>
                     <div className="flex gap-6 md:gap-10 mt-5">
                         <h1 className="md:text-4xl"> <FaChessRook /> </h1>

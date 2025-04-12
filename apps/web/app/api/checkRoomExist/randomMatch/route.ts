@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import RedisSingleton from "@repo/redis/client"
 import { PlayerHash, gameRoom } from "@repo/lib/types"
-import { Chess } from "chess.js";
 
 export async function GET(req: NextRequest){
     try {
@@ -18,9 +17,6 @@ export async function GET(req: NextRequest){
             return NextResponse.json({message: 'The room does not exist'}, {status: 404});
           }
         const rawUserData = await redis.hGetAll(`player:${session.user.id}`);
-        console.log('Raw User Data: ', rawUserData);
-        const rawRoomData = await redis.hGetAll(`gameRoom:${rawUserData.room}`);
-        console.log('Raw User Data: ', rawRoomData);
 
         if (!rawUserData.id || !rawUserData.room || !rawUserData.color) {
             throw new Error("Invalid player data from Redis");
@@ -33,9 +29,8 @@ export async function GET(req: NextRequest){
             color: rawUserData.color,
         };
 
-        console.log(playerData);
         const userRoomRawData = await redis.hGetAll(`gameRoom:${playerData.room}`)
-        const roomData: gameRoom = {
+        const newRoomData: gameRoom = {
             whiteId: userRoomRawData.whiteId,
             whiteName: userRoomRawData.whiteName,
             whiteProfilePicture: userRoomRawData.whiteProfilePicture,
@@ -45,7 +40,7 @@ export async function GET(req: NextRequest){
             game: JSON.parse(userRoomRawData.game)
         }
 
-        return NextResponse.json({playerData, roomData}, {status: 200});
+        return NextResponse.json({playerData, newRoomData}, {status: 200});
     } catch (error) {
         return NextResponse.json({name: 'Kushal'})
     }
