@@ -60,9 +60,13 @@ class WebSocketManager {
                 room.blackSocket = null;
             }
 
+            // Check if the user if waiting in the lobby
+            if(this.playerInRandomQueue?.playerSocket === ws) 
+                this.playerInRandomQueue = null;
+
             // Clean up room if both sockets are null
             if (!room?.whiteSocket && !room?.blackSocket) {
-                delete this.rooms[roomId];
+                delete this.gameRoom[roomId];
             }
         }
     }

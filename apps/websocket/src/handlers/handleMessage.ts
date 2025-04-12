@@ -11,6 +11,7 @@ export async function handleMessage(ws: WebSocket, data: string) {
 
     if (message.type === WebSocketMessageType.JOINLOBBY) {
         await addToLobby(ws, message);
+        return;
     }
     
     if (!message.roomId) {

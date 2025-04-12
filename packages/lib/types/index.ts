@@ -22,8 +22,12 @@ export interface Room {
 }
 
 export type gameRoom = {
-    whiteId?: string,
-    blackId?: string,
+    whiteId: string,
+    whiteName: string,
+    whiteProfilePicture: string,
+    blackId: string,
+    blackName: string,
+    blackProfilePicture: string,
     whiteSocket?: WebSocket | null,
     blackSocket?: WebSocket | null,
     game: Chess
@@ -31,7 +35,9 @@ export type gameRoom = {
 
 export type playerInQueue = {
     playerSocket: WebSocket | null;
-    playerId: string
+    playerId: string,
+    playerName: string,
+    profilePicture: string
 }
 
 export type joinLobbyMessage = {
@@ -42,7 +48,8 @@ export type joinLobbyMessage = {
 
 export type userWebSocketServer = {
     userId: string,
-     email: string,
+    name: string,
+    email: string,
     picture: string
 }
 
@@ -53,8 +60,12 @@ export enum PlayerType {
 
 // Define type for redisRoom
 export interface RedisRoom {
-    whiteId: string;
-    blackId: string;
+    whiteId: string,
+    whiteName: string,
+    whiteProfilePicture: string,
+    blackId: string,
+    blackName: string,
+    blackProfilePicture: string,
     whiteSocket: 'connected' | 'disconnected';
     blackSocket: 'connected' | 'disconnected';
     game: Chess; // Replace with actual type if boardState has a specific structure

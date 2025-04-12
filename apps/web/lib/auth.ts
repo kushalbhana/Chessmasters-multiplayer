@@ -31,7 +31,7 @@ export const NEXT_AUTH_CONFIG = {
         const passwordValidation = await bcrypt.compare(credentials.password, hashedPassword);
         if (passwordValidation) {
           const token = jwt.sign(
-            { userId: user.id, email: user.email },
+            { userId: user.id, email: user.email, name: user.name, picture:user.picture },
             process.env.JWT_SECRET!,
             { expiresIn: '24d' }
           );
@@ -72,7 +72,7 @@ export const NEXT_AUTH_CONFIG = {
 
         // Generate a JWT for the Google user
         const token = jwt.sign(
-          { userId: userRecord.id, email: userRecord.email, picture: userRecord.picture },
+          { userId: userRecord.id, name: userRecord.name, email: userRecord.email, picture: userRecord.picture },
           process.env.JWT_SECRET!,
           { expiresIn: '24d' }
         );

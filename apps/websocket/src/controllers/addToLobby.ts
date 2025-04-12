@@ -18,7 +18,8 @@ export async function addToLobby(ws: WebSocket, message: any){
         }));
         return;
     }
-    const user: userWebSocketServer | null = authenticateUser(message.JWT_token); // Authenticate user using the JWT token
+    // Authenticate user using the JWT token
+    const user: userWebSocketServer | null = authenticateUser(message.JWT_token); 
     console.log('User Retrieved form JWT: ', user);
     if (user === null) {
         ws.send(JSON.stringify({ 
@@ -48,9 +49,12 @@ export async function addToLobby(ws: WebSocket, message: any){
         return;
     }
 
-    if (!webSocketManager.playerInRandomQueue) {  // Add player to the random queue if not already present
+    // Add player to the random queue if not already present
+    if (!webSocketManager.playerInRandomQueue) {  
         webSocketManager.playerInRandomQueue = {
             playerId: user.userId!, 
+            playerName: user.name,
+            profilePicture: user.picture,
             playerSocket: ws
         };
         console.log(`Player ${user.userId} added to the random queue.`);
@@ -61,8 +65,12 @@ export async function addToLobby(ws: WebSocket, message: any){
 
         const newRoom: gameRoom = {
             whiteId: webSocketManager.playerInRandomQueue.playerId,
-            blackId: user.userId,
+            whiteName: webSocketManager.playerInRandomQueue.playerName,
+            whiteProfilePicture: webSocketManager.playerInRandomQueue.profilePicture,
             whiteSocket: webSocketManager.playerInRandomQueue.playerSocket,
+            blackId: user.userId,
+            blackName: user.name,
+            blackProfilePicture: user.picture,
             blackSocket: ws,
             game: chess,
         };
@@ -72,8 +80,12 @@ export async function addToLobby(ws: WebSocket, message: any){
 
         // Serialize `newRoom` for Redis storage
         const redisRoom: RedisRoom = {
-            whiteId: newRoom.whiteId || '',
-            blackId: newRoom.blackId || '',
+            whiteId: webSocketManager.playerInRandomQueue.playerId,
+            whiteName: webSocketManager.playerInRandomQueue.playerName,
+            whiteProfilePicture: webSocketManager.playerInRandomQueue.profilePicture,
+            blackId: user.userId,
+            blackName: user.name,
+            blackProfilePicture: user.picture,
             whiteSocket: newRoom.whiteSocket ? 'connected' : 'disconnected',
             blackSocket: newRoom.blackSocket ? 'connected' : 'disconnected',
             game: newRoom.game,
@@ -88,18 +100,7 @@ export async function addToLobby(ws: WebSocket, message: any){
             id: newRoom.blackId || '',
             room: uniqueKey,
             color: playerType.BLACK
-        }
-
-        const allUsers = await prisma.user.findMany({
-            where: {
-              id: { in: [whiteHash.id, blackHash.id] },
-            },
-            select: {
-                id: true,
-                name: true,
-                picture: true
-            }
-          });      
+        }    
 
         // Save the serialized room in Redis            
         await CreateRoomCache(
@@ -111,8 +112,8 @@ export async function addToLobby(ws: WebSocket, message: any){
             JSON.stringify(blackHash),  // Serialize before storing
             1200
           );          
-        ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, opponent: allUsers[0], orientation: playerType.BLACK, game: chess}));
-        newRoom.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, opponent: allUsers[1], orientation: playerType.WHITE, game: chess}));
+        ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, room: redisRoom}));
+        newRoom.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, room: redisRoom}));
         webSocketManager.playerInRandomQueue = null;
         console.log(`Game room with key ${uniqueKey} saved to Redis.`); 
     }
