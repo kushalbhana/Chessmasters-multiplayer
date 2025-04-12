@@ -11,13 +11,16 @@ export async function GET(req: NextRequest){
         const redis = RedisSingleton.getInstance();
         
         // If a user is already engaged in a game
-        const exists = await redis.exists(`player:${session.id}`);
+        const exists = await redis.exists(`player:${session.user.id}`);
         if (!exists) {
 
             console.log('Session does not exist...')
             return NextResponse.json({message: 'The room does not exist'}, {status: 404});
           }
-        const rawUserData = await redis.hGetAll(`player:${session.id}`);
+        const rawUserData = await redis.hGetAll(`player:${session.user.id}`);
+        console.log('Raw User Data: ', rawUserData);
+        const rawRoomData = await redis.hGetAll(`gameRoom:${rawUserData.room}`);
+        console.log('Raw User Data: ', rawRoomData);
 
         if (!rawUserData.id || !rawUserData.room || !rawUserData.color) {
             throw new Error("Invalid player data from Redis");
@@ -34,11 +37,15 @@ export async function GET(req: NextRequest){
         const userRoomRawData = await redis.hGetAll(`gameRoom:${playerData.room}`)
         const roomData: gameRoom = {
             whiteId: userRoomRawData.whiteId,
+            whiteName: userRoomRawData.whiteName,
+            whiteProfilePicture: userRoomRawData.whiteProfilePicture,
             blackId: userRoomRawData.blackId,
+            blackName: userRoomRawData.blackName,
+            blackProfilePicture: userRoomRawData.blackProfilePicture,
             game: JSON.parse(userRoomRawData.game)
         }
 
-        return NextResponse.json({playerData}, {status: 200});
+        return NextResponse.json({playerData, roomData}, {status: 200});
     } catch (error) {
         return NextResponse.json({name: 'Kushal'})
     }

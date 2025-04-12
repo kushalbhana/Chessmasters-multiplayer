@@ -7,7 +7,6 @@ import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/sta
 import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache } from "../utils/redisUtils";
-import prisma from "@repo/db/client"
 
 
 export async function addToLobby(ws: WebSocket, message: any){
