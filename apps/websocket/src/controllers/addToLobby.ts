@@ -19,7 +19,7 @@ export async function addToLobby(ws: WebSocket, message: any){
         return;
     }
     const user: userWebSocketServer | null = authenticateUser(message.JWT_token); // Authenticate user using the JWT token
-    
+    console.log('User Retrieved form JWT: ', user);
     if (user === null) {
         ws.send(JSON.stringify({ 
             code: '498', 

@@ -72,7 +72,7 @@ export const NEXT_AUTH_CONFIG = {
 
         // Generate a JWT for the Google user
         const token = jwt.sign(
-          { userId: userRecord.id, email: userRecord.email },
+          { userId: userRecord.id, email: userRecord.email, picture: userRecord.picture },
           process.env.JWT_SECRET!,
           { expiresIn: '24d' }
         );

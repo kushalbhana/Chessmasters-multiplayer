@@ -42,7 +42,8 @@ export type joinLobbyMessage = {
 
 export type userWebSocketServer = {
     userId: string,
-     email: string
+     email: string,
+    picture: string
 }
 
 export enum PlayerType {

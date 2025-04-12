@@ -3,7 +3,6 @@ import { RedisClientType } from 'redis';
 import dotenv from 'dotenv';
 
 import { initializeRedis } from './utils/redisUtils'
-import { setRoomFromRedis } from './utils/redisUtils'
 import { handleMessage } from './handlers/handleMessage';
 import { Room, playerInQueue, gameRoom } from "@repo/lib/types"
 dotenv.config({ path: '../../.env' });
@@ -27,15 +26,6 @@ class WebSocketManager {
             .then((redisClient) => {
                 this.redisClient = redisClient; // Set the redis client after initialization
                 console.log('Redis client initialized');
-                
-                setRoomFromRedis().then((colledtedRooms) => {
-                    if(colledtedRooms != null){
-                        this.rooms = colledtedRooms
-                    }
-                    console.log('Rooms initialized from Redis...');
-                }).catch((error) => {
-                    console.log('Error setting rooms from Redis:', error);
-                });
             })
             .catch((error) => {
                 console.log('Error initializing Redis:', error);
@@ -60,18 +50,18 @@ class WebSocketManager {
     }
 
     private handleClose(ws: WebSocket): void {
-        for (const roomId in this.rooms) {
-            const room = this.rooms[roomId];
-            if (room?.senderSocket === ws) {
+        for (const roomId in this.gameRoom) {
+            const room = this.gameRoom[roomId];
+            if (room?.whiteSocket === ws) {
                 console.log('Sender socket disconnected in room:', roomId);
-                room.senderSocket = null;
-            } else if (room?.receiverSocket === ws) {
+                room.whiteSocket = null;
+            } else if (room?.blackSocket === ws) {
                 console.log('Receiver socket disconnected in room:', roomId);
-                room.receiverSocket = null;
+                room.blackSocket = null;
             }
 
             // Clean up room if both sockets are null
-            if (!room?.senderSocket && !room?.receiverSocket) {
+            if (!room?.whiteSocket && !room?.blackSocket) {
                 delete this.rooms[roomId];
             }
         }

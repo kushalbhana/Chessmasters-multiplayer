@@ -76,7 +76,8 @@ export function authenticateUser(token: string): userWebSocketServer | null {
         if (decoded && typeof decoded === 'object' && decoded.userId) {
             return {
                 userId: decoded.userId as string,
-                email: decoded.email
+                email: decoded.email,
+                picture: decoded.picture
             };
         }
         return null;

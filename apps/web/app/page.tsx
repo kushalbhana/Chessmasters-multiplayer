@@ -10,7 +10,13 @@ export default function Home() {
   if (status === "authenticated") {
     return (
       <div className="flex h-full justify-center items-center break-words">
-        
+        <p>
+        <img src={session?.user?.image || ""} alt="" />
+        <br />
+        {session?.user?.email}
+        <br />
+        {session?.user?.name}
+        </p>
       </div>
     );
   }

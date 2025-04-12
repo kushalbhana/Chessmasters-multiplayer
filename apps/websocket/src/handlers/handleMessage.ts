@@ -13,8 +13,6 @@ export async function handleMessage(ws: WebSocket, data: string) {
         await addToLobby(ws, message);
     }
     
-
-
     if (!message.roomId) {
         ws.send(JSON.stringify({ type: 'error', 
             message: 'Room ID not provided' }));
