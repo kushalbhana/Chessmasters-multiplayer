@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useRecoilState } from "recoil";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
+import { GameLayout } from "@/components/playpage/gamelayout";
 
 export default function GameLobby() {
     
@@ -48,34 +49,38 @@ export default function GameLobby() {
         );
     }
 
-    return (
-        <div className="w-full lg:h-screen flex justify-center items-center">
-            <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-xl shadow-2xl shadow-slate-700">
-                <div className="lg:w-1/2 w-5/6">
-                    <Chessboard id="BasicBoard"/>
-                </div>
-                <div className="lg:w-1/2 flex justify-center items-center flex-col p-10 px-">
-
-                    <h1 className=" text-3xl font-extrabold text-center">Find an Opponent, Make Your Move!!</h1>
-                    <h1 className=" text-lg font-medium text-center mt-3"> Jump into a real-time chess match against a random player and put your 
-                        strategy to the test! Whether you're a beginner or a seasoned pro, every game is a new challenge. No sign-ups, no waiting—just 
-                        quick matchmaking, intense battles, and the thrill of the game. Play now and outthink your opponent! 🚀 
-                    </h1>
-                    <div className="flex gap-6 md:gap-10 mt-5">
-                        <h1 className="md:text-4xl"> <FaChessRook /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessKnight /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessBishop /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessQueen /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessKing /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessBishop /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessKnight /> </h1>
-                        <h1 className="md:text-4xl"> <FaChessRook /> </h1>
-                    </div>
-                    <div className="mt-10 w-full">
-                        <Button className="w-full" onClick={joinRandomRoom}>Play a game</Button>
-                    </div>
-                </div>    
-            </div>
+    return <div className="flex justify-center items-center h-screen">
+            <GameLayout/>
         </div>
-    );
+
+    // return (
+    //     <div className="w-full lg:h-screen flex justify-center items-center">
+    //         <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-xl shadow-2xl shadow-slate-700">
+    //             <div className="lg:w-1/2 w-5/6">
+    //                 <Chessboard id="BasicBoard"/>
+    //             </div>
+    //             <div className="lg:w-1/2 flex justify-center items-center flex-col p-10 px-">
+
+    //                 <h1 className=" text-3xl font-extrabold text-center">Find an Opponent, Make Your Move!!</h1>
+    //                 <h1 className=" text-lg font-medium text-center mt-3"> Jump into a real-time chess match against a random player and put your 
+    //                     strategy to the test! Whether you're a beginner or a seasoned pro, every game is a new challenge. No sign-ups, no waiting—just 
+    //                     quick matchmaking, intense battles, and the thrill of the game. Play now and outthink your opponent! 🚀 
+    //                 </h1>
+    //                 <div className="flex gap-6 md:gap-10 mt-5">
+    //                     <h1 className="md:text-4xl"> <FaChessRook /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessKnight /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessBishop /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessQueen /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessKing /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessBishop /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessKnight /> </h1>
+    //                     <h1 className="md:text-4xl"> <FaChessRook /> </h1>
+    //                 </div>
+    //                 <div className="mt-10 w-full">
+    //                     <Button className="w-full" onClick={joinRandomRoom}>Play a game</Button>
+    //                 </div>
+    //             </div>    
+    //         </div>
+    //     </div>
+    // );
 }

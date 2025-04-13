@@ -104,11 +104,11 @@ export async function addToLobby(ws: WebSocket, message: any){
         // Save the serialized room in Redis            
         await CreateRoomCache(
             `gameRoom:${uniqueKey}`, 
-            redisRoom,  // Serialize before storing
+            redisRoom,  
             `player:${newRoom.whiteId}`, 
-            whiteHash,  // Serialize before storing
+            whiteHash,  
             `player:${newRoom.blackId}`, 
-            blackHash,  // Serialize before storing
+            blackHash,  
             1200
           );          
         ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, room: redisRoom}));
