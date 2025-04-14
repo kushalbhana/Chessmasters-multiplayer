@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-avatar": "^1.1.4",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-tabs": "^1.1.2",
     "@radix-ui/react-toast": "^1.2.5",
+    "@repo/redis": "*",
     "@tabler/icons-react": "^3.29.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -27,8 +29,7 @@
     "react-icons": "^5.4.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.24.1",
-    "@repo/redis": "*"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^20",
