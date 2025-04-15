@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chatscope/chat-ui-kit-react": "^2.0.3",
+    "@chatscope/chat-ui-kit-styles": "^1.4.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-avatar": "^1.1.4",
     "@radix-ui/react-label": "^2.1.1",
