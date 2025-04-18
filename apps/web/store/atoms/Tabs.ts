@@ -1,6 +1,6 @@
 import { atom } from 'recoil';
 
-export const userAtom = atom<String>({
-  key: 'gameRoom',
+export const ActiveTab = atom<string>({
+  key: 'ativeTab',
   default: 'Home',
 });

@@ -20,7 +20,7 @@ export function ChatBox() {
                 sentTime: "just now",
                 sender: "Joe",
                 direction: "incoming",
-                position: "single", // ✅ required field
+                position: "last", // ✅ required field
               }}
             />
           </MessageList>

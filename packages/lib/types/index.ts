@@ -77,3 +77,9 @@ export interface PlayerHash {
     room: string;
     color: string;
 }
+
+export type clientSideRoom = {
+    type: string,
+    roomId: string,
+    room: RedisRoom
+}

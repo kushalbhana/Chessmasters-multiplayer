@@ -1,119 +1,145 @@
 import { WebSocket } from "ws";
-import { Chess } from 'chess.js';
+import { Chess } from "chess.js";
 import crypto from "crypto";
 
 import { webSocketManager } from "..";
 import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/status";
-import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash } from "@repo/lib/types";
+import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash, clientSideRoom } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache } from "../utils/redisUtils";
 
-
-export async function addToLobby(ws: WebSocket, message: any){
+export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
+  try {
     if (!message.JWT_token) {
-        ws.send(JSON.stringify({ 
-            code: '1007', 
-            message: STATUS_MESSAGES[1007] || 'Invalid Payload: Missing JWT token.' 
+      ws.send(JSON.stringify({
+        code: '1007',
+        message: STATUS_MESSAGES[1007] || 'Invalid Payload: Missing JWT token.',
+      }));
+      return;
+    }
+
+    const user: userWebSocketServer | null = authenticateUser(message.JWT_token);
+
+    if (!user) {
+      ws.send(JSON.stringify({
+        code: '498',
+        message: STATUS_MESSAGES[498] || 'Invalid or Expired Token.',
+      }));
+      return;
+    }
+
+    console.log("User authenticated:", user.userId);
+
+    // Prevent rejoining same room
+    if (
+      webSocketManager.playerInRandomQueue?.playerId === user.userId
+    ) {
+      console.log(`User ${user.userId} attempted to rejoin their own matchmaking queue.`);
+      return;
+    }
+
+    // Check if user is already in a room
+    const redis = webSocketManager.redisClient;
+    const playerKey = `player:${user.userId}`;
+    const isInRoom = await redis.exists(playerKey);
+
+    if (isInRoom) {
+      const playerRoom = await redis.hGet(playerKey, "room");
+      if (playerRoom) {
+        const roomData = await redis.hGetAll(`gameRoom:${playerRoom}`);
+        roomData.roomId = playerRoom;
+        console.log(`User ${user.userId} is already in room ${playerRoom}.`);
+        ws.send(JSON.stringify({
+          type: WebSocketMessageType.JOINROOM,
+          room_info: roomData,
         }));
-        return;
-    }
-    // Authenticate user using the JWT token
-    const user: userWebSocketServer | null = authenticateUser(message.JWT_token); 
-    console.log('User Retrieved form JWT: ', user);
-    if (user === null) {
-        ws.send(JSON.stringify({ 
-            code: '498', 
-            message: STATUS_MESSAGES[498] || 'Invalid or Expired Token.' 
-        }));
-        return;
+      }
+      return;
     }
 
-    // ### Handle same user can't join same room
-    if(webSocketManager.playerInRandomQueue != null && webSocketManager.playerInRandomQueue.playerId == user.userId){
-        console.log('Same player tring to join the same room');
-        return;
+    // Matchmaking logic
+    const currentQueuePlayer = webSocketManager.playerInRandomQueue;
+
+    if (!currentQueuePlayer) {
+      webSocketManager.playerInRandomQueue = {
+        playerId: user.userId,
+        playerName: user.name,
+        profilePicture: user.picture,
+        playerSocket: ws,
+      };
+      console.log(`User ${user.userId} added to matchmaking queue.`);
+      return;
     }
 
-    // Id user is already part of a game
-    const roomExists = await webSocketManager.redisClient.exists(`player:${user.userId}`);
-    if(roomExists == 1){
-        console.log('Room already exists....');
-        const playerRoom: string | undefined = await webSocketManager.redisClient.hGet(`player:${user.userId}`, 'room');
-        if(playerRoom){
-            const roomInfo = await webSocketManager.redisClient.hGetAll(`gameRoom:${playerRoom}` || "");
-            roomInfo.roomId = playerRoom
-            console.log(roomInfo);
-            ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, room_info: roomInfo}));
-        }
-        return;
-    }
+    // Start game with matched players
+    const roomId = crypto.randomUUID();
+    const chess = new Chess();
 
-    // Add player to the random queue if not already present
-    if (!webSocketManager.playerInRandomQueue) {  
-        webSocketManager.playerInRandomQueue = {
-            playerId: user.userId!, 
-            playerName: user.name,
-            profilePicture: user.picture,
-            playerSocket: ws
-        };
-        console.log(`Player ${user.userId} added to the random queue.`);
-    } else {
-        console.log('A player is already in the random queue.');
-        const uniqueKey = crypto.randomUUID();
-        const chess: Chess  = new Chess();
+    const newRoom: gameRoom = {
+      whiteId: currentQueuePlayer.playerId,
+      whiteName: currentQueuePlayer.playerName,
+      whiteProfilePicture: currentQueuePlayer.profilePicture,
+      whiteSocket: currentQueuePlayer.playerSocket,
+      blackId: user.userId,
+      blackName: user.name,
+      blackProfilePicture: user.picture,
+      blackSocket: ws,
+      game: chess,
+    };
 
-        const newRoom: gameRoom = {
-            whiteId: webSocketManager.playerInRandomQueue.playerId,
-            whiteName: webSocketManager.playerInRandomQueue.playerName,
-            whiteProfilePicture: webSocketManager.playerInRandomQueue.profilePicture,
-            whiteSocket: webSocketManager.playerInRandomQueue.playerSocket,
-            blackId: user.userId,
-            blackName: user.name,
-            blackProfilePicture: user.picture,
-            blackSocket: ws,
-            game: chess,
-        };
+    webSocketManager.gameRoom[roomId] = newRoom;
 
-        // Save the room locally
-        webSocketManager.gameRoom[uniqueKey] = newRoom;
+    const redisRoom: RedisRoom = {
+      whiteId: newRoom.whiteId,
+      whiteName: newRoom.whiteName,
+      whiteProfilePicture: newRoom.whiteProfilePicture,
+      blackId: newRoom.blackId,
+      blackName: newRoom.blackName,
+      blackProfilePicture: newRoom.blackProfilePicture,
+      whiteSocket: 'connected',
+      blackSocket: 'connected',
+      game: JSON.stringify(chess),
+    };
 
-        // Serialize `newRoom` for Redis storage
-        const redisRoom: RedisRoom = {
-            whiteId: webSocketManager.playerInRandomQueue.playerId,
-            whiteName: webSocketManager.playerInRandomQueue.playerName,
-            whiteProfilePicture: webSocketManager.playerInRandomQueue.profilePicture,
-            blackId: user.userId,
-            blackName: user.name,
-            blackProfilePicture: user.picture,
-            whiteSocket: newRoom.whiteSocket ? 'connected' : 'disconnected',
-            blackSocket: newRoom.blackSocket ? 'connected' : 'disconnected',
-            game: JSON.stringify(newRoom.game),
-        };
+    const whitePlayer: PlayerHash = {
+      id: newRoom.whiteId,
+      room: roomId,
+      color: playerType.WHITE,
+    };
 
-        const whiteHash: PlayerHash = {
-            id: newRoom.whiteId || '',
-            room: uniqueKey,
-            color: playerType.WHITE
-        }
-        const blackHash: PlayerHash = {
-            id: newRoom.blackId || '',
-            room: uniqueKey,
-            color: playerType.BLACK
-        }    
+    const blackPlayer: PlayerHash = {
+      id: newRoom.blackId,
+      room: roomId,
+      color: playerType.BLACK,
+    };
 
-        // Save the serialized room in Redis            
-        await CreateRoomCache(
-            `gameRoom:${uniqueKey}`, 
-            redisRoom,  
-            `player:${newRoom.whiteId}`, 
-            whiteHash,  
-            `player:${newRoom.blackId}`, 
-            blackHash,  
-            1200
-          );          
-        ws.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, room: redisRoom}));
-        newRoom.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.JOINROOM, RoomId: uniqueKey, room: redisRoom}));
-        webSocketManager.playerInRandomQueue = null;
-        console.log(`Game room with key ${uniqueKey} saved to Redis.`); 
-    }
+    await CreateRoomCache(
+      `gameRoom:${roomId}`,
+      redisRoom,
+      `player:${whitePlayer.id}`,
+      whitePlayer,
+      `player:${blackPlayer.id}`,
+      blackPlayer,
+      1200
+    );
+
+    const clientPayload: clientSideRoom = {
+      type: WebSocketMessageType.JOINROOM,
+      roomId,
+      room: redisRoom,
+    };
+
+    ws.send(JSON.stringify(clientPayload));
+    newRoom.whiteSocket?.send(JSON.stringify(clientPayload));
+
+    webSocketManager.playerInRandomQueue = null;
+
+    console.log(`Game room ${roomId} created and stored in Redis.`);
+  } catch (err) {
+    console.error("Error in addToLobby:", err);
+    ws.send(JSON.stringify({
+      code: '500',
+      message: 'Internal server error during matchmaking.',
+    }));
+  }
 }
