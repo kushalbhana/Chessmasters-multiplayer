@@ -1,6 +1,6 @@
 import { selector } from 'recoil';
 import { userAtom } from '../atoms/roomInfo';
-import { RedisRoom } from '@repo/lib/types';
+import { clientSideRoom, RedisRoom } from '@repo/lib/types';
 
 export const roomInfo = selector({
   key: 'roomInfo',
@@ -8,6 +8,6 @@ export const roomInfo = selector({
     return get(userAtom);
   },
   set: ({ set }, newValue) => {
-    set(userAtom, newValue as RedisRoom | null);
+    set(userAtom, newValue as clientSideRoom | null);
   },
 });

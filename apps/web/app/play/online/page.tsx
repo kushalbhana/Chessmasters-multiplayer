@@ -12,6 +12,7 @@ import { useRecoilState } from "recoil";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { GameLayout } from "@/components/playpage/gamelayout";
 import { clientSideRoom } from "@repo/lib/types";
+import { Chess } from "chess.js";
 
 export default function GameLobby() {
     
@@ -32,7 +33,22 @@ export default function GameLobby() {
                 if(response.status == 200){
                     console.log(response.data.newRoomData);
                     const responseData: clientSideRoom = JSON.parse(response.data.newRoomData)
-                    setRoomInfo(responseData);
+                    const roomData: clientSideRoom = {
+                        type: responseData.type,
+                        roomId: responseData.roomId,
+                        room: {
+                            whiteId: responseData.room.whiteId,
+                            whiteName: responseData.room.whiteName,
+                            whiteProfilePicture: responseData.room.whiteProfilePicture,
+                            blackId: responseData.room.blackId,
+                            blackName: responseData.room.blackName,
+                            blackProfilePicture: responseData.room.blackProfilePicture,
+                            whiteSocket: responseData.room.whiteSocket,
+                            blackSocket: responseData.room.blackSocket,
+                            game: typeof responseData.room.game === "string" ? new Chess(responseData.room.game) : responseData.room.game,
+                        }
+                    };
+                    setRoomInfo(responseData as clientSideRoom);
                     setRoomExist(true);
                 }
             } catch (error) {
@@ -49,8 +65,23 @@ export default function GameLobby() {
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.type === WebSocketMessageType.JOINROOM) {
-                const roomData: clientSideRoom = data;
-                setRoomInfo(roomData);
+                const roomData: clientSideRoom = {
+                    type: data.type,
+                    roomId: data.roomId,
+                    room: {
+                        whiteId: data.room.whiteId,
+                        whiteName: data.room.whiteName,
+                        whiteProfilePicture: data.room.whiteProfilePicture,
+                        blackId: data.room.blackId,
+                        blackName: data.room.blackName,
+                        blackProfilePicture: data.room.blackProfilePicture,
+                        whiteSocket: data.room.whiteSocket,
+                        blackSocket: data.room.blackSocket,
+                        game: typeof data.room.game === "string" ? new Chess(data.room.game) : data.room.game,
+                    }
+                };
+                
+                setRoomInfo(roomData as clientSideRoom);
                 setRoomExist(true);
             }
         };

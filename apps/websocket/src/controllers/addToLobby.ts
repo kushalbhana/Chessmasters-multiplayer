@@ -100,6 +100,17 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackSocket: 'connected',
       game: JSON.stringify(chess),
     };
+    const userCopy: RedisRoom = {
+      whiteId: newRoom.whiteId,
+      whiteName: newRoom.whiteName,
+      whiteProfilePicture: newRoom.whiteProfilePicture,
+      blackId: newRoom.blackId,
+      blackName: newRoom.blackName,
+      blackProfilePicture: newRoom.blackProfilePicture,
+      whiteSocket: 'connected',
+      blackSocket: 'connected',
+      game: chess.fen(),
+    };
 
     const whitePlayer: PlayerHash = {
       id: newRoom.whiteId,
@@ -126,7 +137,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
     const clientPayload: clientSideRoom = {
       type: WebSocketMessageType.JOINROOM,
       roomId,
-      room: redisRoom,
+      room: userCopy,
     };
 
     ws.send(JSON.stringify(clientPayload));
