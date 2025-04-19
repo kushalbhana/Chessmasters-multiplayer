@@ -1,4 +1,11 @@
+"use client"
+import { useRecoilState } from "recoil";
+import { roomInfo } from "@/store/selectors/getRoomSelector";
+
+
 export function MovesSection(){
+    const [room, setRoomInfo] = useRecoilState(roomInfo);
+    // @ts-ignore
     return (
         <div className="w-full h-28 bg-slate-500 bg-opacity-20 p-4">
             <div className="bg-zinc-900 bg-opacity-200 h-20 w-full rounded-xl flex flex-col justify-center gap-1 p-1 pl-4">
@@ -7,7 +14,9 @@ export function MovesSection(){
                         <h1 className="bg-white text-black">W</h1>
                     </div>
                     <div>
-                        
+                        <h1>{room?.roomId}</h1>
+                        <h1>{room?.room.blackId}</h1>
+                        <h1>{room?.room.game}</h1>
                     </div>
                 </div>
                 <div className=" flex w-14">

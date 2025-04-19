@@ -1,16 +1,12 @@
-#DATABASE_URL
-#JWT_SECRET
-#GOOGLE_CLIENT_ID
-#GOOGLE_CLIENT_SECRET
-#NEXTAUTH_SECRET
-#WEBSITE_LINK
+#DATABASE_URL="postgresql://your_postgres_user:your_postgres_password@localhost:5432/your_postgres_db"
+#JWT_SECRET="EnterJWTSectet"
+#GOOGLE_CLIENT_ID=""
+#GOOGLE_CLIENT_SECRET=""
+#NEXTAUTH_SECRET="MyNextAuthSecret12344321"
+#WEBSITE_LINK="http://localhost:3000/"
 #REDIS_URL="redis://default:your_password@localhost:6379"
 # DATABASE_USER_NAME=""
 # DATABASE_USER_PASSWORD=""
 # DATABASE_NAME=""
 # REDIS_PASSWORD=""
 
-
-# Example
-# Prisma PostgreSQL URL: postgresql://your_postgres_user:your_postgres_password@localhost:5432/your_postgres_db
-# Redis URL: redis://default:your_redis_password@localhost:6379

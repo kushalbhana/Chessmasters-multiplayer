@@ -12,7 +12,7 @@ import { useRecoilState } from "recoil";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { GameLayout } from "@/components/playpage/gamelayout";
 import { clientSideRoom } from "@repo/lib/types";
-import { Chess } from "chess.js";
+import { GameManager } from "@/lib/game/gamemanager";
 
 export default function GameLobby() {
     
@@ -25,6 +25,9 @@ export default function GameLobby() {
         const fetchData = async () => {    
             if (status === 'unauthenticated') {
                 router.push('/auth/login');
+                return;
+            }
+            if (status === 'loading') {
                 return;
             }
     
@@ -46,10 +49,11 @@ export default function GameLobby() {
                             blackProfilePicture: responseData.room.blackProfilePicture,
                             whiteSocket: responseData.room.whiteSocket,
                             blackSocket: responseData.room.blackSocket,
-                            game: typeof responseData.room.game === "string" ? new Chess(responseData.room.game) : responseData.room.game,
+                            game:responseData.room.game
                         }
                     };
                     setRoomInfo(roomData as clientSideRoom);
+                    GameManager.getInstance(responseData.room.game);
                     setRoomExist(true);
                 }
             } catch (error) {
@@ -78,13 +82,14 @@ export default function GameLobby() {
                         blackProfilePicture: data.room.blackProfilePicture,
                         whiteSocket: data.room.whiteSocket,
                         blackSocket: data.room.blackSocket,
-                        game: typeof data.room.game === "string" ? new Chess(data.room.game) : data.room.game,
+                        game: data.room.game
                     }
                 };
                 
                 setRoomInfo(roomData as clientSideRoom);
+                GameManager.getInstance(roomData.room.game);
                 setRoomExist(true);
-                console.log(room);
+                
             }
         };
     

@@ -98,17 +98,6 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackProfilePicture: newRoom.blackProfilePicture,
       whiteSocket: 'connected',
       blackSocket: 'connected',
-      game: JSON.stringify(chess),
-    };
-    const userCopy: RedisRoom = {
-      whiteId: newRoom.whiteId,
-      whiteName: newRoom.whiteName,
-      whiteProfilePicture: newRoom.whiteProfilePicture,
-      blackId: newRoom.blackId,
-      blackName: newRoom.blackName,
-      blackProfilePicture: newRoom.blackProfilePicture,
-      whiteSocket: 'connected',
-      blackSocket: 'connected',
       game: chess.fen(),
     };
 
@@ -137,7 +126,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
     const clientPayload: clientSideRoom = {
       type: WebSocketMessageType.JOINROOM,
       roomId,
-      room: userCopy,
+      room: redisRoom
     };
 
     ws.send(JSON.stringify(clientPayload));

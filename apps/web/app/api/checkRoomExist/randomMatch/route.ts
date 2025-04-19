@@ -45,12 +45,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: "Room data not found." }, { status: 404 });
     }
 
-    const parsedGame = safeParseJSON(roomData.game);
-    if (!parsedGame) {
-      console.error("Failed to parse game data from Redis.");
-      return NextResponse.json({ message: "Invalid game data." }, { status: 500 });
-    }
-
     const redisRoom: RedisRoom = {
       whiteId: roomData.whiteId,
       whiteName: roomData.whiteName,
@@ -60,7 +54,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       blackProfilePicture: roomData.blackProfilePicture,
       whiteSocket: roomData.whiteSocket ? "connected" : "disconnected",
       blackSocket: roomData.blackSocket ? "connected" : "disconnected",
-      game: parsedGame,
+      game: roomData.game,
     };
 
     const responsePayload: clientSideRoom = {
@@ -73,13 +67,5 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error("An error occurred while fetching game session:", error);
     return NextResponse.json({ message: "Internal server error." }, { status: 500 });
-  }
-}
-
-function safeParseJSON(data: string): any | null {
-  try {
-    return JSON.parse(data);
-  } catch {
-    return null;
   }
 }
