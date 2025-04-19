@@ -30,9 +30,10 @@ export default function GameLobby() {
     
             try {
                 const response = await axios.get('http://localhost:3000/api/checkRoomExist/randomMatch');
+                console.log('Response from server Checkroom Exist')
                 if(response.status == 200){
-                    console.log(response.data.newRoomData);
-                    const responseData: clientSideRoom = JSON.parse(response.data.newRoomData)
+                    const responseData: clientSideRoom = response.data
+                    console.log(responseData)
                     const roomData: clientSideRoom = {
                         type: responseData.type,
                         roomId: responseData.roomId,
@@ -48,7 +49,7 @@ export default function GameLobby() {
                             game: typeof responseData.room.game === "string" ? new Chess(responseData.room.game) : responseData.room.game,
                         }
                     };
-                    setRoomInfo(responseData as clientSideRoom);
+                    setRoomInfo(roomData as clientSideRoom);
                     setRoomExist(true);
                 }
             } catch (error) {
@@ -83,6 +84,7 @@ export default function GameLobby() {
                 
                 setRoomInfo(roomData as clientSideRoom);
                 setRoomExist(true);
+                console.log(room);
             }
         };
     

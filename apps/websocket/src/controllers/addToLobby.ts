@@ -131,7 +131,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       whitePlayer,
       `player:${blackPlayer.id}`,
       blackPlayer,
-      1200
+      3600
     );
 
     const clientPayload: clientSideRoom = {
