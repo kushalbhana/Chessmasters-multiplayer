@@ -54,6 +54,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       blackProfilePicture: roomData.blackProfilePicture,
       whiteSocket: roomData.whiteSocket ? "connected" : "disconnected",
       blackSocket: roomData.blackSocket ? "connected" : "disconnected",
+      lastMoveTime: roomData.lastMoveTime,
       game: roomData.game,
     };
 

@@ -30,6 +30,7 @@ export type gameRoom = {
     blackProfilePicture: string,
     whiteSocket?: WebSocket | null,
     blackSocket?: WebSocket | null,
+    lastMoveTime: Date,
     game: Chess
 }
 
@@ -68,6 +69,7 @@ export interface RedisRoom {
     blackProfilePicture: string,
     whiteSocket: 'connected' | 'disconnected';
     blackSocket: 'connected' | 'disconnected';
+    lastMoveTime: string
     game: string; // Replace with actual type if boardState has a specific structure
 }
 

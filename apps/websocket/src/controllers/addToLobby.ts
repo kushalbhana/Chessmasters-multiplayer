@@ -18,6 +18,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       return;
     }
 
+    console.log('Inside AddToLobby')
     const user: userWebSocketServer | null = authenticateUser(message.JWT_token);
 
     if (!user) {
@@ -51,8 +52,14 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
         console.log(`User ${user.userId} is already in room ${playerRoom}.`);
         ws.send(JSON.stringify({
           type: WebSocketMessageType.JOINROOM,
-          room_info: roomData,
+          roomId: playerRoom,
+          room: roomData,
         }));
+        console.log('room Exist: ', JSON.stringify({
+          type: WebSocketMessageType.JOINROOM,
+          roomId: playerRoom,
+          room: roomData,
+        }))
       }
       return;
     }
@@ -84,6 +91,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackName: user.name,
       blackProfilePicture: user.picture,
       blackSocket: ws,
+      lastMoveTime: new Date(),
       game: chess,
     };
 
@@ -98,6 +106,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackProfilePicture: newRoom.blackProfilePicture,
       whiteSocket: 'connected',
       blackSocket: 'connected',
+      lastMoveTime: JSON.stringify(new Date()),
       game: chess.fen(),
     };
 

@@ -1,14 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useRecoilState } from "recoil";
+import { Chessboard } from "react-chessboard";
+import { useSession } from "next-auth/react";
+
 import WebSocketClient from "@/lib/websocket/websocket-client";
 import { WebSocketMessageType } from "@repo/lib/status";
 import { Button } from "@/components/ui/button";
-import { useSession } from "next-auth/react";
-import { Chessboard } from "react-chessboard";
 import { FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing } from "react-icons/fa";
-import { useRouter } from "next/navigation";
-import axios from "axios";
-import { useRecoilState } from "recoil";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { GameLayout } from "@/components/playpage/gamelayout";
 import { clientSideRoom } from "@repo/lib/types";
@@ -49,6 +50,7 @@ export default function GameLobby() {
                             blackProfilePicture: responseData.room.blackProfilePicture,
                             whiteSocket: responseData.room.whiteSocket,
                             blackSocket: responseData.room.blackSocket,
+                            lastMoveTime: responseData.room.lastMoveTime,
                             game:responseData.room.game
                         }
                     };
@@ -65,6 +67,13 @@ export default function GameLobby() {
     }, [status]);
 
     useEffect(() => {
+        if (status === 'unauthenticated') {
+            router.push('/auth/login');
+            return;
+        }
+        if (status === 'loading') {
+            return;
+        }
         const socket = WebSocketClient.getInstance();
     
         const handleMessage = (event: MessageEvent) => {
@@ -82,6 +91,7 @@ export default function GameLobby() {
                         blackProfilePicture: data.room.blackProfilePicture,
                         whiteSocket: data.room.whiteSocket,
                         blackSocket: data.room.blackSocket,
+                        lastMoveTime: data.room.lastMoveTime,
                         game: data.room.game
                     }
                 };
@@ -89,7 +99,6 @@ export default function GameLobby() {
                 setRoomInfo(roomData as clientSideRoom);
                 GameManager.getInstance(roomData.room.game);
                 setRoomExist(true);
-                
             }
         };
     
@@ -98,7 +107,7 @@ export default function GameLobby() {
         return () => {
             socket.removeMessageListener?.(handleMessage);
         };
-    }, []);
+    }, [status]);
     
     
     function joinRandomRoom() {
