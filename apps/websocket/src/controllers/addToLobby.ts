@@ -18,7 +18,6 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       return;
     }
 
-    console.log('Inside AddToLobby')
     const user: userWebSocketServer | null = authenticateUser(message.JWT_token);
 
     if (!user) {

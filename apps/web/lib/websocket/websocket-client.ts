@@ -12,6 +12,15 @@ class WebSocketClient {
         this.socket.onopen = this.handleOpen.bind(this);
         this.socket.onclose = this.handleClose.bind(this);
         this.socket.onerror = this.handleError.bind(this);
+
+        this.socket.onopen = () => {
+            console.log('WebSocket opened!');
+            this.openListeners.forEach(listener => listener());
+        };
+    }
+
+    public addOpenListener(listener: () => void) {
+        this.openListeners.push(listener);
     }
 
     public static getInstance(): WebSocketClient {
@@ -21,7 +30,7 @@ class WebSocketClient {
         return WebSocketClient.instance;
     }
 
-    private handleMessage(event: MessageEvent) {
+    private async handleMessage(event: MessageEvent) {
         this.messageListeners.forEach(listener => listener(event));
     }
 
@@ -31,6 +40,10 @@ class WebSocketClient {
 
     private handleClose() {
         this.closeListeners.forEach(listener => listener());
+    }
+
+    public get readyState() {
+        return this.socket.readyState;
     }
 
     private handleError(error: any) {
@@ -76,6 +89,8 @@ class WebSocketClient {
     public close() {
         this.socket.close();
     }
+
+
 }
 
 export default WebSocketClient;

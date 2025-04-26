@@ -4,6 +4,7 @@ import { webSocketManager } from "..";
 import { pushToRedis } from "../utils/redisUtils";
 import { WebSocketMessageType} from "@repo/lib/status";
 import { addToLobby } from "../controllers/addToLobby";
+import { checkRoomExist } from "../controllers/checkRoomExist";
 
 
 export async function handleMessage(ws: WebSocket, data: string) {
@@ -11,6 +12,10 @@ export async function handleMessage(ws: WebSocket, data: string) {
 
     if (message.type === WebSocketMessageType.JOINLOBBY) {
         await addToLobby(ws, message);
+        return;
+    }
+    else if(message.type === WebSocketMessageType.ROOMEXIST){
+        checkRoomExist(ws, message);
         return;
     }
     

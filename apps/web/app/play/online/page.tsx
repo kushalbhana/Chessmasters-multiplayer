@@ -21,50 +21,6 @@ export default function GameLobby() {
     const router = useRouter();
     const [room, setRoomInfo] = useRecoilState(roomInfo);
     const [roomExist, setRoomExist] = useState<boolean>(false);
- 
-    useEffect(() => {
-        const fetchData = async () => {    
-            if (status === 'unauthenticated') {
-                router.push('/auth/login');
-                return;
-            }
-            if (status === 'loading') {
-                return;
-            }
-    
-            try {
-                const response = await axios.get('http://localhost:3000/api/checkRoomExist/randomMatch');
-                console.log('Response from server Checkroom Exist')
-                if(response.status == 200){
-                    const responseData: clientSideRoom = response.data
-                    console.log(responseData)
-                    const roomData: clientSideRoom = {
-                        type: responseData.type,
-                        roomId: responseData.roomId,
-                        room: {
-                            whiteId: responseData.room.whiteId,
-                            whiteName: responseData.room.whiteName,
-                            whiteProfilePicture: responseData.room.whiteProfilePicture,
-                            blackId: responseData.room.blackId,
-                            blackName: responseData.room.blackName,
-                            blackProfilePicture: responseData.room.blackProfilePicture,
-                            whiteSocket: responseData.room.whiteSocket,
-                            blackSocket: responseData.room.blackSocket,
-                            lastMoveTime: responseData.room.lastMoveTime,
-                            game:responseData.room.game
-                        }
-                    };
-                    setRoomInfo(roomData as clientSideRoom);
-                    GameManager.getInstance(responseData.room.game);
-                    setRoomExist(true);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        };
-    
-        fetchData();
-    }, [status]);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -74,10 +30,28 @@ export default function GameLobby() {
         if (status === 'loading') {
             return;
         }
+    
         const socket = WebSocketClient.getInstance();
+        console.log('Checking Room Exist');
+        console.log('Checking WebSocket ReadyState...');
+        console.log('READY STATE:', socket.readyState);
+    
+        if (socket.readyState === WebSocket.OPEN) {
+            console.log('Socket already open, sending message immediately');
+            // @ts-ignore
+            socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
+        } else {
+            console.log('Socket not open yet, adding open listener');
+            socket.addOpenListener(() => {
+                console.log('Socket opened, sending message');
+                // @ts-ignore
+                socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
+            });
+        }
     
         const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
+            console.log('Received message:', data);
             if (data.type === WebSocketMessageType.JOINROOM) {
                 const roomData: clientSideRoom = {
                     type: data.type,
@@ -95,7 +69,6 @@ export default function GameLobby() {
                         game: data.room.game
                     }
                 };
-                
                 setRoomInfo(roomData as clientSideRoom);
                 GameManager.getInstance(roomData.room.game);
                 setRoomExist(true);
@@ -108,6 +81,9 @@ export default function GameLobby() {
             socket.removeMessageListener?.(handleMessage);
         };
     }, [status]);
+    
+    
+    
     
     
     function joinRandomRoom() {

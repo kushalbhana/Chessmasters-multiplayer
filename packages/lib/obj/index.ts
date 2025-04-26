@@ -19,7 +19,8 @@ export const WebSocketMessageType = {
     BROADCAST: 'broadcast',
     AUTH: 'auth',
     JOINLOBBY: 'JoinRandomRoom',
-    PLAYGAME: 'play_game'
+    PLAYGAME: 'play_game',
+    ROOMEXIST: 'room_exist'
   };
 
   export const playerType = {
