@@ -1,10 +1,11 @@
 import WebSocket from "ws";
 
 import { STATUS_MESSAGES } from "@repo/lib/status";
-import { userWebSocketServer } from "@repo/lib/types";
+import { gameRoom, userWebSocketServer } from "@repo/lib/types";
 import { WebSocketMessageType } from "@repo/lib/status";
 import { authenticateUser } from "../utils/authorization";
 import { webSocketManager } from "..";
+import { Chess } from "chess.js";
 
 export async function checkRoomExist(ws: WebSocket, message: any){
     try {
@@ -27,14 +28,11 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                 }));
                 return;
               }
-          
-              console.log("User authenticated:", user.userId);
 
               // Check if user is already in a room
                 const redis = webSocketManager.redisClient;
                 const playerKey = `player:${user.userId}`;
                 const isInRoom = await redis.exists(playerKey);
-                console.log('isInRoom: ',isInRoom)
               
                 if (isInRoom) {
                 const playerRoom = await redis.hGet(playerKey, "room");
@@ -47,8 +45,31 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                       roomId: playerRoom,
                       room: roomData,
                     }
+
+                    // If the room is already created, then store the room locally
+                    if(!webSocketManager.gameRoom[roomData.roomId]){
+                      const localRoomData : gameRoom = {
+                        whiteId: roomData.whiteId ?? "",
+                        whiteName: roomData.whiteName ?? "",
+                        whiteProfilePicture: roomData.whiteProfilePicture ?? "",
+                        blackId: roomData.blackId ?? "",
+                        blackName: roomData.blackName ?? "",
+                        blackProfilePicture: roomData.blackProfilePicture ?? "",
+                        whiteSocket: user.userId === roomData.whiteId ? ws : null,
+                        blackSocket: user.userId === roomData.blackId ? ws : null,
+                        lastMoveTime: roomData.lastMoveTime ? new Date(roomData.lastMoveTime) : new Date(),
+                        game: new Chess(roomData.game) ?? new Chess,
+                      };
+                      webSocketManager.gameRoom[roomData.roomId] = localRoomData; 
+                    }else{
+                        const localRoomData : gameRoom = webSocketManager.gameRoom[roomData.roomId]!;
+                        if(user.userId === roomData.whiteId){
+                          localRoomData.whiteSocket = ws;
+                        }else{
+                          localRoomData.blackSocket = ws;
+                        }
+                    }
                     ws.send(JSON.stringify(data));
-                    console.log('roomData: ', roomData)
                   }
                     return;
                   }
