@@ -65,6 +65,8 @@ export default function GameLobby() {
                         blackProfilePicture: data.room.blackProfilePicture,
                         whiteSocket: data.room.whiteSocket,
                         blackSocket: data.room.blackSocket,
+                        whiteTime: data.room.whiteTime,
+                        blackTime: data.room.blackTime,
                         lastMoveTime: data.room.lastMoveTime,
                         game: data.room.game
                     }
@@ -82,10 +84,6 @@ export default function GameLobby() {
         };
     }, [status]);
     
-    
-    
-    
-    
     function joinRandomRoom() {
         const socket = WebSocketClient.getInstance();
         socket.sendMessage(
@@ -93,7 +91,6 @@ export default function GameLobby() {
             JSON.stringify({ type: WebSocketMessageType.JOINLOBBY, JWT_token: session?.user.jwt})
         );
     }
-
 
     if(roomExist){
         return <div className="flex justify-center items-center h-screen">

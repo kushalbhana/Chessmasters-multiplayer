@@ -90,6 +90,8 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackName: user.name,
       blackProfilePicture: user.picture,
       blackSocket: ws,
+      blackTime: 600,
+      whiteTime: 600,
       lastMoveTime: new Date(),
       game: chess,
     };
@@ -105,6 +107,8 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackProfilePicture: newRoom.blackProfilePicture,
       whiteSocket: 'connected',
       blackSocket: 'connected',
+      blackTime: 600,
+      whiteTime: 600,
       lastMoveTime: JSON.stringify(new Date()),
       game: chess.fen(),
     };

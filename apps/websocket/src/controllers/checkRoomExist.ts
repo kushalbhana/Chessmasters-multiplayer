@@ -57,6 +57,8 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                         blackProfilePicture: roomData.blackProfilePicture ?? "",
                         whiteSocket: user.userId === roomData.whiteId ? ws : null,
                         blackSocket: user.userId === roomData.blackId ? ws : null,
+                        blackTime: roomData.blackTime ? parseInt(roomData.blackTime) : 600,
+                        whiteTime: roomData.whiteTime ? parseInt(roomData.whiteTime) : 600,
                         lastMoveTime: roomData.lastMoveTime ? new Date(roomData.lastMoveTime) : new Date(),
                         game: new Chess(roomData.game) ?? new Chess,
                       };
