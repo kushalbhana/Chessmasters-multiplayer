@@ -7,6 +7,9 @@ import { useSession } from "next-auth/react";
 
 import { TimeAndUser } from "./timeAndUser";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
+import { sendMove } from "@/lib/game/sendMove";
+import WebSocketClient from "@/lib/websocket/websocket-client";
+import { WebSocketMessageType, playerType } from "@repo/lib/status";
 
 export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
@@ -44,6 +47,49 @@ export function ChessboardAndUtility() {
     }
   }, [game, color]);
 
+  useEffect(() => {
+    const socket = WebSocketClient.getInstance();
+  
+    if (!socket) return;
+  
+    const handleMessage = (event: MessageEvent) => {
+      const message = JSON.parse(event.data);
+  
+      if (message.type === WebSocketMessageType.INGAMEMOVE) {
+        const incomingMove = message.move;
+  
+        const newGame = new Chess(game.fen());
+        const moveResult = newGame.move(incomingMove);
+  
+        if (moveResult) {
+          setGame(newGame);
+          setPlayerTurn(true); // Your turn now
+          setRoom((prevRoom) => {
+            if (!prevRoom) return null;
+            return {
+              ...prevRoom,
+              room: {
+                ...prevRoom.room,
+                game: newGame.fen(),
+              },
+              type: prevRoom.type,
+              roomId: prevRoom.roomId,
+            };
+          });
+        } else {
+          console.warn("Received invalid move from server:", incomingMove);
+        }
+      }
+    };
+  
+    socket.onMessage(handleMessage);
+  
+    return () => {
+      socket.removeMessageListener(handleMessage);
+    };
+  }, [game]);
+  
+
   function makeAMove(move: any) {
     const validMove = game.move(move);
     if (!validMove) {
@@ -57,7 +103,7 @@ export function ChessboardAndUtility() {
     // Toggle the player's turn
     setPlayerTurn(false); // Assume the opponent's turn now
     setRoom((prevRoom) => {
-      if (!prevRoom) return null; 
+      if (!prevRoom) return null;  
     
       return {
         ...prevRoom,
@@ -88,7 +134,16 @@ export function ChessboardAndUtility() {
       console.log("Invalid move.");
       return false;
     }
-    console.log('Returning True...');
+    // @ts-ignore
+    // Send the move to the server
+    sendMove(session?.user.jwt, 
+      room?.roomId!, 
+      color === 'w' ? playerType.WHITE : playerType.BLACK, 
+      {
+      from: sourceSquare,
+      to: targetSquare,
+      promotion: "q", 
+    });
     return true;
   };
 

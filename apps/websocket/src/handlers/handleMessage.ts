@@ -5,6 +5,7 @@ import { pushToRedis } from "../utils/redisUtils";
 import { WebSocketMessageType} from "@repo/lib/status";
 import { addToLobby } from "../controllers/addToLobby";
 import { checkRoomExist } from "../controllers/checkRoomExist";
+import { makeMove } from "../controllers/makeMove";
 
 
 export async function handleMessage(ws: WebSocket, data: string) {
@@ -16,6 +17,10 @@ export async function handleMessage(ws: WebSocket, data: string) {
     }
     else if(message.type === WebSocketMessageType.ROOMEXIST){
         checkRoomExist(ws, message);
+        return;
+    }else if(message.type === WebSocketMessageType.INGAMEMOVE){
+        console.log('Make a move Handler..', message);
+        makeMove(ws, message);
         return;
     }
     

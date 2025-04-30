@@ -20,7 +20,8 @@ export const WebSocketMessageType = {
     AUTH: 'auth',
     JOINLOBBY: 'JoinRandomRoom',
     PLAYGAME: 'play_game',
-    ROOMEXIST: 'room_exist'
+    ROOMEXIST: 'room_exist',
+    INGAMEMOVE: 'player_move',
   };
 
   export const playerType = {
