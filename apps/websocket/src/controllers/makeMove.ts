@@ -2,8 +2,9 @@ import { WebSocket } from "ws";
 import { webSocketManager } from "..";
 import { authenticateUser } from "../utils/authorization";
 import { WebSocketMessageType } from "@repo/lib/status";
+import { sendMoveToRedis } from "../utils/redisUtils";
 
-export function makeMove(ws: WebSocket, message: any): void {
+export async function makeMove(ws: WebSocket, message: any) {
     try {
         if (!message.JWT_token && !message.data.roomId) {
             ws.send(JSON.stringify({
@@ -52,33 +53,29 @@ export function makeMove(ws: WebSocket, message: any): void {
         }
         
         // Check if the move is valid
+        console.log('Fen Before changes: ',webSocketManager.gameRoom[roomId]?.game.fen());
+        const newMove = webSocketManager?.gameRoom[roomId]?.game.move(move)!;
+        console.log('Fen After changes: ',webSocketManager.gameRoom[roomId]?.game.fen());
+        console.log("Move made:", newMove);
+        if (!newMove) {
+            ws.send(JSON.stringify({
+                code: '400',
+                message: 'Invalid move.',
+            }));
+            return;
+        }
         if(room?.whiteId === user.userId){
-            const newMove = room.game.move(move);
-            if (!newMove) {
-                ws.send(JSON.stringify({
-                    code: '400',
-                    message: 'Invalid move.',
-                }));
-                return;
-            }
             if(room.blackSocket){
                 room.blackSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
             }
-            console.log("Move made:", newMove);
         }else if(room?.blackId === user.userId){
-            const newMove = room.game.move(move);
-            if (!newMove) {
-                ws.send(JSON.stringify({
-                    code: '400',
-                    message: 'Invalid move.',
-                }));
-                return;
-            }
             if(room.whiteSocket){
                 room.whiteSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
             }
-            console.log("Move made:", newMove);
         }
+
+        // Setting value in redis
+        await sendMoveToRedis(roomId, room.game.fen(), move, user.userId);
     } catch (error) {
         console.error("Error in makeMove:", error);
         ws.send(JSON.stringify({

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { useRecoilState } from "recoil";
 import { Chess } from "chess.js";
@@ -17,13 +17,15 @@ export function ChessboardAndUtility() {
   const [game, setGame] = useState<any>(new Chess());
   const [playerTurn, setPlayerTurn] = useState(false);
   const [color, setColor] = useState("w");
+  const [orientation, setOrientation] = useState<"white" | "black">("white");
 
   // Initialize the game and set the player's color
   useEffect(() => {
     if (status === "unauthenticated" || status === "loading") {
       return;
     }
-
+    // @ts-ignore
+    session?.user.id === room?.room.whiteId ? setOrientation("white") : setOrientation("black");
     if (session?.user && room?.room.game) {
       const newGame = new Chess(room.room.game);
       setGame(newGame);
@@ -60,7 +62,7 @@ export function ChessboardAndUtility() {
   
         const newGame = new Chess(game.fen());
         const moveResult = newGame.move(incomingMove);
-  
+
         if (moveResult) {
           setGame(newGame);
           setPlayerTurn(true); // Your turn now
@@ -150,7 +152,8 @@ export function ChessboardAndUtility() {
   return (
     <div className="flex flex-col gap-1">
       <div className="pr-2">
-        <TimeAndUser />
+        {/* @ts-ignore */}
+        <TimeAndUser  profilePicture={ session?.user.id !== room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id !== room?.room.whiteId ? room?.room.whiteName : room?.room.blackName}/>
       </div>
       <div className="p-2">
         <Chessboard
@@ -158,10 +161,12 @@ export function ChessboardAndUtility() {
           position={room?.room.game}
           arePiecesDraggable={playerTurn}
           onPieceDrop={handleMove}
+          boardOrientation={orientation}
         />
       </div>
       <div className="pr-2">
-        <TimeAndUser />
+        {/* @ts-ignore */}
+        <TimeAndUser profilePicture={ session?.user.id === room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id === room?.room.whiteId ? room?.room.whiteName : room?.room.blackName}/> 
       </div>
     </div>
   );

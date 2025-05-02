@@ -87,3 +87,19 @@ export async function CreateRoomCache(roomKey: string, data: any, whiteId: strin
     await multi.exec();
 
 }
+
+export async function sendMoveToRedis(roomId: string, boardFen: string, move: any, userId: string) {
+    const messgageForQueue = JSON.stringify({userId, roomId, move});
+    const client = webSocketManager.redisClient;
+    await client.eval(
+        `
+          redis.call('HSET', KEYS[1], 'game', ARGV[1])
+          redis.call('LPUSH', KEYS[2], ARGV[2])
+          return 1
+        `,
+        {
+          keys: [`gameRoom:${roomId}`, 'queue:movesQueue'],
+          arguments: [boardFen, messgageForQueue]
+        }
+      );
+}
