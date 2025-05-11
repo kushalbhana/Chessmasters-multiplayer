@@ -14,9 +14,7 @@ export function MovesSection(){
                         <h1 className="bg-white text-black">W</h1>
                     </div>
                     <div>
-                        <h1>{room?.roomId}</h1>
-                        <h1>{room?.room.blackId}</h1>
-                        <h1>{room?.room.game}</h1>
+                
                     </div>
                 </div>
                 <div className=" flex w-14">

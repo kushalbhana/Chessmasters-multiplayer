@@ -5,8 +5,8 @@ import { MovesSection } from "./movesSection"
 import { ChatBox } from "./chatUI"
 export function GameLayout(){
     return(
-        <div className="flex h-full w-full p-3 gap-2 flex-col lg:flex-row justify-center items-center">
-            <div className=" w-full lg:w-7/12">
+        <div className="flex h-full w-full gap-1 flex-col lg:flex-row justify-center items-center">
+            <div className=" w-full lg:w-6/12">
                 <ChessboardAndUtility />
             </div>
             <div className="w-full lg:w-5/12 flex flex-col">

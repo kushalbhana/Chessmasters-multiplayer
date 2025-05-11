@@ -93,7 +93,7 @@ export default function GameLobby() {
     }
 
     if(roomExist){
-        return <div className="flex justify-center items-center h-screen">
+        return <div className="flex justify-center items-center h-full lg:h-screen">
                 <GameLayout/>
             </div>
     }
