@@ -6,7 +6,7 @@ import { webSocketManager } from "..";
 import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/status";
 import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash, clientSideRoom } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
-import { CreateRoomCache } from "../utils/redisUtils";
+import { CreateRoomCache, subscribeToRoom } from "../utils/redisUtils";
 
 export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
   try {
@@ -135,6 +135,8 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       3600
     );
 
+    // subscribe to the room
+    subscribeToRoom(roomId);
     const clientPayload: clientSideRoom = {
       type: WebSocketMessageType.JOINROOM,
       roomId,

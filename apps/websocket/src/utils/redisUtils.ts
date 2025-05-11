@@ -1,6 +1,8 @@
 import { createClient, RedisClientType } from 'redis';
 import { Room } from '@repo/lib/types';
 import { webSocketManager } from '..';
+import { WebSocketMessageType } from '@repo/lib/status';
+import { handleMessageFromPubSub } from '../controllers/messsageFomPubSub';
 
 let redisClient: RedisClientType | null = null;
 
@@ -88,18 +90,47 @@ export async function CreateRoomCache(roomKey: string, data: any, whiteId: strin
 
 }
 
+export async function subscribeToRoom(roomId: string) {
+    try {
+        const subRedisClient = createClient({
+            url : process.env.REDIS_URL
+          });
+          
+          subRedisClient.on('error', (err: Error) => console.error('Redis Client Error:', err));
+
+            await subRedisClient.connect();
+            console.log('Connected to Sub Redis...');
+            const channel = `room:${roomId}:channel`;
+            
+            subRedisClient.subscribe(channel, (message) => {
+            console.log(`New message in room ${roomId}:`, message);
+        
+            // Process the message (you can adapt this as needed)
+                handleMessageFromPubSub(message);
+            });
+        
+            console.log(`Subscribed to room ${roomId} channel.`);
+        } catch (error) {
+            console.error('Error connecting to Redis:', error);
+            throw error;
+        }
+  }
+
+
 export async function sendMoveToRedis(roomId: string, boardFen: string, move: any, userId: string) {
     const messgageForQueue = JSON.stringify({userId, roomId, move});
+    const messageToPubSub = JSON.stringify({type: WebSocketMessageType.INGAMEMOVE, roomId, move, boardState: boardFen});
     const client = webSocketManager.redisClient;
     await client.eval(
         `
           redis.call('HSET', KEYS[1], 'game', ARGV[1])
           redis.call('LPUSH', KEYS[2], ARGV[2])
+          redis.call('PUBLISH', KEYS[3], ARGV[3])
           return 1
         `,
         {
-          keys: [`gameRoom:${roomId}`, 'queue:movesQueue'],
-          arguments: [boardFen, messgageForQueue]
+          keys: [`gameRoom:${roomId}`, 'queue:movesQueue', `room:${roomId}:channel`],
+          arguments: [boardFen, messgageForQueue, messageToPubSub]
         }
       );
 }

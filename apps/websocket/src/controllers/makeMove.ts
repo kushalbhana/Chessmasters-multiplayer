@@ -23,8 +23,6 @@ export async function makeMove(ws: WebSocket, message: any) {
             return;
         }
     
-        console.log("User authenticated:", user.userId);
-    
         const roomId = message.data.roomId;
         const move = message.data.move;
 
@@ -41,7 +39,6 @@ export async function makeMove(ws: WebSocket, message: any) {
         }
     
         const room = webSocketManager.gameRoom[roomId]!;
-        console.log("current fen:", room?.game.fen());
         
         // Check if the sender is the correct player
         if(room?.blackId !== user.userId && room?.whiteId !== user.userId){

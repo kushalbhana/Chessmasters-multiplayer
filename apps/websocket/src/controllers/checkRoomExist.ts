@@ -6,6 +6,7 @@ import { WebSocketMessageType } from "@repo/lib/status";
 import { authenticateUser } from "../utils/authorization";
 import { webSocketManager } from "..";
 import { Chess } from "chess.js";
+import { subscribeToRoom } from "../utils/redisUtils";
 
 export async function checkRoomExist(ws: WebSocket, message: any){
     try {
@@ -71,6 +72,7 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                           localRoomData.blackSocket = ws;
                         }
                     }
+                    subscribeToRoom(playerRoom);
                     ws.send(JSON.stringify(data));
                   }
                     return;
