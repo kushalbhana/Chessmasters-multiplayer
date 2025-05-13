@@ -14,6 +14,10 @@ import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { GameLayout } from "@/components/playpage/gamelayout";
 import { clientSideRoom } from "@repo/lib/types";
 import { GameManager } from "@/lib/game/gamemanager";
+import { FaMicrophone } from "react-icons/fa";
+import { FaCamera } from "react-icons/fa";
+import { Dropdown } from "@/components/ui/dropdown";
+
 
 export default function GameLobby() {
     
@@ -111,6 +115,17 @@ export default function GameLobby() {
                         strategy to the test! Whether you're a beginner or a seasoned pro, every game is a new challenge. No sign-ups, no waiting—just 
                         quick matchmaking, intense battles, and the thrill of the game. Play now and outthink your opponent! 🚀 
                     </h1>
+                    <div className="h-24 flex gap-4 justify-center items-center">
+                        <Dropdown/>
+                        <div className="flex justify-center items-center rounded-2xl bg-red-600 h-10 w-10 hover:bg-red-700 hover:cursor-pointer">
+                            <FaMicrophone className=" text-black text-lg"/>
+                        </div>
+                        <Dropdown/>
+                        <div className="flex justify-center items-center rounded-2xl hover:bg-red-700 hover:cursor-pointer bg-red-600 h-10 w-10">
+                            <FaCamera className=" text-black text-lg"/>
+                        </div>
+
+                    </div>
                     <div className="flex gap-6 md:gap-10 mt-5">
                         <h1 className="md:text-4xl"> <FaChessRook /> </h1>
                         <h1 className="md:text-4xl"> <FaChessKnight /> </h1>

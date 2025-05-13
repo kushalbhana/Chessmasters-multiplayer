@@ -1,7 +1,7 @@
 "use client";
 import { use, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useRecoilCallback } from "recoil";
 import { Chess } from "chess.js";
 import { useSession } from "next-auth/react";
 
@@ -10,6 +10,7 @@ import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { sendMove } from "@/lib/game/sendMove";
 import WebSocketClient from "@/lib/websocket/websocket-client";
 import { WebSocketMessageType, playerType } from "@repo/lib/status";
+import { gameMoves } from "@/store/atoms/moves";
 
 export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
@@ -18,6 +19,11 @@ export function ChessboardAndUtility() {
   const [playerTurn, setPlayerTurn] = useState(false);
   const [color, setColor] = useState("w");
   const [orientation, setOrientation] = useState<"white" | "black">("white");
+  const moves = useRecoilValue(gameMoves);
+
+  const addMove = useRecoilCallback(({ set }) => (move: string) => {
+    set(gameMoves, (prev) => [...prev, move]);
+  }, []);
 
   // Initialize the game and set the player's color
   useEffect(() => {
@@ -66,6 +72,7 @@ export function ChessboardAndUtility() {
         if (moveResult) {
           setGame(newGame);
           setPlayerTurn(true); // Your turn now
+          addMove(moveResult.san);
           setRoom((prevRoom) => {
             if (!prevRoom) return null;
             return {
@@ -93,31 +100,37 @@ export function ChessboardAndUtility() {
   
 
   function makeAMove(move: any) {
-    const validMove = game.move(move);
-    if (!validMove) {
-      console.error('Invalid move:', move);
-      return null;
+    try {
+      const validMove = game.move(move);
+      if (!validMove) {
+        console.error('Invalid move:', move);
+        return null;
+      }
+      addMove(validMove.san);
+  
+      console.log('Move made:', validMove);
+      setGame(game); // Update the game object with the new move
+      
+      // Toggle the player's turn
+      setPlayerTurn(false); // Assume the opponent's turn now
+      setRoom((prevRoom) => {
+        if (!prevRoom) return null;  
+      
+        return {
+          ...prevRoom,
+          room: {
+            ...prevRoom.room,
+            game: game.fen(), // update game field only
+          },
+          type: prevRoom.type, // preserve type
+          roomId: prevRoom.roomId, // preserve roomId
+        };
+      });
+      return true;
+    } catch (error) {
+      console.error('Error making move:', error);
     }
-
-    console.log('Move made:', validMove);
-    setGame(game); // Update the game object with the new move
-    
-    // Toggle the player's turn
-    setPlayerTurn(false); // Assume the opponent's turn now
-    setRoom((prevRoom) => {
-      if (!prevRoom) return null;  
-    
-      return {
-        ...prevRoom,
-        room: {
-          ...prevRoom.room,
-          game: game.fen(), // update game field only
-        },
-        type: prevRoom.type, // preserve type
-        roomId: prevRoom.roomId, // preserve roomId
-      };
-    });
-    return true;
+   
   }
 
   const handleMove = (sourceSquare: any, targetSquare: any) => {
@@ -148,7 +161,7 @@ export function ChessboardAndUtility() {
     });
     return true;
   };
-
+console.log("Moves: ", moves);
   return (
     <div className="flex flex-col gap-1">
       <div className="pr-2">
