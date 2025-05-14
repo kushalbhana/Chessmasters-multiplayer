@@ -134,3 +134,11 @@ export async function sendMoveToRedis(roomId: string, boardFen: string, move: an
         }
       );
 }
+
+export async function saveMovesArrayToRedis(roomId: string, moves: string) {
+    const client = webSocketManager.redisClient;
+    const multi = client.multi();
+    multi.hSet(`gameRoom:${roomId}`, 'moves', JSON.stringify(moves));
+        
+    await multi.exec();
+}

@@ -2,7 +2,7 @@ import { WebSocket } from "ws";
 import { webSocketManager } from "..";
 import { authenticateUser } from "../utils/authorization";
 import { WebSocketMessageType } from "@repo/lib/status";
-import { sendMoveToRedis } from "../utils/redisUtils";
+import { sendMoveToRedis, saveMovesArrayToRedis } from "../utils/redisUtils";
 
 export async function makeMove(ws: WebSocket, message: any) {
     try {
@@ -25,9 +25,6 @@ export async function makeMove(ws: WebSocket, message: any) {
     
         const roomId = message.data.roomId;
         const move = message.data.move;
-
-        console.log("Move received:", move);
-        console.log("Move received:", move.from.to);
     
         // Check if the room exists
         if (!webSocketManager.gameRoom[roomId]) {
@@ -50,10 +47,7 @@ export async function makeMove(ws: WebSocket, message: any) {
         }
         
         // Check if the move is valid
-        console.log('Fen Before changes: ',webSocketManager.gameRoom[roomId]?.game.fen());
         const newMove = webSocketManager?.gameRoom[roomId]?.game.move(move)!;
-        console.log('Fen After changes: ',webSocketManager.gameRoom[roomId]?.game.fen());
-        console.log("Move made:", newMove);
         if (!newMove) {
             ws.send(JSON.stringify({
                 code: '400',
@@ -61,6 +55,11 @@ export async function makeMove(ws: WebSocket, message: any) {
             }));
             return;
         }
+        
+            webSocketManager?.gameRoom[roomId]?.moves.push(newMove.san);
+            console.log("Moves: ", JSON.stringify(webSocketManager?.gameRoom[roomId]?.moves));
+            saveMovesArrayToRedis(roomId, JSON.stringify(webSocketManager?.gameRoom[roomId]?.moves));
+
         if(room?.whiteId === user.userId){
             if(room.blackSocket){
                 room.blackSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));

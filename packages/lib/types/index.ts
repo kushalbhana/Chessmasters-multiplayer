@@ -33,7 +33,8 @@ export type gameRoom = {
     whiteTime: number,
     blackTime: number,
     lastMoveTime: Date,
-    game: Chess
+    game: Chess,
+    moves: string[]; // Array of moves
 }
 
 export type playerInQueue = {
@@ -75,6 +76,7 @@ export interface RedisRoom {
     blackTime: number,
     lastMoveTime: string
     game: string; // Replace with actual type if boardState has a specific structure
+    moves: string; // Array of moves
 }
 
 // Define type for player hash

@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { Chessboard } from "react-chessboard";
 import { useSession } from "next-auth/react";
 
@@ -17,6 +16,7 @@ import { GameManager } from "@/lib/game/gamemanager";
 import { FaMicrophone } from "react-icons/fa";
 import { FaCamera } from "react-icons/fa";
 import { Dropdown } from "@/components/ui/dropdown";
+import { gameMoves } from "@/store/atoms/moves";
 
 
 export default function GameLobby() {
@@ -24,6 +24,7 @@ export default function GameLobby() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const [room, setRoomInfo] = useRecoilState(roomInfo);
+    const [moves, setMoves] = useRecoilState(gameMoves);
     const [roomExist, setRoomExist] = useState<boolean>(false);
 
     useEffect(() => {
@@ -72,10 +73,13 @@ export default function GameLobby() {
                         whiteTime: data.room.whiteTime,
                         blackTime: data.room.blackTime,
                         lastMoveTime: data.room.lastMoveTime,
-                        game: data.room.game
+                        game: data.room.game,
+                        moves: data.room.moves
                     }
                 };
                 setRoomInfo(roomData as clientSideRoom);
+                console.log();
+                setMoves(JSON.parse(JSON.parse(data.room.moves)));
                 GameManager.getInstance(roomData.room.game);
                 setRoomExist(true);
             }

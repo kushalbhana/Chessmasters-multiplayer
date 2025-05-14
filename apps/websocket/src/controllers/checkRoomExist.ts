@@ -62,6 +62,7 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                         whiteTime: roomData.whiteTime ? parseInt(roomData.whiteTime) : 600,
                         lastMoveTime: roomData.lastMoveTime ? new Date(roomData.lastMoveTime) : new Date(),
                         game: new Chess(roomData.game) ?? new Chess,
+                        moves: roomData.moves ? roomData.moves.split(',') : [],
                       };
                       webSocketManager.gameRoom[roomData.roomId] = localRoomData; 
                     }else{
