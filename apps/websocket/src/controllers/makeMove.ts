@@ -3,7 +3,8 @@ import { webSocketManager } from "..";
 import { authenticateUser } from "../utils/authorization";
 import { WebSocketMessageType } from "@repo/lib/status";
 import { sendMoveToRedis, saveMovesArrayToRedis } from "../utils/redisUtils";
-import { getGameStatus } from "../utils/gameUtils";
+import { getGameStatus, postGameOverCleanup } from "../utils/gameUtils";
+import { post } from "axios";
 
 export async function makeMove(ws: WebSocket, message: any) {
     try {
@@ -72,15 +73,7 @@ export async function makeMove(ws: WebSocket, message: any) {
             
             // Setting value in redis
             await sendMoveToRedis(roomId, room.game.fen(), move, user.userId);
-            if (room?.game) {
-                const gameStatus = getGameStatus(room.game);
-                console.log("Game Status:", gameStatus);
-                
-                if (gameStatus !== "ongoing") {
-                }
-            } else {
-                console.error("Game object is undefined. Cannot check game status.");
-            }
+            postGameOverCleanup(roomId);
     } catch (error) {
         console.error("Error in makeMove:", error);
         ws.send(JSON.stringify({

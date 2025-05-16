@@ -12,40 +12,44 @@ datasource db {
   provider = "postgresql"
   url      = "postgresql://kushal:kushal_password_chessmasters@localhost:5432/chessmasters"
 }
-model User {
-  id              String    @id @default(cuid())
-  name            String
-  email           String   @unique
-  emailVerified   Boolean? @default(true) 
-  oAuthId         String?  @unique
-  picture         String?
-  passWord        String?
 
-  gamesAsUser1    Game[]   @relation("User1Games")
-  gamesAsUser2    Game[]   @relation("User2Games")
-  move            Move[]
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean? @default(true) 
+  oAuthId       String?  @unique
+  picture       String?
+  password      String?  // changed from passWord
+
+  gamesAsUser1  Game[]   @relation("User1Games")
+  gamesAsUser2  Game[]   @relation("User2Games")
+  gamesWon      Game[]   @relation("WinnerGames")
+  moves         Move[]   
 }
 
 model Game {
-  id     Int      @id @default(autoincrement())
-  user1  String
-  user2  String
-  winner String?
-  draw   Boolean?  @default(false)
-  date   DateTime @default(now())
-  move  Move[]
+  id            String      @id @default(cuid())
+  user1         String
+  user2         String
+  winner        String?
+  draw          Boolean? @default(false)
+  date          DateTime @default(now())
+  moves         Move[]   
 
-  user1Relation User    @relation("User1Games", fields: [user1], references: [id])
-  user2Relation User    @relation("User2Games", fields: [user2], references: [id])
+  user1Relation User     @relation("User1Games", fields: [user1], references: [id])
+  user2Relation User     @relation("User2Games", fields: [user2], references: [id])
+  winnerRelation  User?  @relation("WinnerGames", fields: [winner], references: [id])
 }
 
 model Move {
-  id       Int      @id @default(autoincrement())
-  gameId   Int
-  userId   String     
+  id       Int    @id @default(autoincrement())
+  gameId   String
+  userId   String
   from     String
   to       String
+  san      String
 
-  user  User      @relation(fields: [userId], references: [id])
-  game  Game      @relation(fields: [gameId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
+  game     Game   @relation(fields: [gameId], references: [id])
 }

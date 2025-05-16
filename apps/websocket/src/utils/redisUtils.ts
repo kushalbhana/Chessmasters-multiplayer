@@ -85,6 +85,13 @@ export async function CreateRoomCache(roomKey: string, data: any, whiteId: strin
     multi.expire(roomKey, expiryTimeInSeconds);
     multi.expire(whiteId, expiryTimeInSeconds);
     multi.expire(blackId, expiryTimeInSeconds);
+
+    const gameToDB = {
+        id: roomKey,
+        user1: whiteId,
+        user2: blackId
+    }
+    multi.rPush("queue:movesQueue", JSON.stringify(gameToDB));
     
     await multi.exec();
 
@@ -142,3 +149,17 @@ export async function saveMovesArrayToRedis(roomId: string, moves: string) {
         
     await multi.exec();
 }
+
+export async function postGameCleanUp(roomId: string, user1: string, user2: string, data: {id: string, winner:string}) {
+    const client = webSocketManager.redisClient;
+    const multi = client.multi();
+    
+    multi.rPush('queue:gameOverQueue', JSON.stringify(data));
+    // Delete entire Redis keys
+    multi.del(`gameRoom:${roomId}`);
+    multi.del(`player:${user1}`);
+    multi.del(`player:${user2}`);
+  
+    await multi.exec();
+  }
+    

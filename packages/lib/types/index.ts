@@ -91,3 +91,9 @@ export type clientSideRoom = {
     roomId: string,
     room: RedisRoom
 }
+
+export type newGameToDB = {
+    user1: String,
+    user2: String,
+    winner: null,      // or set to "user1-cuid-id" / "user2-cuid-id"
+}

@@ -4,7 +4,7 @@ import prisma from '@repo/db/client';
 import { hash } from 'bcrypt';
 
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       data: {
         name: validatedData.fullname,
         email: validatedData.email,
-        passWord: hashedPassword,
+        password: hashedPassword,
       },
     });
 
