@@ -9,12 +9,15 @@ import { TimeAndUser } from "./timeAndUser";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { sendMove } from "@/lib/game/sendMove";
 import WebSocketClient from "@/lib/websocket/websocket-client";
-import { WebSocketMessageType, playerType } from "@repo/lib/status";
+import { WebSocketMessageType, gameStatusObj, playerType } from "@repo/lib/status";
 import { gameMoves } from "@/store/atoms/moves";
+import { getGameStatus } from "@/lib/game/gamestatus";
+import { gameStatus } from "@/store/atoms/game";
 
 export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
   const [room, setRoom] = useRecoilState(roomInfo);
+  const [gameStat, setGameStat] = useRecoilState(gameStatus);
   const [game, setGame] = useState<any>(new Chess());
   const [playerTurn, setPlayerTurn] = useState(false);
   const [color, setColor] = useState("w");
@@ -85,6 +88,40 @@ export function ChessboardAndUtility() {
               roomId: prevRoom.roomId,
             };
           });
+          const isGameOver = getGameStatus(newGame);
+          if (isGameOver !== gameStatusObj.ONGOING) {
+            if (isGameOver === gameStatusObj.CHECKMATE) {
+              setGameStat({
+                isGameOver: true,
+                overType: gameStatusObj.CHECKMATE,
+                status: 'Lost'})
+              console.log("Checkmate! Game over.");
+            }
+            if (isGameOver === gameStatusObj.STALEMATE) {
+              setGameStat({
+                isGameOver: true,
+                overType: gameStatusObj.STALEMATE,
+                status: 'Draw'})
+            }
+            if (isGameOver === gameStatusObj.DRAW) {
+              setGameStat({
+                isGameOver: true,
+                overType: gameStatusObj.DRAW,
+                status: 'Draw'})
+            }
+            if (isGameOver === gameStatusObj.INSUFFICIENT_MATERIAL) {
+              setGameStat({
+                isGameOver: true,
+                overType: gameStatusObj.INSUFFICIENT_MATERIAL,
+                status: 'Draw'})
+            }
+            if (isGameOver === gameStatusObj.THREEFOLD_REPETITION) {
+              setGameStat({
+                isGameOver: true,
+                overType: gameStatusObj.THREEFOLD_REPETITION,
+                status: 'Draw'})
+            }
+          }
         } else {
           console.warn("Received invalid move from server:", incomingMove);
         }
@@ -159,6 +196,40 @@ export function ChessboardAndUtility() {
       to: targetSquare,
       promotion: "q", 
     });
+    const isGameOver = getGameStatus(game);
+    if (isGameOver !== gameStatusObj.ONGOING) {
+      if (isGameOver === gameStatusObj.CHECKMATE) {
+        setGameStat({
+          isGameOver: true,
+          overType: gameStatusObj.CHECKMATE,
+          status: 'Win'})
+        console.log("Checkmate! Game over.");
+      }
+      if (isGameOver === gameStatusObj.STALEMATE) {
+        setGameStat({
+          isGameOver: true,
+          overType: gameStatusObj.STALEMATE,
+          status: 'Draw'})
+      }
+      if (isGameOver === gameStatusObj.DRAW) {
+        setGameStat({
+          isGameOver: true,
+          overType: gameStatusObj.DRAW,
+          status: 'Draw'})
+      }
+      if (isGameOver === gameStatusObj.INSUFFICIENT_MATERIAL) {
+        setGameStat({
+          isGameOver: true,
+          overType: gameStatusObj.INSUFFICIENT_MATERIAL,
+          status: 'Draw'})
+      }
+      if (isGameOver === gameStatusObj.THREEFOLD_REPETITION) {
+        setGameStat({
+          isGameOver: true,
+          overType: gameStatusObj.THREEFOLD_REPETITION,
+          status: 'Draw'})
+      }
+    }
     return true;
   };
 console.log("Moves: ", moves);

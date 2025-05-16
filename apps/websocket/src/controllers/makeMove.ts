@@ -3,6 +3,7 @@ import { webSocketManager } from "..";
 import { authenticateUser } from "../utils/authorization";
 import { WebSocketMessageType } from "@repo/lib/status";
 import { sendMoveToRedis, saveMovesArrayToRedis } from "../utils/redisUtils";
+import { getGameStatus } from "../utils/gameUtils";
 
 export async function makeMove(ws: WebSocket, message: any) {
     try {
@@ -57,21 +58,29 @@ export async function makeMove(ws: WebSocket, message: any) {
         }
         
             webSocketManager?.gameRoom[roomId]?.moves.push(newMove.san);
-            console.log("Moves: ", JSON.stringify(webSocketManager?.gameRoom[roomId]?.moves));
             saveMovesArrayToRedis(roomId, JSON.stringify(webSocketManager?.gameRoom[roomId]?.moves));
-
-        if(room?.whiteId === user.userId){
-            if(room.blackSocket){
-                room.blackSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
+            
+            if(room?.whiteId === user.userId){
+                if(room.blackSocket){
+                    room.blackSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
+                }
+            }else if(room?.blackId === user.userId){
+                if(room.whiteSocket){
+                    room.whiteSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
+                }
             }
-        }else if(room?.blackId === user.userId){
-            if(room.whiteSocket){
-                room.whiteSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
+            
+            // Setting value in redis
+            await sendMoveToRedis(roomId, room.game.fen(), move, user.userId);
+            if (room?.game) {
+                const gameStatus = getGameStatus(room.game);
+                console.log("Game Status:", gameStatus);
+                
+                if (gameStatus !== "ongoing") {
+                }
+            } else {
+                console.error("Game object is undefined. Cannot check game status.");
             }
-        }
-
-        // Setting value in redis
-        await sendMoveToRedis(roomId, room.game.fen(), move, user.userId);
     } catch (error) {
         console.error("Error in makeMove:", error);
         ws.send(JSON.stringify({

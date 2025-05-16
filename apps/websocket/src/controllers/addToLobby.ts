@@ -112,7 +112,7 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       whiteTime: 600,
       lastMoveTime: JSON.stringify(new Date()),
       game: chess.fen(),
-      moves: JSON.stringify([]),
+      moves: JSON.stringify(JSON.stringify([])),
     };
 
     const whitePlayer: PlayerHash = {

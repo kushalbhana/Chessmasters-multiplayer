@@ -46,6 +46,7 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                       roomId: playerRoom,
                       room: roomData,
                     }
+                    
 
                     // If the room is already created, then store the room locally
                     if(!webSocketManager.gameRoom[roomData.roomId]){
