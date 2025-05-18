@@ -35,6 +35,7 @@ model Game {
   winner        String?
   draw          Boolean? @default(false)
   date          DateTime @default(now())
+  overType      String?  
   moves         Move[]   
 
   user1Relation User     @relation("User1Games", fields: [user1], references: [id])
