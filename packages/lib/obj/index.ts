@@ -35,7 +35,8 @@ export const WebSocketMessageType = {
         STALEMATE: 'Stalemate',
         DRAW: 'Draw',
         INSUFFICIENT_MATERIAL: 'Insufficient-material',
-        THREEFOLD_REPETITION: 'Threefold-repetition'
+        THREEFOLD_REPETITION: 'Threefold-repetition',
+        TIMEOUT: 'Timeout',
   }
   export const gameStatusMessage = {
         CheckmateWin: "Checkmate! You've cornered the king and claimed victory!",
@@ -44,4 +45,6 @@ export const WebSocketMessageType = {
         Draw: "It's a draw! The battle ends evenly matched.",
         Insufficient_Material: "Draw due to insufficient material — no checkmate is possible with the remaining pieces.",
         Threefold_Repetition: "Draw declared! The same position has occurred three times on the board.",
+        TimeoutWIN: "Time's up! The game is over due to time expiration.",
+        TimeoutLOST: "Time's up! You've run out of time, and the game is over.",
   }

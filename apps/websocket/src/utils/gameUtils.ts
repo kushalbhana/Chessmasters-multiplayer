@@ -14,38 +14,46 @@ export function getGameStatus(chess: Chess): string {
 }
 
 export async function postGameOverCleanup(roomId: string) {
-    if(!webSocketManager.gameRoom[roomId]) return;
+    if (!webSocketManager.gameRoom[roomId]) return;
 
     const game = webSocketManager.gameRoom[roomId]!.game;
     const status = getGameStatus(game);
 
+    const whiteId = webSocketManager.gameRoom[roomId]!.whiteId;
+    const blackId = webSocketManager.gameRoom[roomId]!.blackId;
+
     if (status === gameStatusObj.CHECKMATE) {
         const winner = game.turn() === 'w' ? 'Black' : 'White';
-        const winnerId = winner === 'White' ? webSocketManager.gameRoom[roomId]!.whiteId : webSocketManager.gameRoom[roomId]!.blackId;
+        const winnerId = winner === 'White' ? whiteId : blackId;
 
-        const updateDBABoutGameOver:{id: string, winner:string} = {
+        const updateDBAboutGameOver = {
             id: roomId,
             winner: winnerId,
+            overType: gameStatusObj.CHECKMATE
         };
-        await postGameCleanUp(roomId, 
-          webSocketManager.gameRoom[roomId]!.whiteId, 
-          webSocketManager.gameRoom[roomId]!.blackId, 
-          updateDBABoutGameOver);
-        
+
+        await postGameCleanUp(roomId, whiteId, blackId, updateDBAboutGameOver);
         delete webSocketManager.gameRoom[roomId];
 
+    } else if (
+        status === gameStatusObj.STALEMATE ||
+        status === gameStatusObj.DRAW ||
+        status === gameStatusObj.INSUFFICIENT_MATERIAL ||
+        status === gameStatusObj.THREEFOLD_REPETITION
+    ) {
+        const updateDBAboutGameOver = {
+            id: roomId,
+            winner: 'DRAW',
+            overType: status
+        };
 
-    } else if (status === gameStatusObj.STALEMATE) {
-        console.log("Game Over: Stalemate");
-    } else if (status === gameStatusObj.DRAW) {
-        console.log("Game Over: Draw");
-    } else if (status === gameStatusObj.INSUFFICIENT_MATERIAL) {
-        console.log("Game Over: Insufficient Material");
-    } else if (status === gameStatusObj.THREEFOLD_REPETITION) {
-        console.log("Game Over: Threefold Repetition");
-    } 
+        await postGameCleanUp(roomId, whiteId, blackId, updateDBAboutGameOver);
+        delete webSocketManager.gameRoom[roomId];
+    }
+
     return;
 }
+
 
 export function calculateUpdatedRemainingTime( roomId: string,){
     const room = webSocketManager.gameRoom[roomId];

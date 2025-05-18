@@ -58,6 +58,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       blackTime: roomData.blackTime ? parseInt(roomData.blackTime) : 600,
       lastMoveTime: roomData.lastMoveTime,
       game: roomData.game,
+      moves: roomData.moves,
     };
 
     const responsePayload: clientSideRoom = {

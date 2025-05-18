@@ -17,14 +17,14 @@ import { gameStatus, playerTime, opponentTime } from "@/store/atoms/game";
 export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
   const [room, setRoom] = useRecoilState(roomInfo);
-  const [gameStat, setGameStat] = useRecoilState(gameStatus);
+  const setGameStat = useSetRecoilState(gameStatus);
   const [game, setGame] = useState<any>(new Chess());
   const [playerTurn, setPlayerTurn] = useState(false);
   const [color, setColor] = useState("w");
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const moves = useRecoilValue(gameMoves);
-  const [myTimeRemaining, setMyTimeRemaining] = useRecoilState(playerTime);
-  const [oppTimeRemaining, setOppTimeRemaining] = useRecoilState(opponentTime);
+  const setMyTimeRemaining = useSetRecoilState(playerTime);
+  const setOppTimeRemaining = useSetRecoilState(opponentTime);
 
   const addMove = useRecoilCallback(({ set }) => (move: string) => {
     set(gameMoves, (prev) => [...prev, move]);

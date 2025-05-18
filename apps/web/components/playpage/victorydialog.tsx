@@ -11,7 +11,6 @@ import { FaTrophy } from "react-icons/fa";
 import { gameStatusObj, gameStatusMessage } from "@repo/lib/status"
 import { LuLollipop } from "react-icons/lu";
 
-
 interface VictoryDialogProps {
   open: boolean
   onClose: () => void
@@ -36,6 +35,10 @@ export function VictoryDialog({ open, onClose, playerName = "You" }: VictoryDial
     Message = gameStatusMessage.Insufficient_Material;
   else if(GameStatus.overType === gameStatusObj.THREEFOLD_REPETITION)
     Message = gameStatusMessage.Threefold_Repetition;
+  else if(GameStatus.overType === gameStatusObj.TIMEOUT && GameStatus.status === 'Win')
+    Message = gameStatusMessage.TimeoutWIN;
+  else if(GameStatus.overType === gameStatusObj.TIMEOUT && GameStatus.status === 'Lost')
+    Message = gameStatusMessage.TimeoutLOST;
   else
     Message = "Game Over!";
   return (
