@@ -2,6 +2,7 @@ import { Chess } from "chess.js"
 import { gameStatusObj } from "@repo/lib/status"
 import { webSocketManager } from ".."
 import { postGameCleanUp } from "./redisUtils"
+import { clearPlayerTimeout } from "./bukllmqClient"
 
 export function getGameStatus(chess: Chess): string {
   
@@ -31,7 +32,8 @@ export async function postGameOverCleanup(roomId: string) {
             winner: winnerId,
             overType: gameStatusObj.CHECKMATE
         };
-
+        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.whiteId);
+        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.blackId);
         await postGameCleanUp(roomId, whiteId, blackId, updateDBAboutGameOver);
         delete webSocketManager.gameRoom[roomId];
 
@@ -48,6 +50,8 @@ export async function postGameOverCleanup(roomId: string) {
         };
 
         await postGameCleanUp(roomId, whiteId, blackId, updateDBAboutGameOver);
+        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.whiteId);
+        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.blackId);
         delete webSocketManager.gameRoom[roomId];
     }
 

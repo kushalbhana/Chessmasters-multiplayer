@@ -5,6 +5,7 @@ import { WebSocketMessageType } from "@repo/lib/status";
 import { sendMoveToRedis, saveMovesArrayToRedis } from "../utils/redisUtils";
 import { postGameOverCleanup } from "../utils/gameUtils";
 import { calculateUpdatedRemainingTime } from "../utils/gameUtils";
+import { clearPlayerTimeout, schedulePlayerTimeout } from "../utils/bukllmqClient";
 
 export async function makeMove(ws: WebSocket, message: any) {
     try {
@@ -48,6 +49,13 @@ export async function makeMove(ws: WebSocket, message: any) {
             return;
         }
         
+        // Clear any existing timeout for the player
+        if (webSocketManager.gameRoom[roomId]!.game.turn() === 'w') {
+            await clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.whiteId);
+        }
+        if (room.blackId === user.userId) {
+            await clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.blackId);
+        }
         // Check if the move is valid
         const newMove = webSocketManager?.gameRoom[roomId]?.game.move(move)!;
         if (!newMove) {
@@ -75,6 +83,13 @@ export async function makeMove(ws: WebSocket, message: any) {
                 }
             }
             
+            if (webSocketManager.gameRoom[roomId]!.game.turn() === 'w') {
+                await schedulePlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.whiteId, webSocketManager.gameRoom[roomId]!.whiteTime);
+            }
+            if (room.blackId === user.userId) {
+                await schedulePlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.blackId, webSocketManager.gameRoom[roomId]!.blackTime);
+            }
+
             // Setting value in redis
             await sendMoveToRedis(roomId, room.game.fen(), move, user.userId);
             postGameOverCleanup(roomId);

@@ -157,7 +157,7 @@ export async function SaveRemainingTimeToRedis(roomId: string, time: number, whi
     await multi.exec();
 }
 
-export async function postGameCleanUp(roomId: string, user1: string, user2: string, data: {id: string, winner:string}) {
+export async function postGameCleanUp(roomId: string, user1: string, user2: string, data: {id: string, winner:string, overType: string}) {
     const client = webSocketManager.redisClient;
     const multi = client.multi();
     

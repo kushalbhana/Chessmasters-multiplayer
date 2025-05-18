@@ -7,6 +7,7 @@ import { playerType, STATUS_MESSAGES, WebSocketMessageType } from "@repo/lib/sta
 import { userWebSocketServer, gameRoom, RedisRoom, PlayerHash, clientSideRoom } from "@repo/lib/types";
 import { authenticateUser } from "../utils/authorization";
 import { CreateRoomCache, subscribeToRoom } from "../utils/redisUtils";
+import { schedulePlayerTimeout } from "../utils/bukllmqClient";
 
 export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
   try {
@@ -136,7 +137,9 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       blackPlayer,
       3600
     );
-
+    
+    // Schedule player timeout
+    await schedulePlayerTimeout(roomId, newRoom.whiteId, newRoom.whiteTime);
     // subscribe to the room
     subscribeToRoom(roomId);
     const clientPayload: clientSideRoom = {

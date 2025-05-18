@@ -18,14 +18,14 @@ export function TimeSection({ playerType, orientation, game }: any) {
     const oppTimeRemaining = useRecoilValue(opponentTime);
     const [gameOver, setGameOver] = useRecoilState(gameStatus);
 
-    if(myTimeRemaining <=0){
+    if(myTimeRemaining <=0 && gameOver.isGameOver === false){
         setGameOver((prev) => ({
             ...prev,
             isGameOver: true,
             overType: gameStatusObj.TIMEOUT,
             status: "Lost",
         }));
-    }else if(oppTimeRemaining <=0){
+    }else if(oppTimeRemaining <=0 && gameOver.isGameOver === false){
         setGameOver((prev) => ({
             ...prev,
             isGameOver: true,
