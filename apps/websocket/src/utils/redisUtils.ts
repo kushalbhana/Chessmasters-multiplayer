@@ -149,6 +149,13 @@ export async function saveMovesArrayToRedis(roomId: string, moves: string) {
         
     await multi.exec();
 }
+export async function SaveRemainingTimeToRedis(roomId: string, time: number, whichUser: 'blackTime' | 'whiteTime') {
+    const client = webSocketManager.redisClient;
+    const multi = client.multi();
+    multi.hSet(`gameRoom:${roomId}`, whichUser, time);
+        
+    await multi.exec();
+}
 
 export async function postGameCleanUp(roomId: string, user1: string, user2: string, data: {id: string, winner:string}) {
     const client = webSocketManager.redisClient;
@@ -163,3 +170,4 @@ export async function postGameCleanUp(roomId: string, user1: string, user2: stri
     await multi.exec();
   }
     
+

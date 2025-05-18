@@ -46,3 +46,33 @@ export async function postGameOverCleanup(roomId: string) {
     } 
     return;
 }
+
+export function calculateUpdatedRemainingTime( roomId: string,){
+    const room = webSocketManager.gameRoom[roomId];
+    if (!room) {
+      throw new Error("Room not found");
+    }
+    const lastMoveTime = room.lastMoveTime;
+    let remainingTimeInSeconds = 600;
+    room.game.turn() === 'w' ? remainingTimeInSeconds = webSocketManager.gameRoom[roomId]!.blackTime : remainingTimeInSeconds = webSocketManager.gameRoom[roomId]!.whiteTime;
+    
+    const currentTime = new Date();
+    const elapsedSeconds = Math.floor(
+      (currentTime.getTime() - lastMoveTime.getTime()) / 1000
+    );
+
+    // Calculate the new remaining time
+    const newTime = Math.max(remainingTimeInSeconds - elapsedSeconds, 0);
+    webSocketManager.gameRoom[roomId]!.lastMoveTime = currentTime;
+
+    if(webSocketManager.gameRoom[roomId]!.game.turn() === 'w'){
+        webSocketManager.gameRoom[roomId]!.blackTime = newTime;
+        webSocketManager.redisClient.hSet(`gameRoom:${roomId}`, 'blackTime', newTime)
+        console.log('BlackRemainingTime: ', webSocketManager.gameRoom[roomId]!.blackTime);
+    }else{
+        webSocketManager.gameRoom[roomId]!.whiteTime = newTime; 
+        webSocketManager.redisClient.hSet(`gameRoom:${roomId}`, 'whiteTime', newTime)  
+        console.log('WhiteRemainingTime: ', webSocketManager.gameRoom[roomId]!.whiteTime);
+    }
+  }
+  

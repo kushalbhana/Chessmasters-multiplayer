@@ -3,8 +3,8 @@ import { webSocketManager } from "..";
 import { authenticateUser } from "../utils/authorization";
 import { WebSocketMessageType } from "@repo/lib/status";
 import { sendMoveToRedis, saveMovesArrayToRedis } from "../utils/redisUtils";
-import { getGameStatus, postGameOverCleanup } from "../utils/gameUtils";
-import { post } from "axios";
+import { postGameOverCleanup } from "../utils/gameUtils";
+import { calculateUpdatedRemainingTime } from "../utils/gameUtils";
 
 export async function makeMove(ws: WebSocket, message: any) {
     try {
@@ -59,6 +59,7 @@ export async function makeMove(ws: WebSocket, message: any) {
         }
         
             webSocketManager?.gameRoom[roomId]?.moves.push(newMove.san);
+            calculateUpdatedRemainingTime(roomId)
             saveMovesArrayToRedis(roomId, JSON.stringify(webSocketManager?.gameRoom[roomId]?.moves));
             
             if(room?.whiteId === user.userId){
