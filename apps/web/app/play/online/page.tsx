@@ -17,6 +17,7 @@ import { FaMicrophone } from "react-icons/fa";
 import { FaCamera } from "react-icons/fa";
 import { Dropdown } from "@/components/ui/dropdown";
 import { gameMoves } from "@/store/atoms/moves";
+import { playerTime, opponentTime } from "@/store/atoms/game";
 
 
 export default function GameLobby() {
@@ -26,6 +27,8 @@ export default function GameLobby() {
     const [room, setRoomInfo] = useRecoilState(roomInfo);
     const [moves, setMoves] = useRecoilState(gameMoves);
     const [roomExist, setRoomExist] = useState<boolean>(false);
+    const setPlayerTime = useSetRecoilState(playerTime);
+    const setOpponentTime = useSetRecoilState(opponentTime);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -37,8 +40,6 @@ export default function GameLobby() {
         }
     
         const socket = WebSocketClient.getInstance();
-        console.log('Checking Room Exist');
-        console.log('Checking WebSocket ReadyState...');
         console.log('READY STATE:', socket.readyState);
     
         if (socket.readyState === WebSocket.OPEN) {
@@ -82,6 +83,14 @@ export default function GameLobby() {
                 setMoves(JSON.parse(JSON.parse(data.room.moves)));
                 GameManager.getInstance(roomData.room.game);
                 setRoomExist(true);
+                // @ts-ignore
+                if(session?.user.id === roomData.room.whiteId){
+                    setPlayerTime(2*(data.room.whiteTime))
+                    setOpponentTime(2*(data.room.blackTime));
+                }else{
+                    setPlayerTime(2*(data.room.blackTime))
+                    setOpponentTime(2*(data.room.whiteTime));
+                }
             }
         };
     

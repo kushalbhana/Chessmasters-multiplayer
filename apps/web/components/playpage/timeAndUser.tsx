@@ -1,9 +1,10 @@
 "use client"
 import { TimeSection } from "./timesection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { TimeManager } from "./timemanager";
 
 
-export function TimeAndUser({ profilePicture, profileName}: any) {
+export function TimeAndUser({ profilePicture, profileName, playerType, orientation, game}: any) {
     return(
         <div className="flex justify-between">
             <div className="flex gap-2 justify-center">
@@ -20,7 +21,8 @@ export function TimeAndUser({ profilePicture, profileName}: any) {
 
             </div>
             <div>
-                <TimeSection/>
+                <TimeManager game={game} orientation={orientation}/>
+                <TimeSection playerType={playerType} orientation={orientation} game={game}/>
             </div>
         </div>
     )

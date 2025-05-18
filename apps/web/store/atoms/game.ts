@@ -7,11 +7,11 @@ export const fenState = atom({
 
 export const playerTime = atom({
     key: 'playerTime',
-    default: '', 
+    default: 600, 
 });
 export const opponentTime = atom({
     key: 'opponentTime',
-    default: '', 
+    default: 600, 
   });
 
 export const gameStatus = atom({ 

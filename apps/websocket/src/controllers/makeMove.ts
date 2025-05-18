@@ -64,11 +64,14 @@ export async function makeMove(ws: WebSocket, message: any) {
             
             if(room?.whiteId === user.userId){
                 if(room.blackSocket){
-                    room.blackSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
+                    room.blackSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen(), 
+                        whiteTime: webSocketManager.gameRoom[roomId]!.whiteTime, blackTime: webSocketManager.gameRoom[roomId]!.blackTime }));
                 }
             }else if(room?.blackId === user.userId){
                 if(room.whiteSocket){
-                    room.whiteSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen() }));
+                    room.whiteSocket.send(JSON.stringify({ type: WebSocketMessageType.INGAMEMOVE, move, boardState: room.game.fen(),
+                        whiteTime: webSocketManager.gameRoom[roomId]!.whiteTime, blackTime: webSocketManager.gameRoom[roomId]!.blackTime
+                    }));
                 }
             }
             

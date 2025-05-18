@@ -1,7 +1,7 @@
 "use client";
 import { use, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { useRecoilState, useRecoilValue, useRecoilCallback } from "recoil";
+import { useRecoilState, useRecoilValue, useRecoilCallback, useSetRecoilState } from "recoil";
 import { Chess } from "chess.js";
 import { useSession } from "next-auth/react";
 
@@ -12,7 +12,7 @@ import WebSocketClient from "@/lib/websocket/websocket-client";
 import { WebSocketMessageType, gameStatusObj, playerType } from "@repo/lib/status";
 import { gameMoves } from "@/store/atoms/moves";
 import { getGameStatus } from "@/lib/game/gamestatus";
-import { gameStatus } from "@/store/atoms/game";
+import { gameStatus, playerTime, opponentTime } from "@/store/atoms/game";
 
 export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
@@ -23,6 +23,8 @@ export function ChessboardAndUtility() {
   const [color, setColor] = useState("w");
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const moves = useRecoilValue(gameMoves);
+  const [myTimeRemaining, setMyTimeRemaining] = useRecoilState(playerTime);
+  const [oppTimeRemaining, setOppTimeRemaining] = useRecoilState(opponentTime);
 
   const addMove = useRecoilCallback(({ set }) => (move: string) => {
     set(gameMoves, (prev) => [...prev, move]);
@@ -88,6 +90,16 @@ export function ChessboardAndUtility() {
               roomId: prevRoom.roomId,
             };
           });
+
+          if(orientation === 'white'){
+            setOppTimeRemaining(2*message.blackTime);
+            setMyTimeRemaining(2*message.whiteTime);
+          }else{
+            setOppTimeRemaining(2*message.whiteTime);
+            setMyTimeRemaining(2*message.blackTime);
+          }
+
+          // Check if the game is over
           const isGameOver = getGameStatus(newGame);
           if (isGameOver !== gameStatusObj.ONGOING) {
             if (isGameOver === gameStatusObj.CHECKMATE) {
@@ -237,7 +249,7 @@ console.log("Moves: ", moves);
     <div className="flex flex-col gap-1">
       <div className="pr-2">
         {/* @ts-ignore */}
-        <TimeAndUser  profilePicture={ session?.user.id !== room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id !== room?.room.whiteId ? room?.room.whiteName : room?.room.blackName}/>
+        <TimeAndUser  profilePicture={ session?.user.id !== room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id !== room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'opponent'} orientation={orientation} game={game}/>
       </div>
       <div className="p-2">
         <Chessboard
@@ -250,7 +262,7 @@ console.log("Moves: ", moves);
       </div>
       <div className="pr-2">
         {/* @ts-ignore */}
-        <TimeAndUser profilePicture={ session?.user.id === room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id === room?.room.whiteId ? room?.room.whiteName : room?.room.blackName}/> 
+        <TimeAndUser profilePicture={ session?.user.id === room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id === room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'player'} orientation={orientation} game={game}/> 
       </div>
     </div>
   );
