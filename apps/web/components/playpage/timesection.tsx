@@ -1,5 +1,5 @@
 import { FaStopwatch } from "react-icons/fa";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { playerTime, opponentTime, gameStatus } from "@/store/atoms/game";
 import { gameStatusObj } from "@repo/lib/status";
@@ -17,15 +17,18 @@ export function TimeSection({ playerType, orientation, game }: any) {
     const myTimeRemaining = useRecoilValue(playerTime);
     const oppTimeRemaining = useRecoilValue(opponentTime);
     const [gameOver, setGameOver] = useRecoilState(gameStatus);
+    const [showDialog, setShowDialog] = useState(true)
 
-    if(myTimeRemaining <=0 && gameOver.isGameOver === false){
+    if(showDialog && myTimeRemaining <=0 && gameOver.isGameOver === false){
+        setShowDialog(false);
         setGameOver((prev) => ({
             ...prev,
             isGameOver: true,
             overType: gameStatusObj.TIMEOUT,
             status: "Lost",
         }));
-    }else if(oppTimeRemaining <=0 && gameOver.isGameOver === false){
+    }else if(showDialog && oppTimeRemaining <=0 && gameOver.isGameOver === false){
+        setShowDialog(false);
         setGameOver((prev) => ({
             ...prev,
             isGameOver: true,
