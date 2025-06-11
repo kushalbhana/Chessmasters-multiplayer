@@ -22,6 +22,7 @@ export const WebSocketMessageType = {
     PLAYGAME: 'play_game',
     ROOMEXIST: 'room_exist',
     INGAMEMOVE: 'player_move',
+    TEXTMESSAGE: 'text_message'
   };
 
   export const playerType = {

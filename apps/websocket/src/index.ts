@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { RedisClientType } from 'redis';
 import dotenv from 'dotenv';
+import {v4 as uuidv4} from 'uuid';
 
 import { initializeRedis } from './utils/redisUtils'
 import { handleMessage } from './handlers/handleMessage';
@@ -15,12 +16,14 @@ class WebSocketManager {
     public rooms: { [key: string]: Room } =  {};
     public playerInRandomQueue: playerInQueue | null = null;
     public gameRoom: {[key: string]: gameRoom} = {};
+    public instanceId: string;
      
     public redisClient!: RedisClientType; 
 
     private constructor(port: number) {
         this.wss = new WebSocketServer({ port });
         this.initialize();
+        this.instanceId = uuidv4();
         
         initializeRedis()
             .then((redisClient) => {

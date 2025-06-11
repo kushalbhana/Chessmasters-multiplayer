@@ -39,7 +39,7 @@ export function GameLayout(){
                     <div>
                         <MovesSection/>
                     </div>
-                    <div className="p-3 flex justify-center w-full">
+                    <div className="p-3 flex flex-col justify-center w-full">
                         <UtilitySection/>
                         <MessageBox/>
                     </div>

@@ -8,6 +8,7 @@ import { webSocketManager } from "..";
 import { Chess } from "chess.js";
 import { subscribeToRoom } from "../utils/redisUtils";
 
+
 export async function checkRoomExist(ws: WebSocket, message: any){
     try {
       console.log('In Check room Exists');
@@ -46,9 +47,8 @@ export async function checkRoomExist(ws: WebSocket, message: any){
                       roomId: playerRoom,
                       room: roomData,
                     }
-                  console.log(roomData)
+                  console.log(roomData);
                     
-
                     // If the room is already created, then store the room locally
                     if(!webSocketManager.gameRoom[roomData.roomId]){
                       const localRoomData : gameRoom = {

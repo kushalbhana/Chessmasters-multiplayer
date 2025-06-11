@@ -170,4 +170,15 @@ export async function postGameCleanUp(roomId: string, user1: string, user2: stri
     await multi.exec();
   }
     
+export async function sendTextMessageToPubSub(roomId: string, message: string, userId: string){
+    const messageToPubSub = JSON.stringify({type: WebSocketMessageType.TEXTMESSAGE, roomId, message, instanceId: webSocketManager.instanceId, userId});
+    const client = webSocketManager.redisClient;
+    const channel = `room:${roomId}:channel`;
 
+    try {
+        await client.publish(channel, messageToPubSub);
+        console.log('Message sent to channel...')
+    } catch (error) {
+        console.log(error)
+    }
+}

@@ -1,6 +1,7 @@
 import { webSocketManager } from '../index';
 import { authenticateUser } from '../utils/authorization';
 import { WebSocketMessageType } from '@repo/lib/status';
+import { handleTextMessage } from './textMessage';
 
 export function handleMessageFromPubSub(message: string) {
     try {
@@ -15,6 +16,11 @@ export function handleMessageFromPubSub(message: string) {
             // Check if the room exists
             if (!webSocketManager.gameRoom[roomId]){
                 // Unsubscribe topic
+                return;
+            }
+
+            if(parsedMessage.type === WebSocketMessageType.TEXTMESSAGE){
+                handleTextMessageFromPubSub(parsedMessage);
                 return;
             }
         
@@ -44,3 +50,29 @@ export function handleMessageFromPubSub(message: string) {
             
         }
 }
+
+async function handleTextMessageFromPubSub(message: any){
+
+    console.log('Handling messages from pubsub')
+    if(!message.userId || !message.roomId || !message.instanceId){
+        console.log("No roomId or userId for text message sent through pubsub")
+        return;
+    }
+
+    if(message.instanceId === webSocketManager.instanceId){
+        console.log('Same instance, So not sending the mesage')
+        return;
+    }
+
+    const room = webSocketManager.gameRoom[message.roomId]!;
+
+    // Send Message
+    if(room?.blackId == message.userId){
+        webSocketManager?.gameRoom[message.roomId]?.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.TEXTMESSAGE, message:message.message}));
+        console.log('Message sent to white')
+    }else{
+        webSocketManager?.gameRoom[message.roomId]?.blackSocket?.send(JSON.stringify({type: WebSocketMessageType.TEXTMESSAGE, message: message.message}));
+        console.log('Message sent to Black')
+    }
+
+} 

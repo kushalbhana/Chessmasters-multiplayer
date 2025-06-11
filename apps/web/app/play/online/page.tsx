@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { Chessboard } from "react-chessboard";
 import { useSession } from "next-auth/react";
+import { Chess } from "chess.js";
 
 import WebSocketClient from "@/lib/websocket/websocket-client";
 import { WebSocketMessageType } from "@repo/lib/status";
@@ -24,8 +25,8 @@ export default function GameLobby() {
     
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [room, setRoomInfo] = useRecoilState(roomInfo);
-    const [moves, setMoves] = useRecoilState(gameMoves);
+    const setRoomInfo = useSetRecoilState(roomInfo);
+    const setMoves = useSetRecoilState(gameMoves);
     const [roomExist, setRoomExist] = useState<boolean>(false);
     const setPlayerTime = useSetRecoilState(playerTime);
     const setOpponentTime = useSetRecoilState(opponentTime);
@@ -78,18 +79,38 @@ export default function GameLobby() {
                         moves: data.room.moves
                     }
                 };
+                
                 setRoomInfo(roomData as clientSideRoom);
-                console.log();
                 setMoves(JSON.parse(JSON.parse(data.room.moves)));
                 GameManager.getInstance(roomData.room.game);
                 setRoomExist(true);
+                const chess = new Chess(data.room.game); // game is the FEN string
+                const currentTurn = chess.turn();
+
+                const rawTime = data.room.lastMoveTime?.trim().replace(/^"|"$/g, '');
+                const timestamp = new Date(rawTime).getTime();
+                const elapsedMs = Date.now() - timestamp;
+                const elapsedSeconds = Math.floor(elapsedMs / 1000);
+                console.log("Elapsed:", elapsedSeconds)
+
+                
+                let whiteTime = parseInt(data.room.whiteTime);
+                let blackTime = parseInt(data.room.blackTime);
+                
+                if (currentTurn === 'w') {
+                    whiteTime = Math.max(0, whiteTime - elapsedSeconds);
+                } else {
+                    blackTime = Math.max(0, blackTime - elapsedSeconds);
+                }
+                console.log('WhiteTime: ', whiteTime)
+                console.log('Black time: ', blackTime)
                 // @ts-ignore
                 if(session?.user.id === roomData.room.whiteId){
-                    setPlayerTime(2*(data.room.whiteTime))
-                    setOpponentTime(2*(data.room.blackTime));
+                    setPlayerTime(2*(whiteTime))
+                    setOpponentTime(2*(blackTime));
                 }else{
-                    setPlayerTime(2*(data.room.blackTime))
-                    setOpponentTime(2*(data.room.whiteTime));
+                    setPlayerTime(2*(blackTime))
+                    setOpponentTime(2*(whiteTime));
                 }
             }
         };

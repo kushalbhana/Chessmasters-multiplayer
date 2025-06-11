@@ -6,6 +6,7 @@ import { WebSocketMessageType} from "@repo/lib/status";
 import { addToLobby } from "../controllers/addToLobby";
 import { checkRoomExist } from "../controllers/checkRoomExist";
 import { makeMove } from "../controllers/makeMove";
+import { handleTextMessage } from "../controllers/textMessage";
 
 
 export async function handleMessage(ws: WebSocket, data: string) {
@@ -21,6 +22,10 @@ export async function handleMessage(ws: WebSocket, data: string) {
     }else if(message.type === WebSocketMessageType.INGAMEMOVE){
         console.log('Make a move Handler..', message);
         makeMove(ws, message);
+        return;
+    }else if(message.type === WebSocketMessageType.TEXTMESSAGE){
+        console.log('Message Handler..', message);
+        handleTextMessage(ws, message);
         return;
     }
     
