@@ -7,6 +7,8 @@ import { addToLobby } from "../controllers/addToLobby";
 import { checkRoomExist } from "../controllers/checkRoomExist";
 import { makeMove } from "../controllers/makeMove";
 import { handleTextMessage } from "../controllers/textMessage";
+import { handleJoinCall, handleWebRTC } from "../controllers/webrtc";
+import { handleICECandidate, handleWebRTCAnswer, handleWebRTCOffer } from "../controllers/webRTCHandler";
 
 
 export async function handleMessage(ws: WebSocket, data: string) {
@@ -20,12 +22,27 @@ export async function handleMessage(ws: WebSocket, data: string) {
         checkRoomExist(ws, message);
         return;
     }else if(message.type === WebSocketMessageType.INGAMEMOVE){
-        console.log('Make a move Handler..', message);
         makeMove(ws, message);
         return;
     }else if(message.type === WebSocketMessageType.TEXTMESSAGE){
-        console.log('Message Handler..', message);
         handleTextMessage(ws, message);
+        return;
+    }else if(message.type === WebSocketMessageType.JOIN_CALL){
+        handleJoinCall(ws, message);
+        return;
+    }else if(message.type === WebSocketMessageType.WEBRTCOFFER){
+        // handleWebRTC(ws, message);
+        console.log('Offer Message: ', message);
+        handleWebRTCOffer(ws, message);
+        return;
+    }
+    else if(message.type === WebSocketMessageType.WEBRTCOFFERANSWER){
+        handleWebRTCAnswer(ws, message);
+        console.log('Answer Recieved: ', message);
+        return;
+    }else if(message.type === WebSocketMessageType.ICE_CANDIDATE){
+        handleICECandidate(ws, message);
+        console.log('ICE candidates: ', message)
         return;
     }
     

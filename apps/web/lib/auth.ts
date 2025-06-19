@@ -4,6 +4,7 @@ import prisma from "@repo/db/client";
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 
+
 export const NEXT_AUTH_CONFIG = {
   providers: [
     GoogleProvider({
@@ -40,7 +41,7 @@ export const NEXT_AUTH_CONFIG = {
             id: user.id,
             name: user.name,
             email: user.email,
-            token: token
+            jwt: token
           };
         } else {
           return null;

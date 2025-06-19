@@ -22,7 +22,13 @@ export const WebSocketMessageType = {
     PLAYGAME: 'play_game',
     ROOMEXIST: 'room_exist',
     INGAMEMOVE: 'player_move',
-    TEXTMESSAGE: 'text_message'
+    TEXTMESSAGE: 'text_message',
+    WEBRTCOFFER: 'webrtc',
+    JOIN_CALL: 'join_call',
+    NEW_PEER: 'new_peer',
+    PEER_LEFT: 'peer_left',
+    WEBRTCOFFERANSWER: 'webrtc_offer_answer',
+    ICE_CANDIDATE: 'ice_candidate'
   };
 
   export const playerType = {

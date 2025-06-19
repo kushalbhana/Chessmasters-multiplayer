@@ -1,6 +1,6 @@
 import { atom } from 'recoil';
 
 export const ActiveTab = atom<string>({
-  key: 'ativeTab',
+  key: 'activeTab',
   default: 'Home',
 });
