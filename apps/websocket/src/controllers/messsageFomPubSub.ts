@@ -2,6 +2,7 @@ import { webSocketManager } from '../index';
 import { authenticateUser } from '../utils/authorization';
 import { WebSocketMessageType } from '@repo/lib/status';
 import { handleTextMessage } from './textMessage';
+import { handleICECandidate, handleWebRTCAnswer, handleWebRTCOffer } from './webRTCHandler';
 
 export function handleMessageFromPubSub(message: string) {
     try {
@@ -19,8 +20,23 @@ export function handleMessageFromPubSub(message: string) {
                 return;
             }
 
+            if(parsedMessage?.instanceId && parsedMessage.instanceId === webSocketManager.instanceId){
+                console.log('Same instance Id loaded')
+                return;
+            }
+
             if(parsedMessage.type === WebSocketMessageType.TEXTMESSAGE){
                 handleTextMessageFromPubSub(parsedMessage);
+                return;
+            }
+            if(parsedMessage.type === WebSocketMessageType.WEBRTCOFFER){
+                handleWebRTCOffer(null, message);
+                return;
+            }if(parsedMessage.type === WebSocketMessageType.WEBRTCOFFERANSWER){
+                handleWebRTCAnswer(null, message);
+                return;
+            }if(parsedMessage.type === WebSocketMessageType.ICE_CANDIDATE){
+                handleICECandidate(null, message);
                 return;
             }
         

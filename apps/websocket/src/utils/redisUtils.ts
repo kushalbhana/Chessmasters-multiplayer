@@ -182,3 +182,16 @@ export async function sendTextMessageToPubSub(roomId: string, message: string, u
         console.log(error)
     }
 }
+
+export async function handleWebRTCRequestsForPubSub(message: any, roomId: string){
+    message.instanceId = webSocketManager.instanceId;
+    const client = webSocketManager.redisClient;
+    const channel = `room:${roomId}:channel`;
+
+    try {
+        await client.publish(channel, message);
+        console.log('Message sent to channel...')
+    } catch (error) {
+        console.log(error)
+    }
+}
