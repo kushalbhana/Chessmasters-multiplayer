@@ -1,8 +1,6 @@
 'use client';
 
-import { useRecoilState } from 'recoil';
-import { ActiveTab } from '@/store/atoms/Tabs';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 
 import { FaHome, FaRandom, FaUserFriends, FaSignOutAlt } from "react-icons/fa";
@@ -11,18 +9,26 @@ import { IoIosSettings } from "react-icons/io";
 import { GiSpectacleLenses } from "react-icons/gi";
 
 export function TabsSection() {
-  const [activeTab, setActiveTab] = useRecoilState(ActiveTab);
   const router = useRouter();
+  const pathname = usePathname();
 
-  const Tabs = {
+  const Tabs: Record<
+    string,
+    { icon: JSX.Element; path: string | (() => void) }
+  > = {
     Home: { icon: <FaHome />, path: '/' },
     'Random Match': { icon: <FaRandom />, path: '/play/online' },
     'Vs friend': { icon: <FaUserFriends />, path: '/play/friend' },
     'Vs Computer': { icon: <BsRobot />, path: '/play/computer' },
-    'Spectate': { icon: <GiSpectacleLenses />, path: '/play/spectate' },
-    'Settings': { icon: <IoIosSettings />, path: '/settings' },
+    Spectate: { icon: <GiSpectacleLenses />, path: '/play/spectate' },
+    Settings: { icon: <IoIosSettings />, path: '/settings' },
     'Sign Out': { icon: <FaSignOutAlt />, path: () => signOut() },
   };
+
+  // Get the active tab label based on current pathname
+  const activeTab = Object.entries(Tabs).find(
+    ([_, { path }]) => typeof path === 'string' && pathname === path
+  )?.[0];
 
   return (
     <div className="flex flex-col gap-6 justify-center">
@@ -30,7 +36,6 @@ export function TabsSection() {
         <button
           key={index}
           onClick={() => {
-            setActiveTab(label);
             if (typeof path === 'function') {
               path();
             } else {

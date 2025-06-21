@@ -5,7 +5,7 @@ import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { PlayerType } from "@repo/lib/types";
 import { useWebRTC } from "@/hooks/useWebRTC";
 
-export function VideoSection({ roomId }: { roomId: string }) {
+export function VideoSection() {
   const [room] = useRecoilState(roomInfo);
   const { data: session } = useSession();
 

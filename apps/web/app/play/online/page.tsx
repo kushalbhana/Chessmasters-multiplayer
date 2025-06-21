@@ -130,6 +130,23 @@ export default function GameLobby() {
         );
     }
 
+    const customSquareStyles: { [square: string]: React.CSSProperties } = {};
+
+    const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    const ranks = [1, 2, 3, 4, 5, 6, 7, 8];
+
+    for (let file of files) {
+        for (let rank of ranks) {
+        const square = `${file}${rank}`;
+        const fileIndex = files.indexOf(file);
+        const rankIndex = ranks.indexOf(rank);
+        const isBlack = (fileIndex + rankIndex) % 2 === 1;
+        customSquareStyles[square] = {
+            backgroundColor: isBlack ? "#2e2e2e" : "#fff",
+        };
+        }
+    }
+
     if(roomExist){
         return <div className="flex justify-center items-center h-full lg:h-screen">
                 <GameLayout/>
@@ -137,10 +154,13 @@ export default function GameLobby() {
     }
 
     return (
-        <div className="w-full lg:h-screen flex justify-center items-center">
-            <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-xl shadow-2xl shadow-slate-700">
+        <div className="w-full lg:h-screen flex justify-center items-center bg-white">
+            <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
                 <div className="lg:w-1/2 w-5/6">
-                    <Chessboard id="BasicBoard"/>
+                    <Chessboard 
+                    id="BasicBoard"
+                    customSquareStyles={customSquareStyles}
+                    />
                 </div>
                 <div className="lg:w-1/2 flex justify-center items-center flex-col p-10 px-">
 

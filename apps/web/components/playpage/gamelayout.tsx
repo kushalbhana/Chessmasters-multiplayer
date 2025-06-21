@@ -33,7 +33,7 @@ export function GameLayout(){
             </div>
             <div className="w-full lg:w-5/12 h-5/6 flex flex-col bg-slate-500 bg-opacity-20">
                 <div className="w-full">
-                    <VideoSection/>
+                    <VideoSection />
                 </div>
                 <div className="flex gap-2 h-full w-full">
                     <div>
