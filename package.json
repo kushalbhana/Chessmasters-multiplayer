@@ -45,6 +45,7 @@
     "next-auth": "^4.24.11",
     "react-chessboard": "^4.7.2",
     "react-icons": "^5.2.1",
+    "recharts": "^2.15.4",
     "recoil": "^0.7.7",
     "redis": "^4.6.14",
     "uuid": "^11.1.0",

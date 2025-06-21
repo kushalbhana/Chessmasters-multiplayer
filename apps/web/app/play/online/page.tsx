@@ -154,9 +154,9 @@ export default function GameLobby() {
     }
 
     return (
-        <div className="w-full lg:h-screen flex justify-center items-center bg-white">
+        <div className="w-full lg:h-screen flex justify-center items-center bg-[#f1f1f1]">
             <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
-                <div className="lg:w-1/2 w-5/6">
+                <div className="lg:w-1/2 w-5/6 outline-white outline-8">
                     <Chessboard 
                     id="BasicBoard"
                     customSquareStyles={customSquareStyles}
