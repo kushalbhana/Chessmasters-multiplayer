@@ -21,11 +21,11 @@ export function VideoSection() {
     <div className="bg-slate-500 bg-opacity-20">
       <div className="w-full h-full flex shadow-xl">
         <div className="w-1/2 p-2 shadow-xl">
-          <video ref={localVideoRef} autoPlay muted playsInline className="bg-black w-full h-auto" />
+          <video ref={localVideoRef} autoPlay muted playsInline className="bg-black w-full h-40" />
           <div className="h-8 flex justify-center items-center">{localName}</div>
         </div>
         <div className="w-1/2 p-2">
-          <video ref={remoteVideoRef} autoPlay playsInline className="bg-black w-full h-auto" />
+          <video ref={remoteVideoRef} autoPlay playsInline className="bg-black w-full h-40" />
           <div className="h-8 flex justify-center items-center">{remoteName}</div>
         </div>
       </div>

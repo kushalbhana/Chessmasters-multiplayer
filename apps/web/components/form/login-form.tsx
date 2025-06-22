@@ -71,18 +71,18 @@ export function LoginForm({
     <>
       <form className={cn("flex flex-col gap-6 w-full", className)} onSubmit={handleSubmit(onSubmit)} {...props}>
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-3xl font-bold">Login to your account</h1>
-          <p className="text-balance text-md text-muted-foreground">
+          <h1 className="text-3xl font-bold text-black">Login to your account</h1>
+          <p className="text-balance text-md text-muted-foreground text-slate-600">
             Enter your email below to login to your account
           </p>
         </div>
         <div className="grid gap-6">
-          <div className="grid gap-2">
+          <div className="grid gap-2 text-black">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" placeholder="m@example.com" {...register("email")} required />
           </div>
           <div className="grid gap-2">
-            <div className="flex items-center">
+            <div className="flex items-center text-black">
               <Label htmlFor="password">Password</Label>
               <a
                 href="#"
@@ -91,19 +91,19 @@ export function LoginForm({
                 Forgot your password?
               </a>
             </div>
-            <Input id="password" placeholder="********" type="password" {...register("password")} required />
+            <Input id="password" placeholder="********" type="password" {...register("password")} className="bg-white" required />
           </div>
           <Button type="submit" className={cn(
-            "relative group/btn w-full",
-            isLoading && "opacity-50 cursor-not-allowed"
+            "relative group/btn w-full bg-black text-white",
+            isLoading && "opacity-50 cursor-not-allowed bg-black text-white"
           )}
           disabled={isLoading}
         >
           {isLoading ? <Spinner /> : "Sign in →"}
           </Button>
           <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-            <span className="relative z-10 bg-background px-2 text-muted-foreground">
-              Or continue with
+            <span className="relative z-10 bg-slate-200 px-2 text-black">
+              or continue with
             </span>
           </div>
          

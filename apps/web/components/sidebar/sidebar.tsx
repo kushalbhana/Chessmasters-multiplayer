@@ -5,7 +5,7 @@ import { TabsSection } from "./TabsSection";
 
 export function Sidebar() {
   return (
-    <div className="w-64 h-screen bg-[#111114] fixed top-0 left-0 z-10 flex flex-col items-center">
+    <div className="w-64 h-screen bg-[#151516] fixed top-0 left-0 z-10 flex flex-col items-center">
       <div className="p-5 mt-20">
         <Image
           src="/images/logo.png"

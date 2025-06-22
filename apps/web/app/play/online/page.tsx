@@ -19,6 +19,7 @@ import { FaCamera } from "react-icons/fa";
 import { Dropdown } from "@/components/ui/dropdown";
 import { gameMoves } from "@/store/atoms/moves";
 import { playerTime, opponentTime } from "@/store/atoms/game";
+import Image from "next/image";
 
 
 export default function GameLobby() {
@@ -30,6 +31,7 @@ export default function GameLobby() {
     const [roomExist, setRoomExist] = useState<boolean>(false);
     const setPlayerTime = useSetRecoilState(playerTime);
     const setOpponentTime = useSetRecoilState(opponentTime);
+    const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -147,6 +149,7 @@ export default function GameLobby() {
         }
     }
 
+
     if(roomExist){
         return <div className="flex justify-center items-center h-full lg:h-screen">
                 <GameLayout/>
@@ -157,9 +160,16 @@ export default function GameLobby() {
         <div className="w-full lg:h-screen flex justify-center items-center bg-[#f1f1f1]">
             <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
                 <div className="lg:w-1/2 w-5/6 outline-white outline-8">
-                    <Chessboard 
+                    {/* <Chessboard 
                     id="BasicBoard"
                     customSquareStyles={customSquareStyles}
+                    /> */}
+                    <Image
+                        src="/images/ChessMasters-playpage.svg"
+                        alt="Chessmasters"
+                        width={700}
+                        height={700}
+                        className="bg-white"
                     />
                 </div>
                 <div className="lg:w-1/2 flex justify-center items-center flex-col p-10 px-">
@@ -170,11 +180,11 @@ export default function GameLobby() {
                         quick matchmaking, intense battles, and the thrill of the game. Play now and outthink your opponent! 🚀 
                     </h1>
                     <div className="h-24 flex gap-4 justify-center items-center">
-                        <Dropdown/>
+                        <Dropdown type={"audio"}/>
                         <div className="flex justify-center items-center rounded-2xl bg-red-600 h-10 w-10 hover:bg-red-700 hover:cursor-pointer">
                             <FaMicrophone className=" text-black text-lg"/>
                         </div>
-                        <Dropdown/>
+                        <Dropdown type={"video"}/>
                         <div className="flex justify-center items-center rounded-2xl hover:bg-red-700 hover:cursor-pointer bg-red-600 h-10 w-10">
                             <FaCamera className=" text-black text-lg"/>
                         </div>

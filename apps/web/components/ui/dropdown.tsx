@@ -1,4 +1,5 @@
-import * as React from "react"
+import * as React from "react";
+import { useEffect, useState } from "react";
 
 import {
   Select,
@@ -8,44 +9,49 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
-export function Dropdown() {
+export function Dropdown({ type }: { type: "video" | "audio" }) {
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+
+  useEffect(() => {
+    async function listDevices() {
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const filtered = allDevices.filter((device) =>
+        type === "video" ? device.kind === "videoinput" : device.kind === "audioinput"
+      );
+      setDevices(filtered);
+    }
+
+    listDevices();
+  }, [type]);
+
   return (
     <Select>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Default" />
+        <SelectValue placeholder={`Select ${type} device`} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Fruits</SelectLabel>
-          <SelectItem value="apple">Apple</SelectItem>
-          <SelectItem value="banana">Banana</SelectItem>
-          <SelectItem value="blueberry">Blueberry</SelectItem>
-          <SelectItem value="grapes">Grapes</SelectItem>
-          <SelectItem value="pineapple">Pineapple</SelectItem>
+          <SelectLabel>
+            {type === "video" ? "Video Devices" : "Audio Devices"}
+          </SelectLabel>
+          {devices.length > 0 ? (
+            devices.map((device, index) => (
+              <SelectItem
+                key={device.deviceId || `device-${index}`}
+                value={device.deviceId || `device-${index}`}
+              >
+                {device.label || `${type} device ${index + 1}`}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem disabled value="no-device">
+              No devices found
+            </SelectItem>
+          )}
         </SelectGroup>
       </SelectContent>
     </Select>
-  )
-}
-
-export function DropdownInGame() {
-  return (
-    <Select>
-      <SelectTrigger className="w-[140px]">
-        <SelectValue placeholder="Default" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Fruits</SelectLabel>
-          <SelectItem value="apple">Apple</SelectItem>
-          <SelectItem value="banana">Banana</SelectItem>
-          <SelectItem value="blueberry">Blueberry</SelectItem>
-          <SelectItem value="grapes">Grapes</SelectItem>
-          <SelectItem value="pineapple">Pineapple</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
-  )
+  );
 }

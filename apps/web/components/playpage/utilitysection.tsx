@@ -1,7 +1,7 @@
 "use client"
 import { useRecoilState} from "recoil";
 
-import { DropdownInGame } from "../ui/dropdown";
+import { Dropdown } from "../ui/dropdown";
 import { FaCamera, FaMicrophone } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { FaFlag } from "react-icons/fa";
@@ -18,13 +18,13 @@ export function UtilitySection() {
         <div className="w-full h-full flex flex-col gap-2">
             <div className="pt-6 flex gap-4 flex-wrap justify-center items-center">
                 <div className="hidden lg:block">
-                    <DropdownInGame/>
+                    <Dropdown type={"audio"}/>
                 </div>
                 <div className="flex justify-center items-center rounded-2xl hover:bg-red-700 hover:cursor-pointer" onClick={() => {setCameraStatus(!cameraStatus)}}>
                     {cameraStatus ? <FaCamera className="text-lg"/> : <BiSolidCameraOff className="text-lg"/>}
                 </div>
                 <div className="hidden lg:block">
-                    <DropdownInGame/>
+                    <Dropdown type={"video"}/>
                 </div>
                 <div className="flex justify-center items-center rounded-2xl hover:bg-red-700 h-6 w-6 hover:cursor-pointer" onClick={() => {setMicropohoneStatus(!micropohoneStatus)}}>
                     {micropohoneStatus ? <FaMicrophone className="text-lg"/> : <FaMicrophoneAltSlash className="text-lg"/>}
