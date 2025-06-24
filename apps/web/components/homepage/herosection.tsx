@@ -7,11 +7,11 @@ export function HeroSection(){
             <div className="flex flex-col justify-center items-center">
                 <div>
                     <h1 className="text-black text-8xl font-extrabold">
-                        Experience Live Game
+                        Where Chess Meets Video.
                     </h1>
                 </div>
                 <div className="text-black text-8xl font-extrabold"> 
-                    With Live People
+                     Play Live. See Live.
                 </div>
             </div>
 

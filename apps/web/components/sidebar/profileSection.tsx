@@ -5,7 +5,7 @@ import { SkeletonProfile } from "../shared/profile-skeleton";
 
 export function ProfileSection(){
     const { data: session, status } = useSession();
-    if(status === 'loading' || status === 'unauthenticated')
+    if(status === 'loading')
         return <div><SkeletonProfile/></div>
         
     return(

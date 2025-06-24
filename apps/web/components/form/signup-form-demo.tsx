@@ -31,7 +31,7 @@ export function SignupForm() {
   const onSubmit: SubmitHandler<SignupFormValues> = async (data) => {
     setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:3000/api/signup/", data, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_HTTP_SERVER}/api/signup/`, data, {
         headers: { "Content-Type": "application/json" }
       });
 

@@ -15,24 +15,35 @@ export function Header() {
         </p>
         <p className="text-slate-700 -my-1 font-sans">Kushal Bhana</p>
       </div>
-      <div>
-        {status !== "authenticated" ? (
+      <div className="flex gap-4">
+        <div>
+          {status !== "authenticated" ? (
+            <Button
+              variant="outline"
+              className="bg-white text-black h-10 w-32"
+              onClick={() => router.push("/auth/login")}
+            >
+              Sign in
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="bg-white text-black h-10 w-32"
+              onClick={() => router.push("/play/online")}
+            >
+              Play now
+            </Button>
+          )}
+        </div>
+        <div>
           <Button
-            variant="outline"
-            className="bg-white text-black h-10 w-32"
-            onClick={() => router.push("/auth/login")}
-          >
-            Sign in
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            className="bg-white text-black h-10 w-32"
-            onClick={() => router.push("/play/online")}
-          >
-            Play now
-          </Button>
-        )}
+              variant="outline"
+              className="bg-white text-black h-10 w-32"
+              onClick={() => router.push("/spectate")}
+            >
+              Spectate
+            </Button>
+        </div>
       </div>
     </div>
   );
