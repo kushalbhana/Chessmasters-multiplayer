@@ -32,9 +32,10 @@ export function handleWebRTCOffer(ws: WebSocket | null, message: any){
         }
 
         const room = webSocketManager.gameRoom[message.data.roomId];
-        delete message.JWT_token;
-        if(room?.blackSocket)
+        if(room?.blackSocket){
+            delete message.JWT_token;
             room.blackSocket.send(JSON.stringify(message));
+        }
         else
             handleWebRTCRequestsForPubSub(message, message.data.roomId);
         console.log('Offer Sent')
@@ -71,10 +72,11 @@ export function handleWebRTCAnswer(ws: WebSocket | null, message: any){
         }
 
         const room = webSocketManager.gameRoom[message.data.roomId];
-        delete message.JWT_token;
-
-        if(room?.whiteSocket)
+        
+        if(room?.whiteSocket){
+            delete message.JWT_token;
             room.whiteSocket.send(JSON.stringify(message));
+        }
         else
             handleWebRTCRequestsForPubSub(message, message.data.roomId);
         console.log('Offer Sent')
@@ -110,13 +112,14 @@ export function handleICECandidate(ws: WebSocket | null, message: any){
         }
 
         const room = webSocketManager.gameRoom[message.data.roomId];
-        delete message.JWT_token;
-
+        
         if(room?.whiteId === user.userId && room?.blackSocket){
+            delete message.JWT_token;
             room.blackSocket?.send(JSON.stringify(message));
             console.log('Sent iceCandidates to black');
         }
         else if(room?.blackId === user.userId && room.whiteSocket){
+            delete message.JWT_token;
             room.whiteSocket.send(JSON.stringify(message));
             console.log('Ice Candidate sent to black');
         }else
