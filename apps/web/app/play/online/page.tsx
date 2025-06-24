@@ -1,8 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { useRecoilState, useSetRecoilState } from "recoil";
-import { Chessboard } from "react-chessboard";
+import { useSetRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
 import { Chess } from "chess.js";
 
@@ -20,6 +19,9 @@ import { Dropdown } from "@/components/ui/dropdown";
 import { gameMoves } from "@/store/atoms/moves";
 import { playerTime, opponentTime } from "@/store/atoms/game";
 import Image from "next/image";
+import { ClipLoader } from "react-spinners";
+
+
 
 
 export default function GameLobby() {
@@ -32,6 +34,7 @@ export default function GameLobby() {
     const setPlayerTime = useSetRecoilState(playerTime);
     const setOpponentTime = useSetRecoilState(opponentTime);
     const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+    const [isJoiningGame, setIsJoiningGame] = useState<boolean>(false);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -125,6 +128,7 @@ export default function GameLobby() {
     }, [status]);
     
     function joinRandomRoom() {
+        setIsJoiningGame(true);
         const socket = WebSocketClient.getInstance();
         socket.sendMessage(
             // @ts-ignore
@@ -157,7 +161,7 @@ export default function GameLobby() {
     }
 
     return (
-        <div className="w-full lg:h-screen flex justify-center items-center bg-[#f1f1f1]">
+        <div className="w-full lg:h-screen flex justify-center items-center bg-[#e0e0e0]">
             <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
                 <div className="lg:w-1/2 w-5/6 outline-white outline-8">
                     {/* <Chessboard 
@@ -201,7 +205,29 @@ export default function GameLobby() {
                         <h1 className="md:text-4xl"> <FaChessRook /> </h1>
                     </div>
                     <div className="mt-10 w-full">
-                        <Button className="w-full" onClick={joinRandomRoom}>Play a game</Button>
+                        <Button 
+                            className="w-full" 
+                            onClick={joinRandomRoom} 
+                            disabled={isJoiningGame}
+                            >
+                            {isJoiningGame ? (
+                                <ClipLoader
+                                color={'#000'}
+                                size={20}  // Smaller size to fit the button nicely
+                                aria-label="Loading Spinner"
+                                data-testid="loader"
+                                />
+                                
+                            ) : (
+                                "Play a game"
+                            )}
+                            </Button>
+                            <div className="w-full flex mt-2 justify-center items-center">
+                                <div>
+                                {isJoiningGame ? (<h1 className=" text-slate-500"> Waiting for players to join</h1>) : ("")}
+                                </div>
+                            </div>
+                            
                     </div>
                 </div>    
             </div>

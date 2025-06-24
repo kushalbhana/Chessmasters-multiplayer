@@ -3,7 +3,6 @@ import AnalyticsSection from "@/components/homepage/analytics";
 import Footer from "@/components/homepage/Footer";
 import { Header } from "@/components/homepage/header";
 import { HeroSection } from "@/components/homepage/herosection";
-import PieceDetails from "@/components/homepage/pieceDetailSection";
 import { SpectateSection } from "@/components/homepage/spectatesection";
 
 
@@ -11,7 +10,7 @@ export default function Home() {
 
   return (
     <div>
-      <div className="w-full h-[90vh] bg-white flex flex-col">
+      <div className="w-full h-screen bg-white flex flex-col">
         <div>
           <Header/>
         </div>

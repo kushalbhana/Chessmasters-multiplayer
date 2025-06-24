@@ -1,11 +1,12 @@
 "use client"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SkeletonProfile } from "../shared/profile-skeleton";
 
 export function ProfileSection(){
     const { data: session, status } = useSession();
     if(status === 'loading' || status === 'unauthenticated')
-        return <div></div>
+        return <div><SkeletonProfile/></div>
         
     return(
         <div className=" h-24">

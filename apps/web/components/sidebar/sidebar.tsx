@@ -1,4 +1,3 @@
-"use client";
 import Image from "next/image";
 import { ProfileSection } from "./profileSection";
 import { TabsSection } from "./TabsSection";

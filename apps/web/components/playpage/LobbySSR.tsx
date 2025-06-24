@@ -3,6 +3,7 @@ import { FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing, F
 import { Button } from "@/components/ui/button";
 import { Dropdown } from "@/components/ui/dropdown";
 import { Chessboard } from "react-chessboard";
+import Image from "next/image";
 
 // Dynamically import client logic
 const LobbyClient = dynamic(() => import("./LobbyClient"), { ssr: false });
@@ -29,6 +30,13 @@ export default function LobbySSR() {
       <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
         <div className="lg:w-1/2 w-5/6 outline-white outline-8">
           {/* <Chessboard id="BasicBoard" customSquareStyles={customSquareStyles} /> */}
+          <Image
+            src="/images/ChessMasters-playpage.svg"
+            alt="Chessmasters"
+            width={700}
+            height={700}
+            className="bg-white"
+          />
         </div>
         <div className="lg:w-1/2 flex justify-center items-center flex-col p-10">
           <h1 className="text-3xl font-extrabold text-center">Find an Opponent, Make Your Move!!</h1>
