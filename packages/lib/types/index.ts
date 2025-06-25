@@ -36,6 +36,21 @@ export type gameRoom = {
     game: Chess,
     moves: string[]; // Array of moves
 }
+export type waitingGameRoom = {
+    whiteId?: string,
+    whiteName?: string,
+    whiteProfilePicture?: string,
+    blackId?: string,
+    blackName?: string,
+    blackProfilePicture?: string,
+    whiteSocket?: WebSocket | null,
+    blackSocket?: WebSocket | null,
+    whiteTime: number,
+    blackTime: number,
+    lastMoveTime: Date,
+    game: Chess,
+    moves: string[]; // Array of moves
+}
 
 export type playerInQueue = {
     playerSocket: WebSocket | null;

@@ -7,6 +7,8 @@ import { FaHome, FaRandom, FaUserFriends, FaSignOutAlt } from "react-icons/fa";
 import { BsRobot } from "react-icons/bs";
 import { IoIosSettings } from "react-icons/io";
 import { GiSpectacleLenses } from "react-icons/gi";
+import { IoMdAnalytics } from "react-icons/io";
+
 
 export function TabsSection() {
   const router = useRouter();
@@ -20,7 +22,8 @@ export function TabsSection() {
     'Random Match': { icon: <FaRandom />, path: '/play/online' },
     'Vs friend': { icon: <FaUserFriends />, path: '/play/friend' },
     'Vs Computer': { icon: <BsRobot />, path: '/play/computer' },
-    Spectate: { icon: <GiSpectacleLenses />, path: '/play/spectate' },
+    'Spectate Game': { icon: <GiSpectacleLenses />, path: '/play/spectate' },
+    'Game Review': { icon: <IoMdAnalytics />, path: '/game/analytics' },
     Settings: { icon: <IoIosSettings />, path: '/settings' },
     'Sign Out': { icon: <FaSignOutAlt />, path: () => signOut() },
   };

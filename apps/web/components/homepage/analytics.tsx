@@ -16,12 +16,12 @@ const AnalyticsSection = () => {
   ];
 
   const moveAccuracyData = [
-    { name: "Brilliant", value: 8, color: "#10B981" },
-    { name: "Great", value: 22, color: "#06B6D4" },
-    { name: "Good", value: 45, color: "#3B82F6" },
-    { name: "Inaccuracy", value: 18, color: "#F59E0B" },
-    { name: "Mistake", value: 5, color: "#EF4444" },
-    { name: "Blunder", value: 2, color: "#DC2626" }
+    { name: "Brilliant", value: 8, color: "#b5b3b3" },
+    { name: "Great", value: 22, color: "#000" },
+    { name: "Good", value: 45, color: "#fff" },
+    { name: "Inaccuracy", value: 18, color: "#787878" },
+    { name: "Mistake", value: 5, color: "#454444" },
+    { name: "Blunder", value: 2, color: "#2e2d2d" }
   ];
 
   const chartConfig = {
@@ -100,16 +100,16 @@ const AnalyticsSection = () => {
                     <Line 
                       type="monotone" 
                       dataKey="accuracy" 
-                      stroke="#EF4444" 
+                      stroke="#000" 
                       strokeWidth={2}
-                      dot={{ fill: "#EF4444", r: 4 }}
+                      dot={{ fill: "#000", r: 4 }}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="rating" 
-                      stroke="#3B82F6" 
+                      stroke="#fff" 
                       strokeWidth={2}
-                      dot={{ fill: "#3B82F6", r: 4 }}
+                      dot={{ fill: "#fff", r: 4 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -160,33 +160,33 @@ const AnalyticsSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 transform hover:scale-105">
             <CardContent className="p-6 text-center">
-              <div className="bg-green-600 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+              <div className="bg-black rounded-full p-4 w-16 h-16 mx-auto mb-4">
                 <TrendingUp className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Rating Improvement</h3>
-              <p className="text-3xl font-bold text-green-500 mb-2">+150</p>
+              <p className="text-3xl font-bold text-white mb-2">+150</p>
               <p className="text-gray-400 text-sm">Last 3 months</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 transform hover:scale-105">
             <CardContent className="p-6 text-center">
-              <div className="bg-blue-600 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+              <div className="bg-black rounded-full p-4 w-16 h-16 mx-auto mb-4">
                 <Target className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Average Accuracy</h3>
-              <p className="text-3xl font-bold text-blue-500 mb-2">91%</p>
+              <p className="text-3xl font-bold text-white mb-2">91%</p>
               <p className="text-gray-400 text-sm">All analyzed games</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 transform hover:scale-105">
             <CardContent className="p-6 text-center">
-              <div className="bg-yellow-600 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+              <div className="bg-black rounded-full p-4 w-16 h-16 mx-auto mb-4">
                 <Clock className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Games Analyzed</h3>
-              <p className="text-3xl font-bold text-yellow-500 mb-2">247</p>
+              <p className="text-3xl font-bold text-white mb-2">247</p>
               <p className="text-gray-400 text-sm">Total analyzed</p>
             </CardContent>
           </Card>

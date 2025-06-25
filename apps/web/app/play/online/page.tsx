@@ -33,7 +33,6 @@ export default function GameLobby() {
     const [roomExist, setRoomExist] = useState<boolean>(false);
     const setPlayerTime = useSetRecoilState(playerTime);
     const setOpponentTime = useSetRecoilState(opponentTime);
-    const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
     const [isJoiningGame, setIsJoiningGame] = useState<boolean>(false);
 
     useEffect(() => {

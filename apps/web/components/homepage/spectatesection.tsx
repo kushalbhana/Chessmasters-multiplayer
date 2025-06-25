@@ -72,7 +72,7 @@ export function SpectateSection(){
                         </div>
                     </div>
                     <div className="mt-4 w-full">
-                        <Button className="bg-black text-white h-12 w-full">Start Spectating</Button>
+                        <Button className="bg-black text-white h-12 w-full hover:bg-slate-900">Start Spectating</Button>
                     </div>
                 </div>
 

@@ -5,7 +5,7 @@ import {v4 as uuidv4} from 'uuid';
 
 import { initializeRedis } from './utils/redisUtils'
 import { handleMessage } from './handlers/handleMessage';
-import { Room, playerInQueue, gameRoom } from "@repo/lib/types"
+import { Room, playerInQueue, gameRoom, waitingGameRoom } from "@repo/lib/types"
 dotenv.config({ path: '../../.env' });
 
 // 'White' ---> Sender | SenderSocker
@@ -16,6 +16,7 @@ class WebSocketManager {
     public rooms: { [key: string]: Room } =  {};
     public playerInRandomQueue: playerInQueue | null = null;
     public gameRoom: {[key: string]: gameRoom} = {};
+    public waitingRoom: {[key: string]: waitingGameRoom} = {};  //Waiting for friend to join
     public instanceId: string;
      
     public redisClient!: RedisClientType; 
