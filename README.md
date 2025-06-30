@@ -67,6 +67,7 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 - `apps/`: Contains the Next.js and Websocket applications.
   - `web/`: Main frontend application built with Next.js with the backend http server.
   - `websocket/`: WebSocket server for real-time communication.
+  - `chess_engine/`: stockfish for bot and game analysis.
 - `packages/`: Shared packages and libraries.
   - `Typescript-config/`: Types used over different apps.
   - `db/`: Database schema and singleton prisma client.
