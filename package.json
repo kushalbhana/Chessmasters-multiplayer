@@ -8,10 +8,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
     "@repo/db": "*",
+    "@repo/eslint-config": "*",
     "@repo/lib": "*",
+    "@repo/typescript-config": "*",
     "dotenv-cli": "^8.0.0",
     "esbuild": "^0.24.2",
     "prettier": "^3.2.5",
@@ -32,6 +32,7 @@
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.2",
     "@types/chess.js": "^0.13.7",
+    "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/next-auth": "^3.13.0",
     "@types/react-icons": "^3.0.0",
@@ -43,6 +44,7 @@
     "bullmq": "^5.53.2",
     "chess.js": "^1.0.0",
     "dotenv": "^16.4.7",
+    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "next-auth": "^4.24.11",
     "react-chessboard": "^4.7.2",
