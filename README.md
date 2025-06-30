@@ -5,7 +5,9 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 ## Features
 
 - **Real-Time Gameplay**: Instant communication via WebSockets.
-- **Peer-to-Peer Communication**: Videocall usigng WebRTC for direct player interaction.
+- **Video Conferencing**: Videocall usigng WebRTC for direct player interaction.
+- **Game Analytics and Review**: Review the game with best possible moves.
+- **Spectate games**: Watch players play the game.
 - **Modern Frontend**: Built with Next.js for a smooth user experience.
 - **Efficient State Management**: Redis for real-time updates and caching.
 - **Robust Game Logic**: Chess.js for accurate game rule enforcement.
@@ -17,7 +19,7 @@ A real-time multiplayer chess game using Turborepo, Next.js, WebSockets, Redis, 
 - **WebSockets**: Enables real-time, bi-directional communication.
 - **Redis**: In-memory database for state management.(Under development)
 - **WebRTC**: Facilitates Video conferencing between players.
-- **Coturn**: TURN server for video conferencing between two players.
+- **Kubernetes**: Powered by k8s for ccontainer orchestration. 
 - **Mediasoup**: Enables spactators to view a game.
 - **Chess.js**: Provides comprehensive chess game logic.
 - **Stockfish**: Provide ability to play against computer.
