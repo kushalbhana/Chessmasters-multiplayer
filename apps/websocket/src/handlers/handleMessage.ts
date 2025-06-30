@@ -6,7 +6,7 @@ import { makeMove } from "../controllers/makeMove";
 import { handleTextMessage } from "../controllers/textMessage";
 import { handleJoinCall } from "../controllers/webrtc";
 import { handleICECandidate, handleWebRTCAnswer, handleWebRTCOffer } from "../controllers/webRTCHandler";
-import { createInviteCode } from "../controllers/joinGameFriend";
+import { addToFriendGame, createInviteCode } from "../controllers/joinGameFriend";
 
 
 export async function handleMessage(ws: WebSocket, data: string) {
@@ -41,6 +41,8 @@ export async function handleMessage(ws: WebSocket, data: string) {
     }else if(message.type === WebSocketMessageType.CREATE_INVITE_LINK){
         createInviteCode(ws, message);
         return;
+    }else if(message.type === WebSocketMessageType.JOIN_FRIEND_ROOM){
+        addToFriendGame(ws, message);
     }
     
     

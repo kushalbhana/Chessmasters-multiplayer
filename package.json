@@ -10,6 +10,8 @@
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
+    "@repo/db": "*",
+    "@repo/lib": "*",
     "dotenv-cli": "^8.0.0",
     "esbuild": "^0.24.2",
     "prettier": "^3.2.5",

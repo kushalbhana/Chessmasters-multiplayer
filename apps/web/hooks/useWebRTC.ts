@@ -59,7 +59,7 @@ export const useWebRTC = (playerType: PlayerType) => {
   const createAnswer = useCallback(async (offer: RTCSessionDescriptionInit) => {
     const peer = peerConnectionRef.current;
     if (!peer) return;
-
+    
     await peer.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
@@ -77,6 +77,7 @@ export const useWebRTC = (playerType: PlayerType) => {
   const handleOfferAccepted = useCallback(async (answer: RTCSessionDescriptionInit) => {
     const peer = peerConnectionRef.current;
     if (!peer) return;
+    if (peer.signalingState === "have-local-offer" && answer.type === "answer")
     await peer.setRemoteDescription(new RTCSessionDescription(answer));
   }, []);
 

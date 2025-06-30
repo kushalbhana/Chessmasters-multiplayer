@@ -73,6 +73,12 @@ class WebSocketManager {
                 delete this.gameRoom[roomId];
             }
         }
+        for (const roomId in this.waitingRoom) {
+            const room = this.gameRoom[roomId];
+            if (room?.whiteSocket === ws || room?.blackSocket === ws) {
+                delete this.waitingRoom[roomId]
+            }
+        }
     }
 }
 

@@ -18,12 +18,16 @@
     "@types/redis": "^4.0.11",
     "@types/ws": "^8.5.10",
     "axios": "^1.7.2",
+    "bullmq": "^5.53.2",
     "ioredis": "^5.4.1",
     "redis": "^4.6.15",
     "ws": "^8.17.0",
-    "@repo/db": "*"
+    "@repo/db": "*",
+    "@repo/lib": "*"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "esbuild": "^0.20.0",
+    "ts-node": "^10.0.0"
   }
 }

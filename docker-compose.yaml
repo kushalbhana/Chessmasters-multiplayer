@@ -26,6 +26,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
+  stockfish:
+    image: niklasf/stockfish
+    container_name: stockfish
+    stdin_open: true
+    tty: true
+    restart: always
+
 volumes:
   redis_data:
   postgres_data:

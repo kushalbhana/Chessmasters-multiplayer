@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSetRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
@@ -36,8 +36,10 @@ export default function GamewithFriends(){
         const [isJoiningGame, setIsJoiningGame] = useState<boolean>(false);
         const [inviteCode, setInviteCode] = useState("");
         const [generatedCode, setGeneratedCode] = useState("");
-        const [selectedColor, setSelectedColor] = useState("white")
+        const [selectedColor, setSelectedColor] = useState<"white" | "black">("white");
         const { toast } = useToast();
+        const socket = useMemo(() => WebSocketClient.getInstance(), []);
+
     
 
         useEffect(() => {
@@ -48,8 +50,7 @@ export default function GamewithFriends(){
             if (status === 'loading') {
                 return;
             }
-        
-            const socket = WebSocketClient.getInstance();
+
             console.log('READY STATE:', socket.readyState);
         
             if (socket.readyState === WebSocket.OPEN) {
@@ -173,6 +174,16 @@ export default function GamewithFriends(){
                 console.error("Failed to copy", err);
                 }
             };
+
+            const joinFriendRoom = () => {
+                if(inviteCode === ""){
+                    toast({
+                        title: "No access code",
+                        description: "Click on Generate Code to generate the code!",
+                        })
+                }
+                socket.sendMessage(JSON.stringify({type: WebSocketMessageType.JOIN_FRIEND_ROOM, code: inviteCode, JWT_token: session?.user.jwt}));
+            }
         return (
             <div className="w-full lg:h-screen flex justify-center items-center bg-[#e0e0e0]">
                 <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
@@ -212,7 +223,7 @@ export default function GamewithFriends(){
                                     onChange={(e) => setInviteCode(e.target.value)}
                                     className="w-40 rounded-r-none"
                                 />
-                                <Button className="h-10 rounded-l-none">Joini Room</Button>
+                                <Button className="h-10 rounded-l-none" onClick={joinFriendRoom}>Joini Room</Button>
                             </div>
                             {/* Input for generated code + copy button */}
                             <div className="flex justify-center items-center w-full md:w-auto">
