@@ -30,6 +30,7 @@
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.2",
     "@types/chess.js": "^0.13.7",
+    "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/next-auth": "^3.13.0",
     "@types/react-icons": "^3.0.0",
@@ -41,6 +42,7 @@
     "bullmq": "^5.53.2",
     "chess.js": "^1.0.0",
     "dotenv": "^16.4.7",
+    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "next-auth": "^4.24.11",
     "react-chessboard": "^4.7.2",
@@ -49,6 +51,7 @@
     "recharts": "^2.15.4",
     "recoil": "^0.7.7",
     "redis": "^4.6.14",
+    "stockfish": "^16.0.0",
     "uuid": "^11.1.0",
     "ws": "^8.17.0"
   }

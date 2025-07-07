@@ -1,0 +1,17 @@
+{
+  "name": "chess-engine",
+  "version": "1.0.0",
+  "description": "Chess Engine made using stockfish for bot and game analysis",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/index.ts --platform=node --bundle --outdir=dist",
+    "dev": "ts-node src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^5.0.3",
+    "stockfish": "^16.0.0"
+  }
+}
