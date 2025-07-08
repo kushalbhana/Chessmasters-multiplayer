@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 const app = express();
 app.use(express.json());
 
-function getBestMove(fen: string): Promise<string> {
+function getBestMove(fen: string, depth: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const engine = spawn('stockfish');
 
@@ -16,7 +16,7 @@ function getBestMove(fen: string): Promise<string> {
 
     engine.stdin.write(`uci\n`);
     engine.stdin.write(`position fen ${fen}\n`);
-    engine.stdin.write(`go depth 15\n`);
+    engine.stdin.write(`go depth ${depth}\n`);
 
     engine.stdout.on('data', (data: Buffer) => {
       const output = data.toString();
@@ -42,13 +42,13 @@ function getBestMove(fen: string): Promise<string> {
 
 // @ts-ignore
 app.post('/bestmove', async (req, res) => {
-  const { fen } = req.body;
+  const { fen, depth } = req.body;
   if (!fen || typeof fen !== 'string') {
     return res.status(400).json({ error: 'FEN must be a valid string.' });
   }
 
   try {
-    const bestMove = await getBestMove(fen);
+    const bestMove = await getBestMove(fen, depth);
     res.json({ bestMove });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to get best move.' });
