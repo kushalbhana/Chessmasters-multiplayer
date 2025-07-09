@@ -1,20 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
-interface Player {
-  id: string;
-  name: string;
-  rating: number;
-  avatar: string; // emoji or image URL
-}
-
-const players: Player[] = [
-  { id: "p1", name: "AlphaBot", rating: 400, avatar: "🤖" },
-  { id: "p2", name: "KnightAI", rating: 1000, avatar: "♞" },
-  { id: "p3", name: "QueenBot", rating: 1500, avatar: "👑" },
-  { id: "p4", name: "Titan", rating: 2000, avatar: "🧠" },
-  { id: "p5", name: "DeepMove", rating: 2200, avatar: "🔬" },
-];
+import { players } from "@repo/lib/status";
 
 export function PlayerTabs() {
   const [selectedId, setSelectedId] = useState<string>("");

@@ -56,3 +56,18 @@ export const WebSocketMessageType = {
         TimeoutWIN: "Time's up! The game is over due to time expiration.",
         TimeoutLOST: "Time's up! You've run out of time, and the game is over.",
   }
+
+  interface Player {
+      id: string;
+      name: string;
+      rating: number;
+      avatar: string; // emoji or image URL
+  }
+
+  export const players: Player[] = [
+  { id: "p1", name: "AlphaBot", rating: 400, avatar: "🤖" },
+  { id: "p2", name: "KnightAI", rating: 1000, avatar: "♞" },
+  { id: "p3", name: "QueenBot", rating: 1500, avatar: "👑" },
+  { id: "p4", name: "Titan", rating: 2000, avatar: "🧠" },
+  { id: "p5", name: "DeepMove", rating: 2200, avatar: "🔬" },
+];

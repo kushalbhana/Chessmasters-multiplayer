@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing } from "react-icons/fa";
 import { PlayerTabs } from "@/components/computer/selectplayer";
-import { useState } from "react";
 import { PlayButton } from "./playbutton";
 
 export default function Lobby(){
