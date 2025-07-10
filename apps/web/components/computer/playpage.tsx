@@ -6,6 +6,7 @@ import { ChessboardGame } from "./chessboard-game"
 import { useRecoilState } from "recoil"
 import { gameStatus } from "@/store/atoms/game"
 import { PlayerScreen } from "./playerScreen"
+import { MoveScrollColumn } from "./movesboard"
 
 
 export function PlayPage(){
@@ -24,13 +25,10 @@ export function PlayPage(){
                         <PlayerScreen/>
                     </div>
                     <div className="flex gap-2 h-full w-full">
-                        <div>
-                            {/* <MovesSection/> */}
-                        </div>
-                    <div className="p-3 flex flex-col justify-center w-full">
-                        {/* <UtilitySection/>
-                        <MessageBox/> */}
-                    </div>
+                        
+                            <MoveScrollColumn/>
+                        
+        
                 </div>
             </div>
 

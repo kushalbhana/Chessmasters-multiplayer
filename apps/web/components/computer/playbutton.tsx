@@ -1,13 +1,13 @@
 "use client"
 import { Button } from "../ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation";
 
 export function PlayButton(){
     const [selectedColor, setSelectedColor] = useState("white");
     const router = useRouter();
 
-    useState(() => {
+    useEffect(() => {
         localStorage.setItem('color', "white");
     },)
     return(
