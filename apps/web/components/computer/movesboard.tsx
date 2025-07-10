@@ -1,59 +1,38 @@
-"use client";
-
-import { useEffect, useRef } from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
-import { movesAtom, MoveAnalytics } from "@/store/atoms/bot";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { movesAtom } from "@/store/atoms/bot"; // Adjust path if needed
 
-function getMoveQualityLabel(score?: number): string {
-  if (score === undefined) return "";
-  const cp = Math.abs(score);
-  if (cp <= 20) return "Best";
-  if (cp <= 50) return "Excellent";
-  if (cp <= 100) return "Good";
-  if (cp <= 300) return "Mistake";
-  return "Blunder";
-}
+export function MovesSection() {
+  const rawMoves = useRecoilValue(movesAtom);
+  const moves = Array.isArray(rawMoves) ? rawMoves : [];
 
-function getQualityColor(score?: number): string {
-  if (score === undefined) return "text-gray-400";
-  const cp = Math.abs(score);
-  if (cp <= 20) return "text-green-500";
-  if (cp <= 50) return "text-emerald-500";
-  if (cp <= 100) return "text-yellow-500";
-  if (cp <= 300) return "text-orange-500";
-  return "text-red-500";
-}
-
-export function MoveScrollColumn() {
-  const moves = useRecoilValue(movesAtom);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [moves]);
+  const formattedMoves = moves.reduce((acc, move, i) => {
+    const moveIndex = Math.floor(i / 2);
+    if (!acc[moveIndex]) acc[moveIndex] = { number: moveIndex + 1 };
+    i % 2 === 0 ? (acc[moveIndex].white = move.move) : (acc[moveIndex].black = move.move);
+    return acc;
+  }, [] as { number: number; white?: string; black?: string }[]);
 
   return (
-    <div className="w-full h-full overflow-y-auto p-4" ref={scrollRef}>
-      <div className="flex flex-col space-y-4">
-        {moves.map((m, idx) => (
-          <div key={idx} className="flex flex-col border-b pb-2">
-            <div className="text-sm text-gray-500">Move {idx + 1}</div>
-            <div className="flex justify-between items-center">
-              <span className="font-semibold text-base">{m.move}</span>
-              <span className={`text-xs ${getQualityColor(m.score)}`}>
-                {getMoveQualityLabel(m.score)}
-                {m.score !== undefined && (
-                  <span className="ml-1 text-gray-400">
-                    ({(m.score / 100).toFixed(2)})
-                  </span>
-                )}
-              </span>
+    <ScrollArea className="h-full w-48 lg:w-full rounded-md border bg-[#111114]/20">
+      <div className="p-4">
+        <h4 className="mb-4 text-sm font-medium leading-none">Moves</h4>
+        {formattedMoves.map(({ number, white, black }, index) => (
+          <React.Fragment key={number}>
+            <div
+              className={`text-sm flex justify-between px-2 py-2 rounded-md ${
+                index % 2 === 0 ? "bg-[#1a1a1f]/40" : "bg-[#111114]/20"
+              }`}
+            >
+              <span className="font-semibold">{number}.</span>
+              <span className="ml-2">{white || "-"}</span>
+              <span className="ml-4">{black || "-"}</span>
             </div>
-          </div>
+          </React.Fragment>
         ))}
       </div>
-    </div>
+    </ScrollArea>
   );
 }

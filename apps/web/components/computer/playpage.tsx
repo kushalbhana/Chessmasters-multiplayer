@@ -1,37 +1,42 @@
-"use client"
-import React, { useState } from "react"
+"use client";
+import React, { useState } from "react";
+import { ChessboardGame } from "./chessboard-game";
+import { useRecoilState } from "recoil";
+import { gameStatus } from "@/store/atoms/game";
+import { PlayerScreen } from "./playerScreen";
+import { MovesSection } from "./movesboard";
 
-import { ChessboardAndUtility } from "@/components/playpage/chessboardAndUtility"
-import { ChessboardGame } from "./chessboard-game"
-import { useRecoilState } from "recoil"
-import { gameStatus } from "@/store/atoms/game"
-import { PlayerScreen } from "./playerScreen"
-import { MoveScrollColumn } from "./movesboard"
+export function PlayPage() {
+  const [gameWon, setGameWon] = useState(true);
+  const [gameStat, setGameStat] = useRecoilState(gameStatus);
 
+  return (
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* ✅ Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center z-0 ml-14"
+        style={{
+          backgroundImage: `url('/images/chess-background.png')`, // Make sure this path is correct and inside `public/`
+        }}
+      />
 
-export function PlayPage(){
-    const [gameWon, setGameWon] = useState(true);
-    const [gameStat, setGameStat] = useRecoilState(gameStatus);
+      {/* ✅ Optional overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/30 z-10 ml-10" />
 
-    return(
-        <div className="flex h-full w-full gap-1 flex-col lg:flex-row justify-center items-center">
-            <div className=" w-full lg:w-6/12">
-                <div className=" absolute z-20 h-full w-full bg-gradient-to-b from-[#111114] to-[#1c1c1f] rounded-2xl hidden">
-                </div>
-                    <ChessboardGame />
-                </div>
-                <div className="w-full lg:w-5/12 h-5/6 flex flex-col bg-slate-500 bg-opacity-20">
-                    <div className="w-full hidden lg:block">
-                        <PlayerScreen/>
-                    </div>
-                    <div className="flex gap-2 h-full w-full">
-                        
-                            <MoveScrollColumn/>
-                        
-        
-                </div>
-            </div>
-
+      {/* ✅ Main content on top */}
+      <div className="relative z-20 flex h-full w-full gap-2 flex-col lg:flex-row justify-center items-center lg:ml-10">
+        <div className="w-full lg:w-6/12">
+          <ChessboardGame />
         </div>
-    )
+        <div className="w-full lg:w-5/12 h-5/6 flex flex-col px-4">
+          <div className="w-full hidden lg:block">
+            <PlayerScreen />
+          </div>
+          <div className="flex gap-2 h-full w-full">
+            <MovesSection />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

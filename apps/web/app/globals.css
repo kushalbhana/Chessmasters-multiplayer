@@ -79,3 +79,12 @@ body {
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+.animated-board > div > div {
+  animation: squarePulse 3s infinite ease-in-out;
+}
+
+@keyframes squarePulse {
+  0% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(180deg); }
+  100% { filter: hue-rotate(360deg); }
+}

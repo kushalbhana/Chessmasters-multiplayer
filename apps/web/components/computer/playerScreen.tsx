@@ -6,7 +6,7 @@ export function PlayerScreen() {
   const {data: session, status} =  useSession();
   return (
     <div className="w-full h-60 flex gap-2 p-2 shadow-slate-700">
-      <div className="w-1/2 bg-black flex justify-center items-center border-">
+      <div className="w-1/2 bg-black/30 flex justify-center items-center rounded-lg">
         <div>
           <Image
             src={session?.user.image || ""}
@@ -17,7 +17,7 @@ export function PlayerScreen() {
           />
         </div>
       </div>
-      <div className="w-1/2 bg-black"></div>
+      <div className="w-1/2 bg-black/30 rounded-lg"></div>
     </div>
   );
 }
