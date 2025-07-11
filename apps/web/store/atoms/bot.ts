@@ -28,3 +28,23 @@ export const movesAtom = atom<MoveAnalytics[]>({
   default: loadMovesFromLocalStorage(),
 });
 
+export type ClassificationCounts = {
+  excellent: number;
+  good: number;
+  inaccuracy: number;
+  mistake: number;
+  blunder: number;
+};
+
+export const classificationAtom = atom<ClassificationCounts>({
+  key: "classificationAtom",
+  default: {
+    excellent: 0,
+    good: 0,
+    inaccuracy: 0,
+    mistake: 0,
+    blunder: 0,
+  },
+});
+
+

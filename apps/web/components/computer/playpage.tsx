@@ -5,6 +5,7 @@ import { useRecoilState } from "recoil";
 import { gameStatus } from "@/store/atoms/game";
 import { PlayerScreen } from "./playerScreen";
 import { MovesSection } from "./movesboard";
+import { MoveClassificationSummary } from "./moveclassificationboard";
 
 export function PlayPage() {
   const [gameWon, setGameWon] = useState(true);
@@ -14,14 +15,14 @@ export function PlayPage() {
     <div className="relative w-full h-screen overflow-hidden">
       {/* ✅ Background Image */}
       <div
-        className="absolute inset-0 bg-cover bg-center z-0 ml-14"
+        className="absolute inset-0 bg-cover bg-center z-0 ml-18"
         style={{
           backgroundImage: `url('/images/chess-background.png')`, // Make sure this path is correct and inside `public/`
         }}
       />
 
       {/* ✅ Optional overlay for better contrast */}
-      <div className="absolute inset-0 bg-black/30 z-10 ml-10" />
+      <div className="absolute inset-0 bg-black/60 z-10 ml-10" />
 
       {/* ✅ Main content on top */}
       <div className="relative z-20 flex h-full w-full gap-2 flex-col lg:flex-row justify-center items-center lg:ml-10">
@@ -32,8 +33,13 @@ export function PlayPage() {
           <div className="w-full hidden lg:block">
             <PlayerScreen />
           </div>
+          <div className="h-60">
+
+          </div>
           <div className="flex gap-2 h-full w-full">
             <MovesSection />
+          </div><div className="flex gap-2 h-full w-full">
+            <MoveClassificationSummary/>
           </div>
         </div>
       </div>

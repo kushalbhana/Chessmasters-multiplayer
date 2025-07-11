@@ -2,7 +2,7 @@ import * as React from "react";
 import { useRecoilValue } from "recoil";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { movesAtom } from "@/store/atoms/bot"; // Adjust path if needed
+import { movesAtom } from "@/store/atoms/bot";
 
 export function MovesSection() {
   const rawMoves = useRecoilValue(movesAtom);
@@ -11,15 +11,21 @@ export function MovesSection() {
   const formattedMoves = moves.reduce((acc, move, i) => {
     const moveIndex = Math.floor(i / 2);
     if (!acc[moveIndex]) acc[moveIndex] = { number: moveIndex + 1 };
-    i % 2 === 0 ? (acc[moveIndex].white = move.move) : (acc[moveIndex].black = move.move);
+    if (i % 2 === 0) {
+      acc[moveIndex].white = move.move;
+      acc[moveIndex].whiteScore = move.score;
+    } else {
+      acc[moveIndex].black = move.move;
+      acc[moveIndex].blackScore = move.score;
+    }
     return acc;
-  }, [] as { number: number; white?: string; black?: string }[]);
+  }, [] as { number: number; white?: string; black?: string; whiteScore?: number; blackScore?: number }[]);
 
   return (
-    <ScrollArea className="h-full w-48 lg:w-full rounded-md border bg-[#111114]/20">
+    <ScrollArea className="h-[400px] w-48 lg:w-full rounded-md border bg-[#111114]/20">
       <div className="p-4">
         <h4 className="mb-4 text-sm font-medium leading-none">Moves</h4>
-        {formattedMoves.map(({ number, white, black }, index) => (
+        {formattedMoves.map(({ number, white, black, whiteScore, blackScore }, index) => (
           <React.Fragment key={number}>
             <div
               className={`text-sm flex justify-between px-2 py-2 rounded-md ${
@@ -29,6 +35,7 @@ export function MovesSection() {
               <span className="font-semibold">{number}.</span>
               <span className="ml-2">{white || "-"}</span>
               <span className="ml-4">{black || "-"}</span>
+              <span className="ml-4">{blackScore !== undefined ? blackScore/10 : whiteScore !== undefined ? whiteScore/10 : "-"}</span>
             </div>
           </React.Fragment>
         ))}

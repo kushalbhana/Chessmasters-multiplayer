@@ -24,6 +24,9 @@ export function PlayerTabs() {
     localStorage.setItem("playerId", playerId);
     const depth = getStockfishDepthFromRating(player.rating);
     localStorage.setItem("depth", depth.toString());
+    localStorage.setItem('moves', "[]")
+    localStorage.setItem("moveClassificationSummary", "{ excellent: 0,good: 0, inaccuracy: 0, mistake: 0, blunder: 0, }")
+    
   };
 
   return (

@@ -7,6 +7,9 @@ import axios from "axios";
 import { useRecoilState } from "recoil";
 import { movesAtom, MoveAnalytics } from "@/store/atoms/bot";
 import { players } from "@repo/lib/status";
+import { classificationAtom } from "@/store/atoms/bot";
+
+
 
 export function ChessboardGame() {
   const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -24,6 +27,8 @@ export function ChessboardGame() {
   });
 
   const [moves, setMoves] = useRecoilState(movesAtom);
+  const [classification, setClassification] = useRecoilState(classificationAtom);
+
   console.log(moves)
 
   // Sync to localStorage when moves change
@@ -40,6 +45,23 @@ export function ChessboardGame() {
     };
   };
 
+  const getMoveClassification = (scoreDiff: number) => {
+    const absDiff = Math.abs(scoreDiff);
+    if (absDiff < 20) return "excellent";
+    if (absDiff < 50) return "good";
+    if (absDiff < 100) return "inaccuracy";
+    if (absDiff < 300) return "mistake";
+    return "blunder";
+  };
+
+  const classificationCounts = {
+    excellent: 0,
+    good: 0,
+    inaccuracy: 0,
+    mistake: 0,
+    blunder: 0,
+  };
+
   async function makeBotMove(
     fen: string,
     depth: number,
@@ -51,7 +73,34 @@ export function ChessboardGame() {
         depth,
         lastPlayerMove,
       });
-      return response.data;
+
+      const engineMove = response.data;
+    const moves = JSON.parse(localStorage.getItem("moves") || "[]");
+
+    const classificationCounts = {
+      excellent: 0,
+      good: 0,
+      inaccuracy: 0,
+      mistake: 0,
+      blunder: 0,
+    };
+
+    // Evaluate player move quality (look at pairs)
+    for (let i = 1; i < moves.length; i += 2) {
+      const playerMove = moves[i - 1]; // even index (player)
+      const botMove = moves[i];       // odd index (bot)
+
+      if (!playerMove || !botMove || playerMove.by !== "player") continue;
+
+      const scoreDiff = botMove.score - playerMove.score;
+
+      const category = getMoveClassification(scoreDiff);
+      classificationCounts[category]++;
+    }
+
+    localStorage.setItem("moveClassificationSummary", JSON.stringify(classificationCounts));
+    setClassification(classificationCounts);
+    return engineMove;
     } catch (error) {
       console.error("Bot move fetch failed:", error);
       return null;
@@ -59,26 +108,31 @@ export function ChessboardGame() {
   }
 
   function handleMove(sourceSquare: string, targetSquare: string): boolean {
-    const move = game.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
-    });
+    try {
+      const move = game.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
 
-    if (move === null) return false;
+      if (move === null) return false;
 
-    const newMove: MoveAnalytics = {
-      move: move.from + move.to,
-      by: "player",
-    };
+      const newMove: MoveAnalytics = {
+        move: move.from + move.to,
+        by: "player",
+      };
 
-    setFen(game.fen());
-    setPlayerTurn(false);
-    setMoves((prev) => [...prev, newMove]);
-    setLastPlayerMove(newMove.move);
-    localStorage.setItem("fen", game.fen());
+      setFen(game.fen());
+      setPlayerTurn(false);
+      setMoves((prev) => [...prev, newMove]);
+      setLastPlayerMove(newMove.move);
+      localStorage.setItem("fen", game.fen());
 
-    return true;
+      return true;
+    } catch (error) {
+      return false;
+    }
+    
   }
 
   useEffect(() => {
@@ -132,6 +186,17 @@ export function ChessboardGame() {
   }, [fen]);
 
   useEffect(() => {
+    const savedClassification = localStorage.getItem("moveClassificationSummary");
+      if (savedClassification) {
+        try {
+          setClassification(JSON.parse(savedClassification));
+        } catch {
+          // fallback to default or ignore
+        }
+      }
+  },[])
+
+  useEffect(() => {
     const savedFen =
       localStorage.getItem("fen") ||
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -159,6 +224,55 @@ export function ChessboardGame() {
     if (botPlayer) setBot(botPlayer);
   }, []);
 
+  const pieceImages: { [key: string]: string } = {
+    wK: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wK.svg",
+    wQ: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wQ.svg",
+    wR: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wR.svg",
+    wB: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wN.svg",
+    wN: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wK.svg",
+    wP: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wP.svg",
+    bK: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bK.svg",
+    bQ: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bQ.svg",
+    bR: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bR.svg",
+    bB: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bB.svg",
+    bN: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bN.svg",
+    bP: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bP.svg",
+  };const pieceImages1: { [key: string]: string } = {
+    wK: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/wK.svg",
+    wQ: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/wQ.svg",
+    wR: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/wR.svg",
+    wB: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/wB.svg",
+    wN: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/wN.svg",
+    wP: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/wP.svg",
+    bK: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/bK.svg",
+    bQ: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/bQ.svg",
+    bR: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/bR.svg",
+    bB: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/bB.svg",
+    bN: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/bN.svg",
+    bP: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/cardinal/bP.svg",
+  };const pieceImages2: { [key: string]: string } = {
+    wK: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wK.svg",
+    wQ: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wQ.svg",
+    wR: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wR.svg",
+    wB: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wN.svg",
+    wN: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wK.svg",
+    wP: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/wP.svg",
+    bK: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bK.svg",
+    bQ: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bQ.svg",
+    bR: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bR.svg",
+    bB: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bB.svg",
+    bN: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bN.svg",
+    bP: "https://raw.githubusercontent.com/lichess-org/lila/f1aba422b2a7936e92b4bf3a93f71946da57526a/public/piece/celtic/bP.svg",
+  };
+
+  const customPieces = Object.fromEntries(
+    Object.entries(pieceImages1).map(([piece, url]) => [
+      piece,
+      ({ squareWidth }: { squareWidth: number }) => (
+        <img src={url} style={{ width: squareWidth, height: squareWidth }} />
+      ),
+    ])
+  );
   return (
     <div className="w-full h-full">
       <Chessboard
@@ -178,7 +292,7 @@ export function ChessboardGame() {
         backdropFilter: "blur(10px)",
         border: "1px solid rgba(255, 255, 255, 0.1)",
       }}
-
+      customPieces={customPieces}
       />
     </div>
   );
