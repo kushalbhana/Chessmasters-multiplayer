@@ -1,4 +1,5 @@
 import { atom } from "recoil";
+import { peicesVariety } from "@repo/lib/board-acessories";
 
 export const color = atom({
     key: 'color',
@@ -46,5 +47,10 @@ export const classificationAtom = atom<ClassificationCounts>({
     blunder: 0,
   },
 });
+
+export const differentPeices = atom({
+  key: 'differentPeices',
+  default: peicesVariety.dubrovny
+})
 
 

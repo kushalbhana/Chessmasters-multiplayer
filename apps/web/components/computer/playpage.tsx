@@ -6,6 +6,8 @@ import { gameStatus } from "@/store/atoms/game";
 import { PlayerScreen } from "./playerScreen";
 import { MovesSection } from "./movesboard";
 import { MoveClassificationSummary } from "./moveclassificationboard";
+import { PeicesCategoryDropdown } from "./selectpeices";
+import DownloadPGNButton from "./downloadPGN";
 
 export function PlayPage() {
   const [gameWon, setGameWon] = useState(true);
@@ -33,8 +35,9 @@ export function PlayPage() {
           <div className="w-full hidden lg:block">
             <PlayerScreen />
           </div>
-          <div className="h-60">
-
+          <div className="p-4 flex gap-4" >
+            <PeicesCategoryDropdown/>
+            <DownloadPGNButton/>
           </div>
           <div className="flex gap-2 h-full w-full">
             <MovesSection />

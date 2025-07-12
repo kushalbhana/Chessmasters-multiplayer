@@ -9,6 +9,7 @@
   },
   "exports": {
       "./status": "./obj/index.ts",
+      "./board-acessories": "./board/index.ts",
       "./types": "./types/index.ts",
       "./enums": "./enum/index.ts"
   }

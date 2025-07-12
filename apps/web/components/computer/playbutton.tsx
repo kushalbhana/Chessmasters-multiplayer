@@ -7,9 +7,6 @@ export function PlayButton(){
     const [selectedColor, setSelectedColor] = useState("white");
     const router = useRouter();
 
-    useEffect(() => {
-        localStorage.setItem('color', "white");
-    },)
     return(
         <div>
             <Button className="w-full" onClick={() => router.push('/play/computer')}>
