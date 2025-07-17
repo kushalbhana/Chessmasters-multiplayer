@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import axios from "axios";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   movesAtom,
   MoveAnalytics,
@@ -12,6 +12,9 @@ import {
   differentPeices,
 } from "@/store/atoms/bot";
 import { players } from "@repo/lib/status";
+import { getGameStatus } from "@/lib/game/gamestatus";
+import { gameResult } from "@/store/atoms/sharedGame";
+import { gameStatusObj } from "@repo/lib/status";
 
 export function ChessboardGame() {
   const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -32,14 +35,12 @@ export function ChessboardGame() {
 
   const [moves, setMoves] = useRecoilState(movesAtom);
   const [classification, setClassification] = useRecoilState(classificationAtom);
-
-  useEffect(() => {
-    localStorage.setItem("moves", JSON.stringify(moves));
-  }, [moves]);
+  const setGameStat = useSetRecoilState(gameResult);
 
   type EngineResponse = {
     bestMove: string;
     evaluation: {
+      scoreLoss: number;
       lastPlayerMove?: string;
       lastPlayerScore?: number;
       bestMoveScore?: number;
@@ -98,6 +99,44 @@ export function ChessboardGame() {
     }
   }
 
+  const setGameOver  = (player: string) => {
+    const isGameOver = getGameStatus(game);
+        if (isGameOver !== gameStatusObj.ONGOING) {
+          if (isGameOver === gameStatusObj.CHECKMATE) {
+            setGameStat({
+              isGameOver: true,
+              overType: gameStatusObj.CHECKMATE,
+              status: player === 'player' ? 'Win' : 'Lose'})
+            console.log("Checkmate! Game over.");
+          }
+          if (isGameOver === gameStatusObj.STALEMATE) {
+            setGameStat({
+              isGameOver: true,
+              overType: gameStatusObj.STALEMATE,
+              status: 'Draw'})
+          }
+          if (isGameOver === gameStatusObj.DRAW) {
+            setGameStat({
+              isGameOver: true,
+              overType: gameStatusObj.DRAW,
+              status: 'Draw'})
+          }
+          if (isGameOver === gameStatusObj.INSUFFICIENT_MATERIAL) {
+            setGameStat({
+              isGameOver: true,
+              overType: gameStatusObj.INSUFFICIENT_MATERIAL,
+              status: 'Draw'})
+          }
+          if (isGameOver === gameStatusObj.THREEFOLD_REPETITION) {
+            setGameStat({
+              isGameOver: true,
+              overType: gameStatusObj.THREEFOLD_REPETITION,
+              status: 'Draw'})
+          }
+          localStorage.clear()
+        }
+  }
+  
   function handleMove(sourceSquare: string, targetSquare: string): boolean {
     try {
       const move = game.move({
@@ -118,6 +157,8 @@ export function ChessboardGame() {
       setMoves((prev) => [...prev, newMove]);
       setLastPlayerMove(newMove.move);
       localStorage.setItem("fen", game.fen());
+      setGameOver('player');
+      localStorage.setItem('moves', JSON.stringify(moves))
 
       return true;
     } catch {
@@ -147,12 +188,13 @@ export function ChessboardGame() {
         setPlayerTurn(true);
         localStorage.setItem("fen", game.fen());
 
+        setGameOver('bot');
         setMoves((prev) => [
           ...prev,
           {
             move: bestMove,
             by: "bot",
-            score: evaluation?.bestMoveScore,
+            score: evaluation?.scoreLoss | 1,
           },
         ]);
 

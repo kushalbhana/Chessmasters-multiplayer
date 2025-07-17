@@ -1,5 +1,6 @@
 import { atom } from "recoil";
 import { peicesVariety } from "@repo/lib/board-acessories";
+import { boolean } from "zod";
 
 export const color = atom({
     key: 'color',
@@ -53,4 +54,8 @@ export const differentPeices = atom({
   default: peicesVariety.dubrovny
 })
 
+export const isBotChoosen = atom({
+  key: 'isBotChoosen',
+  default: {selecBot: false, gameStarted: false }
+}) 
 

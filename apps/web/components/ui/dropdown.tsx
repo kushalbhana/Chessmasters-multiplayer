@@ -31,7 +31,7 @@ export function Dropdown({ type }: { type: "video" | "audio" }) {
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder={`Default ${type} device`} />
       </SelectTrigger>
-      <SelectContent>tt
+      <SelectContent>
         <SelectGroup>
           <SelectLabel>
             {type === "video" ? "Video Devices" : "Audio Devices"}

@@ -1,13 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { players } from "@repo/lib/status";
+import { useSetRecoilState } from "recoil";
+import { isBotChoosen } from "@/store/atoms/bot";
 
 export function PlayerTabs() {
   const [selectedId, setSelectedId] = useState<string>("");
+  const setBot = useSetRecoilState(isBotChoosen);
 
   function getStockfishDepthFromRating(rating: number): number {
-    if (rating <= 800) return 4;
-    if (rating <= 1000) return 7;
+    if (rating <= 800) return 1;
+    if (rating <= 1000) return 5;
     if (rating <= 1400) return 9;
     if (rating <= 1600) return 10;
     if (rating <= 1800) return 12;
@@ -26,7 +29,7 @@ export function PlayerTabs() {
     localStorage.setItem("depth", depth.toString());
     localStorage.setItem('moves', "[]")
     localStorage.setItem("moveClassificationSummary", "{ excellent: 0,good: 0, inaccuracy: 0, mistake: 0, blunder: 0, }")
-    
+    setBot({selecBot: true, gameStarted: false});
   };
 
   return (
