@@ -23,7 +23,7 @@ export function TabsSection() {
     'Vs friend': { icon: <FaUserFriends />, path: '/play/friend' },
     'Vs Computer': { icon: <BsRobot />, path: '/play/computer' },
     'Spectate Game': { icon: <GiSpectacleLenses />, path: '/play/spectate' },
-    'Game Review': { icon: <IoMdAnalytics />, path: '/game/analytics' },
+    'Game Review': { icon: <IoMdAnalytics />, path: '/analysis/game-review' },
     Settings: { icon: <IoIosSettings />, path: '/settings' },
     'Sign Out': { icon: <FaSignOutAlt />, path: () => signOut() },
   };

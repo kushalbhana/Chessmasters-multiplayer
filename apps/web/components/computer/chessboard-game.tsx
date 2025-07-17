@@ -133,7 +133,7 @@ export function ChessboardGame() {
               overType: gameStatusObj.THREEFOLD_REPETITION,
               status: 'Draw'})
           }
-          localStorage.clear()
+          localStorage.removeItem("fen")
         }
   }
   
