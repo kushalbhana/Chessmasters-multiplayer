@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { usePGNParser } from "@/hooks/usePGNParser";
 import { useRecoilValue } from "recoil";
 import { finalFENAtom } from "@/store/atoms/analysis";
+import { useRouter } from "next/navigation";
 
 export default function UploadPGN() {
   const [pgnText, setPgnText] = useState<string>("");
   const { parsePGN } = usePGNParser();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fen = useRecoilValue(finalFENAtom);
+  const router = useRouter();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,7 +40,13 @@ export default function UploadPGN() {
       />
       <Button
         type="button"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => {
+          if(!fen)
+            fileInputRef.current?.click()
+
+          if(fen != "")
+          router.push("/analysis/game-review/game")
+        }}
         className="w-full"
       >
         {fen === "" ? "Upload PGN File" : "Analyze your PGN"}

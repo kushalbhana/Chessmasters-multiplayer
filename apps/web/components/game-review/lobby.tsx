@@ -9,10 +9,6 @@ export default function Lobby(){
          <div className="w-full lg:h-screen flex justify-center items-center bg-[#e0e0e0]">
             <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
                 <div className="lg:w-1/2 w-5/6 outline-white outline-8">
-                    {/* <Chessboard 
-                    id="BasicBoard"
-                    customSquareStyles={customSquareStyles}
-                    /> */}
                     <Image
                         src="/images/ChessMasters-playpage.svg"
                         alt="Chessmasters"
@@ -23,11 +19,11 @@ export default function Lobby(){
                 </div>
                 <div className="lg:w-1/2 flex justify-center items-center flex-col p-10">
 
-                    <h1 className=" text-3xl font-extrabold text-center">Choose an Opponent, Make Your Move!!</h1>
-                    <h1 className=" text-lg font-medium text-center mt-3"> Challenge a smart chess bot and sharpen your skills in real-time! 
-                        Whether you're learning the ropes or testing your grandmaster instincts, each match offers a fresh opportunity to think deeper 
-                        and play smarter. No sign-ups, no delays—just instant games, strategic battles, and nonstop action. 
-                        Play now and outsmart the bot! 🤖♟️
+                    <h1 className=" text-3xl font-extrabold text-center">Know Your Game, Master Your Moves!</h1>
+                    <h1 className=" text-lg font-medium text-center mt-3"> Face off against an intelligent chess bot and elevate your game in real-time! 
+                        Whether you're a beginner learning the basics or a seasoned player refining your strategy, 
+                        every match is a new chance to outthink your opponent. No registrations, no waiting—just fast-paced games, sharp tactics, 
+                        and endless challenges. Jump in and make your move! ♟️🤖
                     </h1>
                     <div className="h-full w-full mt-5">
                             {/* <DropdownComputerBot/> */}

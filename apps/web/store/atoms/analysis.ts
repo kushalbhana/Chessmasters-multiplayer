@@ -2,7 +2,7 @@
 import { atom } from "recoil";
 
 export const movesAtom = atom<string[]>({
-  key: "movesAtom",
+  key: "movesAtomFinal",
   default: [],
 });
 
