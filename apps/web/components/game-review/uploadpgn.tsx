@@ -27,6 +27,7 @@ export default function UploadPGN() {
       }
     };
     reader.readAsText(file);
+    
   };
 
   return (

@@ -12,7 +12,6 @@ import { useSession } from "next-auth/react";
 import { gameResult } from "@/store/atoms/sharedGame";
 
 export function GameReviewPage() {
-  const [gameStat, setGameStat] = useRecoilState(gameResult);
   const {data: session, status} = useSession();
 
   return (
@@ -30,18 +29,8 @@ export function GameReviewPage() {
       <div className="relative z-20 flex h-full w-full gap-2 flex-col lg:flex-row justify-center items-center lg:ml-10">
         <div className="w-full lg:w-6/12">
           <div className=" absolute z-20 h-full w-full bg-gradient-to-b from-[#111114] to-[#1c1c1f] rounded-2xl hidden">
-              <VictoryDialog
-                open={gameStat.isGameOver}
-                onClose={() =>
-                setGameStat(prev => ({
-                ...prev,
-                isGameOver: false,
-                }))
-                }
-                myImg={session?.user.image || ""}
-                oppositeImg="/images/bot.gif"
-              />
-                          </div>
+              
+          </div>
           <ChessboardGame />
         </div>
         <div className="w-full lg:w-5/12 h-5/6 flex flex-col px-4">

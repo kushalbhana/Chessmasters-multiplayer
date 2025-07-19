@@ -23,14 +23,13 @@ export function ChessboardGame() {
   const [playerTurn, setPlayerTurn] = useState(false);
   const [game, setGame] = useState(new Chess());
   const [orientation, setOrientation] = useState<"white" | "black">("white");
-  const [lastPlayerMove, setLastPlayerMove] = useState<string | null>(null);
-  const peices = useRecoilValue(differentPeices);
 
 
+  // useEffect(() => {
+    
+  // }, [])
 
-  const [moves, setMoves] = useRecoilState(movesAtom);
-  const [classification, setClassification] = useRecoilState(classificationAtom);
-  const setGameStat = useSetRecoilState(gameResult);
+
 
 
 
