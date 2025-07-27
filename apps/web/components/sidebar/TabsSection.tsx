@@ -9,7 +9,6 @@ import { IoIosSettings } from "react-icons/io";
 import { GiSpectacleLenses } from "react-icons/gi";
 import { IoMdAnalytics } from "react-icons/io";
 
-
 export function TabsSection() {
   const router = useRouter();
   const pathname = usePathname();
@@ -28,10 +27,14 @@ export function TabsSection() {
     'Sign Out': { icon: <FaSignOutAlt />, path: () => signOut() },
   };
 
-  // Get the active tab label based on current pathname
-  const activeTab = Object.entries(Tabs).find(
-    ([_, { path }]) => typeof path === 'string' && pathname === path
-  )?.[0];
+  // Determine which tab should be active
+  const activeTab = Object.entries(Tabs).find(([label, { path }]) => {
+    if (typeof path !== 'string') return false;
+    if (label === 'Game Review') {
+      return pathname.startsWith('/analysis/game-review');
+    }
+    return pathname === path;
+  })?.[0];
 
   return (
     <div className="flex flex-col gap-6 justify-center">

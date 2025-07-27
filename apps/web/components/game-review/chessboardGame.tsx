@@ -16,12 +16,12 @@ export function ChessboardGame() {
   const peices = useRecoilValue(differentPeices);
   const { bestMove } = useGameReview(game, setFen);
   const analyticsData = useRecoilValue(moveAnalyticsData);
-
+  
   useEffect( () => {
     if(analyticsData.currentMoveIndex>=0){
       setFen(analyticsData.data.moves[analyticsData.currentMoveIndex+1]?.position);
     }
-  },[orientation])
+  },[orientat])
 
   useEffect(() => {
     setFen(game.fen());

@@ -5,7 +5,6 @@ import cors from 'cors';
 import multer from 'multer';
 import { Chess } from 'chess.js';
 import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
 import fs from 'fs';
 import {openings} from './lib/openings';
 
@@ -117,6 +116,33 @@ interface AnalysisRequest {
     site?: string;
     round?: string;
     eco?: string;
+  };
+}
+
+interface BotMoveRequest {
+  fen: string;
+  depth?: number;
+  playerLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+}
+
+interface BotMoveResponse {
+  bestMove: string;
+  bestMoveSan: string;
+  evaluation: number;
+  classification: MoveClassification;
+  confidence: number;
+  alternativeMoves?: {
+    move: string;
+    moveSan: string;
+    evaluation: number;
+    classification: MoveClassification;
+  }[];
+  analysis: {
+    isCheckmate: boolean;
+    isCheck: boolean;
+    isStalemate: boolean;
+    gamePhase: 'opening' | 'middlegame' | 'endgame';
+    materialBalance: number;
   };
 }
 
@@ -790,12 +816,262 @@ class GameAnalysisService {
   }
 }
 
+class ChessBotService {
+  private stockfish: StockfishManager;
+
+  constructor(stockfishManager: StockfishManager) {
+    this.stockfish = stockfishManager;
+  }
+
+  async getBestMove(request: BotMoveRequest): Promise<BotMoveResponse> {
+    try {
+      const { fen, depth, playerLevel } = request;
+      
+      // Convert player level to depth if provided
+      const analysisDepth = this.getDepthFromLevel(depth, playerLevel);
+      
+      // Validate FEN
+      const chess = new Chess(fen);
+      if (!chess.isGameOver()) {
+        // Get engine evaluation
+        const evaluation = await this.stockfish.evaluatePosition(fen, analysisDepth);
+        
+        // Get the best move in UCI format
+        const bestMoveUci = evaluation.pv[0];
+        if (!bestMoveUci) {
+          throw new Error('No valid moves found');
+        }
+
+        // Convert UCI to SAN
+        const tempChess = new Chess(fen);
+        const bestMoveSan = this.uciToSan(tempChess, bestMoveUci);
+
+        // Make the move to evaluate the resulting position
+        const moveObj = tempChess.move({
+          from: bestMoveUci.slice(0, 2),
+          to: bestMoveUci.slice(2, 4),
+          promotion: bestMoveUci.slice(4) || undefined
+        });
+
+        if (!moveObj) {
+          throw new Error('Invalid move generated');
+        }
+
+        // Get evaluation after the move
+        const afterEvaluation = await this.stockfish.evaluatePosition(tempChess.fen(), analysisDepth);
+        
+        // Calculate move classification
+        const classification = this.classifyBotMove(evaluation, afterEvaluation, bestMoveUci === evaluation.pv[0]);
+        
+        // Get alternative moves for variety
+        const alternatives = await this.getAlternativeMoves(fen, evaluation, analysisDepth);
+        
+        // Analyze game state
+        const gameAnalysis = this.analyzeGameState(chess, evaluation);
+
+        return {
+          bestMove: bestMoveUci,
+          bestMoveSan: bestMoveSan,
+          evaluation: evaluation.score,
+          classification,
+          confidence: this.calculateConfidence(evaluation, analysisDepth),
+          alternativeMoves: alternatives,
+          analysis: gameAnalysis
+        };
+
+      } else {
+        throw new Error('Game is already over');
+      }
+
+    } catch (error) {
+      console.error('Bot move generation failed:', error);
+      throw new Error(`Failed to generate bot move: ${error}`);
+    }
+  }
+
+  private getDepthFromLevel(depth?: number, playerLevel?: string): number {
+    if (depth) {
+      return Math.max(1, Math.min(20, depth)); // Clamp between 1-20
+    }
+
+    // Convert player level to appropriate depth
+    switch (playerLevel) {
+      case 'beginner': return 6;   // ~800-1200 ELO
+      case 'intermediate': return 10; // ~1200-1600 ELO  
+      case 'advanced': return 15;  // ~1600-2000 ELO
+      case 'expert': return 18;    // ~2000+ ELO
+      default: return 12;          // Default intermediate-advanced level
+    }
+  }
+
+  private uciToSan(chess: Chess, uciMove: string): string {
+    try {
+      const move = chess.move({
+        from: uciMove.slice(0, 2),
+        to: uciMove.slice(2, 4),
+        promotion: uciMove.slice(4) || undefined
+      });
+      
+      // Undo the move to keep original position
+      chess.undo();
+      
+      return move ? move.san : uciMove;
+    } catch {
+      return uciMove;
+    }
+  }
+
+  private classifyBotMove(
+    beforeEval: EngineEvaluation,
+    afterEval: EngineEvaluation,
+    isBestMove: boolean
+  ): MoveClassification {
+    // For bot moves, we're generally playing the best move
+    if (isBestMove) {
+      // Check if it's a brilliant tactical shot
+      if (this.isTacticalMove(beforeEval, afterEval)) {
+        return MoveClassification.BRILLIANT;
+      }
+      
+      // Check if it's a great move in a complex position
+      if (this.isGreatMove(beforeEval, afterEval)) {
+        return MoveClassification.GREAT;
+      }
+      
+      return MoveClassification.GOOD;
+    }
+
+    // This shouldn't happen for bot moves, but handle edge cases
+    return MoveClassification.GOOD;
+  }
+
+  private isTacticalMove(beforeEval: EngineEvaluation, afterEval: EngineEvaluation): boolean {
+    // Check for large evaluation swings (tactical shots)
+    const evalSwing = Math.abs(afterEval.score - (-beforeEval.score));
+    
+    // Check for mate patterns
+    const findsMate = afterEval.mate !== undefined && Math.abs(afterEval.mate) <= 3;
+    
+    // Check for significant material/positional gain
+    const significantGain = evalSwing > 200; // More than 2 pawns
+    
+    return findsMate || significantGain;
+  }
+
+  private isGreatMove(beforeEval: EngineEvaluation, afterEval: EngineEvaluation): boolean {
+    // Check if the move improves position in complex situation
+    const wasComplexPosition = beforeEval.pv && beforeEval.pv.length > 6;
+    const improvesPosition = (-beforeEval.score) < afterEval.score;
+    
+    return wasComplexPosition && improvesPosition;
+  }
+
+  private calculateConfidence(evaluation: EngineEvaluation, depth: number): number {
+    let confidence = Math.min(100, depth * 5); // Base confidence on depth
+    
+    // Increase confidence for clear evaluations
+    if (Math.abs(evaluation.score) > 300) confidence += 10;
+    if (evaluation.mate !== undefined) confidence = 100;
+    
+    // Decrease confidence for complex positions
+    if (evaluation.pv && evaluation.pv.length > 10) confidence -= 5;
+    
+    return Math.max(60, Math.min(100, confidence));
+  }
+
+  private async getAlternativeMoves(
+    fen: string, 
+    mainEvaluation: EngineEvaluation, 
+    depth: number
+  ): Promise<BotMoveResponse['alternativeMoves']> {
+    try {
+      const chess = new Chess(fen);
+      const legalMoves = chess.moves({ verbose: true });
+      
+      // Get top 3 alternative moves (excluding the best one)
+      const alternatives: BotMoveResponse['alternativeMoves'] = [];
+      
+      for (let i = 1; i < Math.min(4, mainEvaluation.pv.length); i++) {
+        const altMoveUci = mainEvaluation.pv[i];
+        if (altMoveUci) {
+          const altMoveSan = this.uciToSan(new Chess(fen), altMoveUci);
+          
+          // Make the alternative move and evaluate
+          const tempChess = new Chess(fen);
+          try {
+            tempChess.move({
+              from: altMoveUci.slice(0, 2),
+              to: altMoveUci.slice(2, 4),
+              promotion: altMoveUci.slice(4) || undefined
+            });
+            
+            const altEval = await this.stockfish.evaluatePosition(tempChess.fen(), Math.max(6, depth - 3));
+            
+            alternatives.push({
+              move: altMoveUci,
+              moveSan: altMoveSan,
+              evaluation: altEval.score,
+              classification: this.classifyBotMove(mainEvaluation, altEval, false)
+            });
+          } catch {
+            // Skip invalid moves
+            continue;
+          }
+        }
+      }
+      
+      return alternatives.slice(0, 3); // Return top 3 alternatives
+      
+    } catch (error) {
+      console.error('Failed to get alternative moves:', error);
+      return [];
+    }
+  }
+
+  private analyzeGameState(chess: Chess, evaluation: EngineEvaluation) {
+    const isCheckmate = chess.isCheckmate();
+    const isCheck = chess.inCheck();
+    const isStalemate = chess.isStalemate();
+    
+    // Calculate material balance
+    const board = chess.board();
+    let materialBalance = 0;
+    const pieceValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+    
+    for (const row of board) {
+      for (const square of row) {
+        if (square) {
+          const value = pieceValues[square.type as keyof typeof pieceValues] || 0;
+          materialBalance += square.color === 'w' ? value : -value;
+        }
+      }
+    }
+    
+    // Determine game phase
+    let gamePhase: 'opening' | 'middlegame' | 'endgame' = 'middlegame';
+    const moveCount = chess.moveNumber();
+    const totalMaterial = Math.abs(materialBalance);
+    
+    if (moveCount <= 10) {
+      gamePhase = 'opening';
+    } else if (totalMaterial <= 20) { // Queens + some pieces gone
+      gamePhase = 'endgame';
+    }
+    
+    return {
+      isCheckmate,
+      isCheck,
+      isStalemate,
+      gamePhase,
+      materialBalance: chess.turn() === 'w' ? materialBalance : -materialBalance
+    };
+  }
+}
+
 // Initialize services
 const analysisService = new GameAnalysisService();
 
 // Routes
-
-// New route for FEN + UCI moves analysis
 // @ts-ignoreS
 app.post('/api/analyze-moves', async (req, res) => {
   try {
@@ -903,6 +1179,57 @@ app.post('/api/analyze-position', async (req, res) => {
   }
 });
 
+// @ts-ignore
+app.post('/api/bot-move', async (req, res) => {
+  try {
+    const { fen, depth, playerLevel }: BotMoveRequest = req.body;
+
+    if (!fen) {
+      return res.status(400).json({ 
+        error: 'FEN position is required',
+        example: {
+          fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          depth: 12, // Optional: 1-20
+          playerLevel: "intermediate" 
+        }
+      });
+    }
+
+    // Validate FEN format
+    try {
+      new Chess(fen);
+    } catch (error) {
+      return res.status(400).json({
+        error: 'Invalid FEN format',
+        details: error
+      });
+    }
+
+    console.log(`Generating bot move for FEN: ${fen} at depth: ${depth || playerLevel || 'default'}`);
+    
+    // Create bot service instance (reuse existing stockfish manager)
+    const botService = new ChessBotService(analysisService['stockfish']);
+    
+    const botResponse = await botService.getBestMove({ fen, depth, playerLevel });
+    
+    res.json({
+      success: true,
+      ...botResponse,
+      message: 'Bot move generated successfully',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Bot move error:', error);
+    res.status(500).json({
+      success: false,
+      error: error || 'Failed to generate bot move',
+      message: 'Bot move generation failed'
+    });
+  }
+});
+
+// HEalth Check EndPoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -912,6 +1239,7 @@ app.get('/api/health', (req, res) => {
       '/api/analyze-moves': 'POST - Analyze game from FEN + UCI moves',
       '/api/analyze': 'POST - Analyze game from PGN',
       '/api/analyze-position': 'POST - Analyze single position',
+      '/api/bot-move': 'POST - Get best move for bot gameplay (NEW)',
       '/api/health': 'GET - Health check'
     }
   });

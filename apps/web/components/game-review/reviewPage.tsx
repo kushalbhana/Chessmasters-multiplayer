@@ -1,17 +1,24 @@
 "use client";
 import React from "react";
+import { useRecoilValue } from "recoil";
 import { ChessboardGame } from "../game-review/chessboardGame";
-import { useSession } from "next-auth/react";
 import { MovesSection } from "./movesboard";
 import { PeicesCategoryDropdown } from "../computer/selectpeices";
 import { NextPrevUtility } from "./nextPrevMove";
 import { MoveClassificationSummary } from "./movesClassification";
 import { MoveClassificationText } from "./movesClassificationText";
 import { ChartAreaGame } from "./game-chart";
-// import { ChartAreaGame } from "./game-chart";
+import { useRouter } from "next/navigation";
+import { moveAnalyticsData } from "@/store/atoms/analysis";
+
 
 export function GameReviewPage() {
-  const {data: session, status} = useSession();
+  const router = useRouter();
+  const analyticalData = useRecoilValue(moveAnalyticsData);
+
+
+  if(analyticalData.data.moves.length == 0)
+    router.push('/analysis/game-review');
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
