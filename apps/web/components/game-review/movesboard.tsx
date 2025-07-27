@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import * as React from "react";
 import { useRecoilValue } from "recoil";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,29 +15,31 @@ import {
 } from "react-icons/bs";
 
 export function MovesSection() {
-  const { data } = useRecoilValue(moveAnalyticsData);
+  const { data, currentMoveIndex } = useRecoilValue(moveAnalyticsData);
   const moves = Array.isArray(data?.moves) ? data.moves : [];
 
-  // Group by moveNumber
+  // Group by moveNumber and track original move indices
   const groupedMoves = React.useMemo(() => {
     const grouped: {
       number: number;
-      white?: typeof moves[0];
-      black?: typeof moves[0];
+      white?: typeof moves[0] & { index: number };
+      black?: typeof moves[0] & { index: number };
     }[] = [];
 
-    for (const move of moves) {
+    moves.forEach((move, index) => {
       const existing = grouped.find((m) => m.number === move.moveNumber);
+      const moveWithIndex = { ...move, index };
+
       if (existing) {
-        if (move.isWhite) existing.white = move;
-        else existing.black = move;
+        if (move.isWhite) existing.white = moveWithIndex;
+        else existing.black = moveWithIndex;
       } else {
         grouped.push({
           number: move.moveNumber,
-          [move.isWhite ? "white" : "black"]: move,
+          [move.isWhite ? "white" : "black"]: moveWithIndex,
         });
       }
-    }
+    });
 
     return grouped;
   }, [moves]);
@@ -66,12 +69,28 @@ export function MovesSection() {
 
             <div className="flex-1 flex items-center gap-1">
               {white?.classification && moveTypeIcon[white.classification]}
-              <span>{white?.move || "-"}</span>
+              <span
+                className={`px-1 rounded ${
+                  currentMoveIndex !== -1 && currentMoveIndex === white?.index
+                    ? "bg-white text-black"
+                    : ""
+                }`}
+              >
+                {white?.move || "-"}
+              </span>
             </div>
 
             <div className="flex-1 flex items-center gap-1">
               {black?.classification && moveTypeIcon[black.classification]}
-              <span>{black?.move || "-"}</span>
+              <span
+                className={`px-1 rounded ${
+                  currentMoveIndex !== -1 && currentMoveIndex === black?.index
+                    ? "bg-white text-black"
+                    : ""
+                }`}
+              >
+                {black?.move || "-"}
+              </span>
             </div>
 
             <div className="flex flex-col gap-1 w-5 justify-end items-end ml-2">

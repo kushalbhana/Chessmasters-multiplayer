@@ -2,23 +2,29 @@
 import { FaArrowLeft, FaArrowRight, FaSyncAlt } from "react-icons/fa";
 import { useRecoilState } from "recoil";
 import { moveAnalyticsData } from "@/store/atoms/analysis";
+import { orientation } from "@/store/atoms/analysis";
 
 export function NextPrevUtility() {
   const [analytics, setAnalytics] = useRecoilState(moveAnalyticsData);
+  const [orient, setOrientation] = useRecoilState(orientation)
 
   const handlePrev = () => {
     setAnalytics((prev) => ({
       ...prev,
-      currentMoveIndex: Math.max(prev.currentMoveIndex - 1, 0),
+      currentMoveIndex: Math.max(prev.currentMoveIndex - 1, -1),
     }));
   };
 
   const handleNext = () => {
     setAnalytics((prev) => ({
       ...prev,
-      currentMoveIndex: prev.currentMoveIndex + 1,
+      currentMoveIndex: Math.min(prev.currentMoveIndex + 1, analytics.data.moves.length - 1),
     }));
   };
+
+  const handleOrient = () => 
+    orient === "white" ? setOrientation("black") : setOrientation("white")
+  
 
 
   return (
@@ -37,6 +43,7 @@ export function NextPrevUtility() {
       </span>
       <span
         className="text-2xl cursor-pointer hover:text-green-500 transition w-1/3 flex justify-center bg-[#111114]/80 p-4"
+        onClick={handleOrient}
       >
         <FaSyncAlt />
       </span>
