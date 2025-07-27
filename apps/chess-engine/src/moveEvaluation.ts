@@ -1,7 +1,4 @@
 // Chess Analytics Server Implementation (Node.js)
-
-import express from 'express';
-import cors from 'cors';
 import multer from 'multer';
 import { Chess } from 'chess.js';
 import { spawn, ChildProcess } from 'child_process';
@@ -271,8 +268,8 @@ class GameAnalysisService {
       // Extract game info
       const header = chess.header();
       const gameInfo = {
-        white: header.White || 'Unknown',
-        black: header.Black || 'Unknown',
+        white: header.White || 'White',
+        black: header.Black || 'Black',
         result: header.Result || '*',
         date: header.Date || 'Unknown',
         event: header.Event || 'Unknown',
@@ -423,8 +420,8 @@ class GameAnalysisService {
     if (isBestMove || scoreDrop <= 10) return MoveClassification.BRILLIANT;
     if (scoreDrop <= 25) return MoveClassification.GREAT;
     if (scoreDrop <= 50) return MoveClassification.GOOD;
-    if (scoreDrop <= 100) return MoveClassification.INACCURACY;
-    if (scoreDrop <= 300) return MoveClassification.MISTAKE;
+    if (scoreDrop <= 175) return MoveClassification.INACCURACY;
+    if (scoreDrop <= 800) return MoveClassification.MISTAKE;
     return MoveClassification.BLUNDER;
   }
 

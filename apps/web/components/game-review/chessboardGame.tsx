@@ -23,16 +23,22 @@ export function ChessboardGame() {
   const [playerTurn, setPlayerTurn] = useState(false);
   const [game, setGame] = useState(new Chess());
   const [orientation, setOrientation] = useState<"white" | "black">("white");
+    const peices = useRecoilValue(differentPeices);
 
 
   // useEffect(() => {
     
   // }, [])
 
-
-
-
-
+  const customPieces = Object.fromEntries(
+    Object.entries(peices).map(([piece, url]) => [
+      piece,
+      ({ squareWidth }: { squareWidth: number }) => (
+        <img src={url} style={{ width: squareWidth, height: squareWidth }} />
+      ),
+    ])
+  );
+  
   return (
     <div className="w-full h-full">
       <Chessboard
@@ -51,7 +57,7 @@ export function ChessboardGame() {
           backdropFilter: "blur(10px)",
           border: "1px solid rgba(255, 255, 255, 0.1)",
         }}
-        // customPieces={customPieces}
+        customPieces={customPieces}
       />
     </div>
   );

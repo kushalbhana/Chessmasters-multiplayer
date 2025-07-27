@@ -10,6 +10,11 @@ import { useRecoilState } from "recoil";
 import { VictoryDialog } from "../shared/victoryDialog";
 import { useSession } from "next-auth/react";
 import { gameResult } from "@/store/atoms/sharedGame";
+import { GameGraph } from "./graph";
+import { MovesSection } from "./movesboard";
+import { PeicesCategoryDropdown } from "../computer/selectpeices";
+import { NextPrevUtility } from "./nextPrevMove";
+import { MoveClassificationSummary } from "./movesClassification";
 
 export function GameReviewPage() {
   const {data: session, status} = useSession();
@@ -35,16 +40,18 @@ export function GameReviewPage() {
         </div>
         <div className="w-full lg:w-5/12 h-5/6 flex flex-col px-4">
           <div className="w-full hidden lg:block">
-            {/* <PlayerScreen /> */}
+            <GameGraph/>
           </div>
           <div className="p-4 flex gap-4" >
-            {/* <PeicesCategoryDropdown/> */}
+            <PeicesCategoryDropdown/>
             {/* <DownloadPGNButton/> */}
           </div>
-          <div className="flex gap-2 h-full w-full">
+          <div className="flex flex-col gap-2 h-full w-full">
             {/* <MovesSection /> */}
+            <MovesSection/>
+            <NextPrevUtility/>
           </div><div className="flex gap-2 h-full w-full">
-            {/* <MoveClassificationSummary/> */}
+            <MoveClassificationSummary/>
           </div>
         </div>
       </div>

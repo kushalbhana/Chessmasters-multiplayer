@@ -1,21 +1,37 @@
 "use client"
 import { useSetRecoilState } from "recoil";
-import { movesAtom, finalFENAtom } from "@/store/atoms/analysis"
 import { Chess } from "chess.js";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+
+import { movesAtom, finalFENAtom, moveAnalyticsData } from "@/store/atoms/analysis"
 
 export function usePGNParser() {
   const setMoves = useSetRecoilState(movesAtom);
   const setFinalFEN = useSetRecoilState(finalFENAtom);
+  const setDataRecieved = useSetRecoilState(moveAnalyticsData)
+  const setFen = useSetRecoilState(finalFENAtom);
+    const router = useRouter();
 
-
-  async function getAnalysis(pgnAnalysis: string){
+  async function getAnalysis(fen: string, moves: string[]){
     try {
-    const response = await axios.post('http://localhost:4000//api/analyze-moves', {
-      pgn: pgnAnalysis, // sending as JSON body
+    const response = await axios.post('http://localhost:4000/api/analyze-moves', {
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "moves": moves,
+      "gameInfo": {
+        "white": "Player 1",
+        "black": "Player 2",
+        "result": "*"
+      }
     });
 
-    console.log('Analysis result:', response.data);
+    setFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    setDataRecieved({
+      data: response.data.analysis,
+      currentMoveIndex: -1,
+    });
+    router.push("/analysis/game-review/game");
+
   } catch (error) {
     console.error('Error analyzing PGN:', error|| error);
   }
@@ -30,14 +46,11 @@ export function usePGNParser() {
 
       setMoves(history);
       setFinalFEN(fen);
-      getAnalysis(pgnText);
+      getAnalysis(fen, history);
 
     } catch (error) {
       console.log(error);
     }
-
-    
-    
   };
 
   return { parsePGN };
