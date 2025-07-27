@@ -1,20 +1,14 @@
 "use client";
 import React from "react";
 import { ChessboardGame } from "../game-review/chessboardGame";
-import { useRecoilState } from "recoil";
-// import { PlayerScreen } from "./playerScreen";
-// import { MovesSection } from "./movesboard";
-// import { MoveClassificationSummary } from "./moveclassificationboard";
-// import { PeicesCategoryDropdown } from "./selectpeices";
-// import DownloadPGNButton from "./downloadPGN";
-import { VictoryDialog } from "../shared/victoryDialog";
 import { useSession } from "next-auth/react";
-import { gameResult } from "@/store/atoms/sharedGame";
-import { GameGraph } from "./graph";
 import { MovesSection } from "./movesboard";
 import { PeicesCategoryDropdown } from "../computer/selectpeices";
 import { NextPrevUtility } from "./nextPrevMove";
 import { MoveClassificationSummary } from "./movesClassification";
+import { MoveClassificationText } from "./movesClassificationText";
+import { ChartAreaGame } from "./game-chart";
+// import { ChartAreaGame } from "./game-chart";
 
 export function GameReviewPage() {
   const {data: session, status} = useSession();
@@ -40,11 +34,13 @@ export function GameReviewPage() {
         </div>
         <div className="w-full lg:w-5/12 h-5/6 flex flex-col px-4">
           <div className="w-full hidden lg:block">
-            <GameGraph/>
+            <ChartAreaGame/>
           </div>
-          <div className="p-4 flex gap-4" >
+          <div className="p-4 flex gap-4 items-center justify-between" >
             <PeicesCategoryDropdown/>
-            {/* <DownloadPGNButton/> */}
+            <div>
+              <MoveClassificationText/>
+            </div>
           </div>
           <div className="flex flex-col gap-2 h-full w-full">
             {/* <MovesSection /> */}
