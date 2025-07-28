@@ -79,7 +79,14 @@ export function LoginForm({
         <div className="grid gap-6">
           <div className="grid gap-2 text-black">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" {...register("email")} required />
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              {...register("email")}
+              required
+              className="bg-white text-black placeholder:text-gray-500 dark:bg-white dark:text-black"
+            />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center text-black">
@@ -91,7 +98,12 @@ export function LoginForm({
                 Forgot your password?
               </a>
             </div>
-            <Input id="password" placeholder="********" type="password" {...register("password")} className="bg-white" required />
+            <Input id="password" 
+              placeholder="********" 
+              type="password" {...register("password")} 
+              className="bg-white text-black placeholder:text-gray-500 dark:bg-white dark:text-black" 
+              required 
+            />
           </div>
           <Button type="submit" className={cn(
             "relative group/btn w-full bg-black text-white",

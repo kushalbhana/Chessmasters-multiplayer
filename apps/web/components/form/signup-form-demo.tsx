@@ -70,15 +70,15 @@ export function SignupForm() {
   };
 
   return (
-    <div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-2 md:p-2 shadow-input bg-white dark:bg-slate-950">
-      <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">Welcome to Chessmasters</h2>
-      <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
+    <div className="max-w-md w-full mx-auto rounded-none md:rounded-2xl p-2 md:p-2 shadow-input bg-whit">
+      <h2 className="font-bold text-xl text-neutral-800">Welcome to Chessmasters</h2>
+      <p className="text-neutral-600 text-sm max-w-sm mt-">
         Signup to continue playing chess
       </p>
 
       <form className="my-8" onSubmit={handleSubmit(onSubmit)}>
         <LabelInputContainer className="mb-4">
-          <Label htmlFor="fullname">Full Name</Label>
+          <Label htmlFor="fullname" className="text-slate-950">Full Name</Label>
           <Input
             id="fullname"
             placeholder="Magnus Carlsen"
@@ -88,7 +88,7 @@ export function SignupForm() {
           {errors.fullname && <span className="text-red-500">{errors.fullname.message}</span>}
         </LabelInputContainer>
         <LabelInputContainer className="mb-4">
-          <Label htmlFor="email">Email Address</Label>
+          <Label htmlFor="email" className="text-slate-950">Email Address</Label>
           <Input
             id="email"
             placeholder="youremail@fc.com"
@@ -98,7 +98,7 @@ export function SignupForm() {
           {errors.email && <span className="text-red-500">{errors.email.message}</span>}
         </LabelInputContainer>
         <LabelInputContainer className="mb-4">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-slate-950">Password</Label>
           <Input
             id="password"
             placeholder="••••••••"
@@ -108,7 +108,7 @@ export function SignupForm() {
           {errors.password && <span className="text-red-500">{errors.password.message}</span>}
         </LabelInputContainer>
         <LabelInputContainer className="mb-8">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword" className="text-slate-950">Confirm Password</Label>
           <Input
             id="confirmPassword"
             placeholder="••••••••"

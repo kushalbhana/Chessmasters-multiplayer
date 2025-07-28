@@ -36,10 +36,6 @@ export default function GameLobby() {
     const [isJoiningGame, setIsJoiningGame] = useState<boolean>(false);
 
     useEffect(() => {
-        if (status === 'unauthenticated') {
-            router.push('/auth/login');
-            return;
-        }
         if (status === 'loading') {
             return;
         }
