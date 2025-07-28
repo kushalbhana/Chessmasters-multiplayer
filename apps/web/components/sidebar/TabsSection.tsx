@@ -21,7 +21,7 @@ export function TabsSection() {
     'Random Match': { icon: <FaRandom />, path: '/play/online' },
     'Vs friend': { icon: <FaUserFriends />, path: '/play/friend' },
     'Vs Computer': { icon: <BsRobot />, path: '/play/computer' },
-    'Spectate Game': { icon: <GiSpectacleLenses />, path: '/play/spectate' },
+    'Spectate Game': { icon: <GiSpectacleLenses />, path: '/spectate' },
     'Game Review': { icon: <IoMdAnalytics />, path: '/analysis/game-review' },
     Settings: { icon: <IoIosSettings />, path: '/settings' },
     'Sign Out': { icon: <FaSignOutAlt />, path: () => signOut() },

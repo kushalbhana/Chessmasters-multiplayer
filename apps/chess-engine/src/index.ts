@@ -1209,7 +1209,6 @@ app.post('/api/analyze-position', async (req, res) => {
 // @ts-ignore
 app.post('/api/bot-move', async (req, res) => {
   try {
-    console.log(req.body)
     const { fen, depth, playerLevel }: BotMoveRequest = req.body;
 
     if (!fen) {
