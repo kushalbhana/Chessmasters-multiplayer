@@ -12,10 +12,10 @@ export function MovesSection() {
     const moveIndex = Math.floor(i / 2);
     if (!acc[moveIndex]) acc[moveIndex] = { number: moveIndex + 1 };
     if (i % 2 === 0) {
-      acc[moveIndex].white = move.move;
+      acc[moveIndex].white = move.moveSan;
       acc[moveIndex].whiteScore = move.score;
     } else {
-      acc[moveIndex].black = move.move;
+      acc[moveIndex].black = move.moveSan;
       acc[moveIndex].blackScore = move.score;
     }
     return acc;

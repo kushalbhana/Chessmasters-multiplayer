@@ -10,6 +10,7 @@ import DownloadPGNButton from "./downloadPGN";
 import { VictoryDialog } from "../shared/victoryDialog";
 import { useSession } from "next-auth/react";
 import { gameResult } from "@/store/atoms/sharedGame";
+import { PrevUtility } from "./prevMoveAndresign";
 
 export function PlayPage() {
   const [gameStat, setGameStat] = useRecoilState(gameResult);
@@ -54,8 +55,9 @@ export function PlayPage() {
           </div>
           <div className="flex gap-2 h-full w-full">
             <MovesSection />
-          </div><div className="flex gap-2 h-full w-full">
-            <MoveClassificationSummary/>
+          </div>
+          <div className="h-full w-full">
+            <PrevUtility/>
           </div>
         </div>
       </div>

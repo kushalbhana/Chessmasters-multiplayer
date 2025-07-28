@@ -1,6 +1,6 @@
 import { atom } from "recoil";
 import { peicesVariety } from "@repo/lib/board-acessories";
-import { boolean } from "zod";
+import { Chess } from "chess.js";
 
 export const color = atom({
     key: 'color',
@@ -11,6 +11,8 @@ export type MoveAnalytics = {
   move: string;
   by: "player" | "bot";
   score?: number;
+  fen?: string
+  moveSan: string
 };
 
 function loadMovesFromLocalStorage(): MoveAnalytics[] {
@@ -59,3 +61,12 @@ export const isBotChoosen = atom({
   default: {selecBot: false, gameStarted: false }
 }) 
 
+export const botGame = atom({
+  key: 'botGame',
+  default: new Chess()
+})
+
+export const prevMove = atom({
+  key: 'SetPrev',
+  default: 100
+})

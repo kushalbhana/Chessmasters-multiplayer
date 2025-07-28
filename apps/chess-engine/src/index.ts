@@ -120,17 +120,40 @@ interface AnalysisRequest {
 }
 
 interface BotMoveRequest {
-  fen: string;
-  depth?: number;
+  fen: string; // Current position after player's move
+  depth?: number; // Bot strength (1-20, default: 12)
   playerLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  
+  // Player move evaluation (optional)
+  lastFen?: string; // Position before player's last move
+  lastPlayerMove?: string; // Player's last move in UCI format
+}
+
+interface PlayerMoveEvaluation {
+  move: string; // UCI format
+  moveSan: string; // SAN format  
+  classification: MoveClassification;
+  accuracy: number; // 0-100
+  scoreDrop: number; // How much the position worsened
+  isBlunder: boolean;
+  isMistake: boolean;
+  isInaccuracy: boolean;
+  isBrilliant: boolean;
+  isGreat: boolean;
+  isGood: boolean;
+  bestAlternative?: {
+    move: string;
+    moveSan: string;
+    scoreDifference: number; // How much better this would have been
+  };
 }
 
 interface BotMoveResponse {
-  bestMove: string;
-  bestMoveSan: string;
-  evaluation: number;
+  bestMove: string; // UCI format
+  bestMoveSan: string; // SAN format
+  evaluation: number; // Centipawns
   classification: MoveClassification;
-  confidence: number;
+  confidence: number; // 0-100
   alternativeMoves?: {
     move: string;
     moveSan: string;
@@ -144,6 +167,9 @@ interface BotMoveResponse {
     gamePhase: 'opening' | 'middlegame' | 'endgame';
     materialBalance: number;
   };
+  
+  // Player move evaluation (if lastFen and lastPlayerMove provided)
+  playerMoveEvaluation?: PlayerMoveEvaluation;
 }
 
 // Stockfish Engine Manager
@@ -1066,6 +1092,7 @@ class ChessBotService {
       materialBalance: chess.turn() === 'w' ? materialBalance : -materialBalance
     };
   }
+  
 }
 
 // Initialize services
@@ -1182,6 +1209,7 @@ app.post('/api/analyze-position', async (req, res) => {
 // @ts-ignore
 app.post('/api/bot-move', async (req, res) => {
   try {
+    console.log(req.body)
     const { fen, depth, playerLevel }: BotMoveRequest = req.body;
 
     if (!fen) {
