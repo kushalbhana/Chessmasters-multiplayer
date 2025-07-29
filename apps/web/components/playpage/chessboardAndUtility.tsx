@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { useRecoilState, useRecoilValue, useRecoilCallback, useSetRecoilState } from "recoil";
 import { Chess } from "chess.js";
@@ -18,7 +18,7 @@ export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
   const [room, setRoom] = useRecoilState(roomInfo);
   const setGameStat = useSetRecoilState(gameStatus);
-  const [game, setGame] = useState<any>(new Chess());
+  const [game, setGame] = useState(new Chess());
   const [playerTurn, setPlayerTurn] = useState(false);
   const [color, setColor] = useState("w");
   const [orientation, setOrientation] = useState<"white" | "black">("white");
@@ -35,13 +35,12 @@ export function ChessboardAndUtility() {
     if (status === "unauthenticated" || status === "loading") {
       return;
     }
-    // @ts-ignore
-    session?.user.id === room?.room.whiteId ? setOrientation("white") : setOrientation("black");
+    
+    (session?.user.id === room?.room.whiteId) ? setOrientation("white") : setOrientation("black");
     if (session?.user && room?.room.game) {
       const newGame = new Chess(room.room.game);
       setGame(newGame);
 
-    //   @ts-ignore
       if (session.user.id === room.room.whiteId) {
         setColor("w"); // White
       } else {
@@ -148,7 +147,8 @@ export function ChessboardAndUtility() {
   }, [game]);
   
 
-  function makeAMove(move: any) {
+  // @ts-expect-error
+  function makeAMove(move) {
     try {
       const validMove = game.move(move);
       if (!validMove) {
@@ -181,8 +181,8 @@ export function ChessboardAndUtility() {
     }
    
   }
-
-  const handleMove = (sourceSquare: any, targetSquare: any) => {
+  // @ts-expect-error
+  const handleMove = (sourceSquare, targetSquare) => {
     if (!playerTurn) {
       console.log("It's not your turn.");
       return false;
@@ -198,10 +198,10 @@ export function ChessboardAndUtility() {
       console.log("Invalid move.");
       return false;
     }
-    // @ts-ignore
+    // @ts-expect-error
     // Send the move to the server
     sendMove(session?.user.jwt, 
-      room?.roomId!, 
+      room?.roomId, 
       color === 'w' ? playerType.WHITE : playerType.BLACK, 
       {
       from: sourceSquare,
@@ -248,7 +248,6 @@ console.log("Moves: ", moves);
   return (
     <div className="flex flex-col gap-1">
       <div className="pr-2">
-        {/* @ts-ignore */}
         <TimeAndUser  profilePicture={ session?.user.id !== room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id !== room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'opponent'} orientation={orientation} game={game}/>
       </div>
       <div className="p-2">
@@ -261,7 +260,6 @@ console.log("Moves: ", moves);
         />
       </div>
       <div className="pr-2">
-        {/* @ts-ignore */}
         <TimeAndUser profilePicture={ session?.user.id === room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id === room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'player'} orientation={orientation} game={game}/> 
       </div>
     </div>

@@ -5,7 +5,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { gameStatus } from "@/store/atoms/game"
 import { FaTrophy } from "react-icons/fa";
 import { gameStatusObj, gameStatusMessage } from "@repo/lib/status"
 import { LuLollipop } from "react-icons/lu";

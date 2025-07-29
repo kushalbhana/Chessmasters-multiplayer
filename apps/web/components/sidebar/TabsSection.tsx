@@ -6,7 +6,6 @@ import { signOut } from 'next-auth/react';
 import { FaHome, FaRandom, FaUserFriends, FaSignOutAlt } from "react-icons/fa";
 import { BsRobot } from "react-icons/bs";
 import { IoIosSettings } from "react-icons/io";
-import { GiSpectacleLenses } from "react-icons/gi";
 import { IoMdAnalytics } from "react-icons/io";
 
 export function TabsSection() {

@@ -29,7 +29,7 @@ const colorMap: Record<keyof ClassificationCounts, string> = {
 };
 
 export function MoveClassificationSummary() {
-  const [counts, setCounts] = useState<ClassificationCounts>(defaultCounts);
+  const [, setCounts] = useState<ClassificationCounts>(defaultCounts);
   const summary = useRecoilValue(classificationAtom);
 
   useEffect(() => {

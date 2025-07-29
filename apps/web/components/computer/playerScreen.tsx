@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 export function PlayerScreen() {
-  const {data: session, status} =  useSession();
+  const {data: session} =  useSession();
   return (
     <div className="w-full h-60 flex gap-2 p-2 shadow-slate-700">
       <div className="w-1/2 bg-black/60 flex justify-center items-center rounded-lg">

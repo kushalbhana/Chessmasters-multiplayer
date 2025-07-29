@@ -31,7 +31,7 @@ export function SignupForm() {
   const onSubmit: SubmitHandler<SignupFormValues> = async (data) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_HTTP_SERVER}/api/signup/`, data, {
+      await axios.post(`${process.env.NEXT_PUBLIC_HTTP_SERVER}/api/signup/`, data, {
         headers: { "Content-Type": "application/json" }
       });
 
@@ -49,7 +49,8 @@ export function SignupForm() {
       console.log(signInResponse)
 
       router.push('/'); // Redirect to homepage
-    } catch (error: any) {
+    } catch (error) {
+      // @ts-expect-error
       if(error.response.status === 409){
           toast({
             variant: "destructive",

@@ -1,6 +1,4 @@
 "use client"
-import React, { useState } from "react"
-
 import { ChessboardAndUtility } from "@/components/playpage/chessboardAndUtility"
 import { VideoSection } from "./videoSection"
 import { MovesSection } from "./movesSection"
@@ -11,7 +9,6 @@ import { gameStatus } from "@/store/atoms/game"
 import { MessageBox } from "./messagebox"
 
 export function GameLayout(){
-    const [gameWon, setGameWon] = useState(true);
     const [gameStat, setGameStat] = useRecoilState(gameStatus);
 
     return(

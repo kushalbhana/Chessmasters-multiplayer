@@ -1,7 +1,6 @@
 "use client"
 import { Button } from "../ui/button"
 import {  useState } from "react"
-import { useRouter } from "next/navigation";
 import { isBotChoosen } from "@/store/atoms/bot";
 import { useRecoilState } from "recoil";
 

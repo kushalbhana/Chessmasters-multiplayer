@@ -2,8 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, Brain, Target, Clock, ChevronRight, Award, BarChart3 } from "lucide-react";
+import { XAxis, YAxis, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { TrendingUp, Brain, Target, Clock, ChevronRight, BarChart3 } from "lucide-react";
 
 const AnalyticsSection = () => {
   const performanceData = [

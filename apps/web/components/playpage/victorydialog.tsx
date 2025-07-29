@@ -17,7 +17,7 @@ interface VictoryDialogProps {
   playerName?: string
 }
 
-export function VictoryDialog({ open, onClose, playerName = "You" }: VictoryDialogProps) {
+export function VictoryDialog({ open, onClose }: VictoryDialogProps) {
   const GameStatus = useRecoilValue(gameStatus);
   const Room = useRecoilValue(roomInfo);
 

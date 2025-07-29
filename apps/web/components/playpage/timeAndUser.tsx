@@ -3,8 +3,8 @@ import { TimeSection } from "./timesection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { TimeManager } from "./timemanager";
 
-
-export function TimeAndUser({ profilePicture, profileName, playerType, orientation, game}: any) {
+// @ts-expect-error
+export function TimeAndUser({ profilePicture, profileName, playerType, orientation, game}) {
     return(
         <div className="flex justify-between">
             <div className="flex gap-2 justify-center">
@@ -22,7 +22,7 @@ export function TimeAndUser({ profilePicture, profileName, playerType, orientati
             </div>
             <div>
                 <TimeManager game={game} orientation={orientation}/>
-                <TimeSection playerType={playerType} orientation={orientation} game={game}/>
+                <TimeSection playerType={playerType} />
             </div>
         </div>
     )

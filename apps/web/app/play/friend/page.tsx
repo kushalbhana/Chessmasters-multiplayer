@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, CSSProperties, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSetRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
@@ -55,19 +55,18 @@ export default function GamewithFriends(){
         
             if (socket.readyState === WebSocket.OPEN) {
                 console.log('Socket already open, sending message immediately');
-                // @ts-ignore
                 socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
             } else {
                 console.log('Socket not open yet, adding open listener');
                 socket.addOpenListener(() => {
                     console.log('Socket opened, sending message');
-                    // @ts-ignore
                     socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
                 });
             }
-
-            const handleCodeRecieved = (data: any) => {
-                setGeneratedCode(data.code);
+            // @ts-expect-error
+            const handleCodeRecieved = (data) => {
+                if(data?.code)
+                    setGeneratedCode(data.code);
             }
         
             const handleMessage = (event: MessageEvent) => {
@@ -122,7 +121,7 @@ export default function GamewithFriends(){
                     }
                     console.log('WhiteTime: ', whiteTime)
                     console.log('Black time: ', blackTime)
-                    // @ts-ignore
+                
                     if(session?.user.id === roomData.room.whiteId){
                         setPlayerTime(2*(whiteTime))
                         setOpponentTime(2*(blackTime));
@@ -144,7 +143,6 @@ export default function GamewithFriends(){
             setIsJoiningGame(true);
             const socket = WebSocketClient.getInstance();
             socket.sendMessage(
-                // @ts-ignore
                 JSON.stringify({ type: WebSocketMessageType.CREATE_INVITE_LINK, JWT_token: session?.user.jwt, color: selectedColor})
             );
         }

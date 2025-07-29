@@ -71,8 +71,8 @@ export default function LobbyClient() {
         const timestamp = new Date(rawTime).getTime();
         const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
 
-        let whiteTime = Math.max(0, parseInt(data.room.whiteTime) - (currentTurn === "w" ? elapsedSeconds : 0));
-        let blackTime = Math.max(0, parseInt(data.room.blackTime) - (currentTurn === "b" ? elapsedSeconds : 0));
+        const whiteTime = Math.max(0, parseInt(data.room.whiteTime) - (currentTurn === "w" ? elapsedSeconds : 0));
+        const blackTime = Math.max(0, parseInt(data.room.blackTime) - (currentTurn === "b" ? elapsedSeconds : 0));
 
         if (session?.user.id === roomData.room.whiteId) {
           setPlayerTime(2 * whiteTime);

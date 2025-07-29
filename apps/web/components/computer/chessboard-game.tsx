@@ -8,7 +8,6 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   movesAtom,
   MoveAnalytics,
-  classificationAtom,
   differentPeices,
   prevMove,
 } from "@/store/atoms/bot";
@@ -50,7 +49,7 @@ export function ChessboardGame() {
   const peices = useRecoilValue(differentPeices);
   const prev = useRecoilValue(prevMove);
 
-  const [bot, setBot] = useState({
+  const [, setBot] = useState({
     id: "p1",
     name: "AlphaBot",
     rating: 400,
@@ -191,7 +190,7 @@ export function ChessboardGame() {
         const move = game.move({
           from,
           to,
-          promotion: promotion as any,
+          promotion: promotion,
         });
 
         if (move) {

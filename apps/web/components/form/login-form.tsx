@@ -25,7 +25,6 @@ export function LoginForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
   } = useForm<SigninFormValues>({
     resolver: zodResolver(SigninSchema),
   });
@@ -55,7 +54,7 @@ export function LoginForm({
         // Add redirect or other post-sign-in logic here
         router.push('/'); 
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Sign-in failed",

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 
 export function Header() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   return (
     <div className="h-20 flex justify-between items-center px-20">

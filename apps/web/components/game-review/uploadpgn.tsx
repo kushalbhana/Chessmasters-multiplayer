@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react"; // spinner icon
 
 export default function UploadPGN() {
-  const [pgnText, setPgnText] = useState<string>("");
+  const [, setPgnText] = useState<string>("");
   const { parsePGN } = usePGNParser();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fen = useRecoilValue(finalFENAtom);

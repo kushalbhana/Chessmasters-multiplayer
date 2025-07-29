@@ -1,8 +1,5 @@
 import dynamic from "next/dynamic";
 import { FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing, FaMicrophone, FaCamera } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
-import { Dropdown } from "@/components/ui/dropdown";
-import { Chessboard } from "react-chessboard";
 import Image from "next/image";
 
 // Dynamically import client logic
@@ -13,8 +10,8 @@ export default function LobbySSR() {
   const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const ranks = [1, 2, 3, 4, 5, 6, 7, 8];
 
-  for (let file of files) {
-    for (let rank of ranks) {
+  for (const file of files) {
+    for (const rank of ranks) {
       const square = `${file}${rank}`;
       const fileIndex = files.indexOf(file);
       const rankIndex = ranks.indexOf(rank);

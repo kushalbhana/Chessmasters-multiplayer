@@ -3,7 +3,8 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { playerTime, opponentTime } from "@/store/atoms/game";
 import { gameStatus } from "@/store/atoms/game";
 
-export function TimeManager({ game, orientation }: any) {
+// @ts-expect-error
+export function TimeManager({ game, orientation }) {
     const setMyTimeRemaining = useSetRecoilState(playerTime);
     const setOppTimeRemaining = useSetRecoilState(opponentTime);
     const isGameOver = useRecoilValue(gameStatus);

@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useRecoilValue } from "recoil";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { movesAtom } from "@/store/atoms/bot";
 
 export function MovesSection() {

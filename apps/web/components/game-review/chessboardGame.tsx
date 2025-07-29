@@ -14,8 +14,8 @@ export function ChessboardGame() {
   const [fen, setFen] = useState(game.fen());
   const orientat = useRecoilValue(orientation);
   const peices = useRecoilValue(differentPeices);
-  const { bestMove } = useGameReview(game, setFen);
   const analyticsData = useRecoilValue(moveAnalyticsData);
+  useGameReview(game, setFen);
   
   useEffect( () => {
     if(analyticsData.currentMoveIndex>=0){
@@ -200,7 +200,7 @@ export function ChessboardGame() {
         }}
         customSquareStyles={customSquareStyles}
         customPieces={customPieces}
-        // @ts-ignore
+        // @ts-expect-error
         customArrows={bestMoveArrow}
         customArrowColor="green"
       />

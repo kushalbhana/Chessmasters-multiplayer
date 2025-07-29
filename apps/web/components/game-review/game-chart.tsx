@@ -18,16 +18,18 @@ export function ChartAreaGame() {
 
   const chartData =
   analyticsData?.data?.moves
-    ?.reduce((acc: any[], move: any, index: number) => {
-      if (index % 2 === 0) {
-        // White move
-        acc.push({
-          move: `#${Math.floor(index / 2) + 1}`,
-          white: move.accuracy ?? null,
-          black: null,
-        });
-      } else {
-        // Black move
+  ?.reduce((acc, move: any, index: number) => {
+    if (index % 2 === 0) {
+      // White move
+      // @ts-expect-error
+      acc.push({
+        move: `#${Math.floor(index / 2) + 1}`,
+        white: move.accuracy ?? null,
+        black: null,
+      });
+    } else {
+      // Black move
+      // @ts-expect-error
         acc[acc.length - 1].black = move.accuracy ?? null;
       }
       return acc;

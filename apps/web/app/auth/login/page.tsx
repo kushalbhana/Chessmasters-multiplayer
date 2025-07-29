@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FaChessQueen } from "react-icons/fa6";
 import { AuthTab } from "@/components/shared/auth-tab";
 import { useSession } from "next-auth/react";
@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 
 export default function LoginPage() {
-  const {data: session, status} = useSession();
+  const {status} = useSession();
   const router = useRouter();
 
   useEffect( () => {

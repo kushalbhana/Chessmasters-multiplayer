@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useState, CSSProperties } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
 import { Chess } from "chess.js";
@@ -27,7 +26,6 @@ import { ClipLoader } from "react-spinners";
 export default function GameLobby() {
     
     const { data: session, status } = useSession();
-    const router = useRouter();
     const setRoomInfo = useSetRecoilState(roomInfo);
     const setMoves = useSetRecoilState(gameMoves);
     const [roomExist, setRoomExist] = useState<boolean>(false);
@@ -45,13 +43,11 @@ export default function GameLobby() {
     
         if (socket.readyState === WebSocket.OPEN) {
             console.log('Socket already open, sending message immediately');
-            // @ts-ignore
             socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
         } else {
             console.log('Socket not open yet, adding open listener');
             socket.addOpenListener(() => {
                 console.log('Socket opened, sending message');
-                // @ts-ignore
                 socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
             });
         }
@@ -104,7 +100,6 @@ export default function GameLobby() {
                 }
                 console.log('WhiteTime: ', whiteTime)
                 console.log('Black time: ', blackTime)
-                // @ts-ignore
                 if(session?.user.id === roomData.room.whiteId){
                     setPlayerTime(2*(whiteTime))
                     setOpponentTime(2*(blackTime));
@@ -126,7 +121,6 @@ export default function GameLobby() {
         setIsJoiningGame(true);
         const socket = WebSocketClient.getInstance();
         socket.sendMessage(
-            // @ts-ignore
             JSON.stringify({ type: WebSocketMessageType.JOINLOBBY, JWT_token: session?.user.jwt})
         );
     }
@@ -136,8 +130,8 @@ export default function GameLobby() {
     const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
     const ranks = [1, 2, 3, 4, 5, 6, 7, 8];
 
-    for (let file of files) {
-        for (let rank of ranks) {
+    for (const file of files) {
+        for (const rank of ranks) {
         const square = `${file}${rank}`;
         const fileIndex = files.indexOf(file);
         const rankIndex = ranks.indexOf(rank);

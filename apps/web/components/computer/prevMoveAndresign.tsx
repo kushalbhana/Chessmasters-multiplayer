@@ -1,11 +1,11 @@
 "use client"
-import { FaArrowLeft, FaArrowRight, FaSyncAlt } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import { useRecoilState } from "recoil";
 import { prevMove } from "@/store/atoms/bot";
 import { useRouter } from "next/navigation";
 
 export function PrevUtility() {
-  const [prev, setPrev] = useRecoilState(prevMove);
+  const [, setPrev] = useRecoilState(prevMove);
   const router = useRouter();
 
   const handlePrev = () => {

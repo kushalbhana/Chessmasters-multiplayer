@@ -1,13 +1,12 @@
 import * as React from "react"
 import { useRecoilValue } from "recoil"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { gameMoves } from "@/store/atoms/moves" // Adjust path as needed
 
 export function MovesSection() {
   const rawMoves = useRecoilValue(gameMoves);
   const moves = Array.isArray(rawMoves) ? rawMoves : [];
-
+  
   const formattedMoves = moves.reduce((acc, move, i) => {
     const moveIndex = Math.floor(i / 2);
     if (!acc[moveIndex]) acc[moveIndex] = { number: moveIndex + 1 };

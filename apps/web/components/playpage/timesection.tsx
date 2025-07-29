@@ -1,6 +1,6 @@
 import { FaStopwatch } from "react-icons/fa";
-import { useEffect, useState } from "react";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useState } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { playerTime, opponentTime, gameStatus } from "@/store/atoms/game";
 import { gameStatusObj } from "@repo/lib/status";
 
@@ -12,8 +12,8 @@ function timeLayout(time: number, gameOver: any) {
     const seconds = time % 60;
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
-
-export function TimeSection({ playerType, orientation, game }: any) {
+// @ts-expect-error
+export function TimeSection({ playerType}) {
     const myTimeRemaining = useRecoilValue(playerTime);
     const oppTimeRemaining = useRecoilValue(opponentTime);
     const [gameOver, setGameOver] = useRecoilState(gameStatus);

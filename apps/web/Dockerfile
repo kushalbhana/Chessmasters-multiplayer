@@ -1,45 +1,55 @@
 FROM node:18-alpine AS base
- 
+
+# ---------------- Builder Stage ----------------
 FROM base AS builder
-RUN apk update
-RUN apk add --no-cache libc6-compat
-# Set working directory
+RUN apk update && apk add --no-cache libc6-compat
 WORKDIR /app
-# Replace <your-major-version> with the major version installed in your repository. For example:
-# RUN yarn global add turbo@^2
-RUN yarn global add turbo@^<your-major-version>
+
+# Install Turbo CLI globally
+RUN npm install -g turbo
+
+# Copy entire monorepo
 COPY . .
- 
-# Generate a partial monorepo with a pruned lockfile for a target workspace.
-# Assuming "web" is the name entered in the project's package.json: { name: "web" }
+
+# Generate a partial monorepo with a pruned lockfile for "web"
 RUN turbo prune web --docker
- 
-# Add lockfile and package.json's of isolated subworkspace
+
+# ---------------- Installer Stage ----------------
 FROM base AS installer
-RUN apk update
-RUN apk add --no-cache libc6-compat
+RUN apk update && apk add --no-cache libc6-compat python3 make g++ \
+    && ln -sf python3 /usr/bin/python
 WORKDIR /app
- 
-# First install the dependencies (as they change less often)
+
+# Install dependencies
 COPY --from=builder /app/out/json/ .
-RUN yarn install --frozen-lockfile
- 
-# Build the project
+RUN npm ci
+
+# Copy Prisma schema from db package
+COPY packages/db/prisma ./packages/db/prisma
+
+# Generate Prisma Client
+RUN npx prisma generate --schema=./packages/db/prisma/schema.prisma
+
+# Copy full pruned source
 COPY --from=builder /app/out/full/ .
-RUN yarn turbo run build
- 
+RUN npx turbo run build --filter=web...
+
+
+# ---------------- Runner Stage ----------------
 FROM base AS runner
 WORKDIR /app
- 
-# Don't run production as root
+
+# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 USER nextjs
- 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+
+# Copy built files and Prisma client
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
- 
-CMD node apps/web/server.js
+COPY --from=installer --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=installer --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# Use JSON form for CMD to avoid signal issues
+CMD ["node", "apps/web/server.js"]

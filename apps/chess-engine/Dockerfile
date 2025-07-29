@@ -1,9 +1,7 @@
 FROM node:16
 
-# Set working directory
 WORKDIR /usr/src/app
 
-# Install system dependencies (no sudo needed in Docker)
 RUN apt-get update && \
     apt-get install -y stockfish && \
     rm -rf /var/lib/apt/lists/*

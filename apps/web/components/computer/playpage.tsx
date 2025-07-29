@@ -4,7 +4,6 @@ import { ChessboardGame } from "./chessboard-game";
 import { useRecoilState } from "recoil";
 import { PlayerScreen } from "./playerScreen";
 import { MovesSection } from "./movesboard";
-import { MoveClassificationSummary } from "./moveclassificationboard";
 import { PeicesCategoryDropdown } from "./selectpeices";
 import DownloadPGNButton from "./downloadPGN";
 import { VictoryDialog } from "../shared/victoryDialog";
@@ -14,7 +13,7 @@ import { PrevUtility } from "./prevMoveAndresign";
 
 export function PlayPage() {
   const [gameStat, setGameStat] = useRecoilState(gameResult);
-  const {data: session, status} = useSession();
+  const {data: session} = useSession();
 
   return (
     <div className="relative w-full h-screen overflow-hidden">

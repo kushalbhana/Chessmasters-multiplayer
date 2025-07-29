@@ -6,7 +6,7 @@ import { NEXT_AUTH_CONFIG } from "@/lib/auth";
 import { PlayerHash, RedisRoom, clientSideRoom } from "@repo/lib/types";
 import { WebSocketMessageType } from "@repo/lib/status";
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const session = await getServerSession(NEXT_AUTH_CONFIG);
 

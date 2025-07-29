@@ -52,7 +52,6 @@ export function MessageBox() {
       JSON.stringify({
         type: WebSocketMessageType.TEXTMESSAGE,
         message: newMessage,
-        // @ts-ignore
         JWT_token: session?.user.jwt,
         roomId: room?.roomId,
       })

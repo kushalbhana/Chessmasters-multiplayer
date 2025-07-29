@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { players } from "@repo/lib/status";
 import { useSetRecoilState } from "recoil";
 import { isBotChoosen } from "@/store/atoms/bot";
