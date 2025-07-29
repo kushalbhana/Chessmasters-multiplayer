@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, CSSProperties } from "react";
+import { useEffect, useState, CSSProperties, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSetRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
@@ -38,6 +38,7 @@ export default function GamewithFriends(){
         const [generatedCode, setGeneratedCode] = useState("");
         const [selectedColor, setSelectedColor] = useState("white")
         const { toast } = useToast();
+        const ws = useMemo( () => WebSocketClient.getInstance(),[])
     
 
         useEffect(() => {
@@ -212,7 +213,11 @@ export default function GamewithFriends(){
                                     onChange={(e) => setInviteCode(e.target.value)}
                                     className="w-40 rounded-r-none"
                                 />
-                                <Button className="h-10 rounded-l-none">Joini Room</Button>
+                                <Button className="h-10 rounded-l-none"
+                                onClick={() => {
+                                    ws.sendMessage(JSON.stringify({ type: WebSocketMessageType.JOIN_FRIEND_ROOM, JWT_token: session?.user.jwt, roomId: inviteCode}));
+                                    console.log('Invite code sent')
+                                }}>Join Room</Button>
                             </div>
                             {/* Input for generated code + copy button */}
                             <div className="flex justify-center items-center w-full md:w-auto">

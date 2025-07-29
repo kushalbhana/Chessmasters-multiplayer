@@ -50,10 +50,8 @@ export async function handleTextMessage(ws: WebSocket | null, message: any){
         // Send Message
         if(room?.blackId == user.userId){
             webSocketManager?.gameRoom[roomId]?.whiteSocket?.send(JSON.stringify({type: WebSocketMessageType.TEXTMESSAGE, message}));
-            console.log('Message sent to white')
         }else{
             webSocketManager?.gameRoom[roomId]?.blackSocket?.send(JSON.stringify({type: WebSocketMessageType.TEXTMESSAGE, message}));
-            console.log('Message sent to Black')
         }
         sendTextMessageToPubSub(roomId, message, user.userId);  
     } catch (error) {

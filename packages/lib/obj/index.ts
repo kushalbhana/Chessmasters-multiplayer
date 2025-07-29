@@ -29,7 +29,8 @@ export const WebSocketMessageType = {
     PEER_LEFT: 'peer_left',
     WEBRTCOFFERANSWER: 'webrtc_offer_answer',
     ICE_CANDIDATE: 'ice_candidate',
-    CREATE_INVITE_LINK: 'create_invite_link'
+    CREATE_INVITE_LINK: 'create_invite_link',
+    JOIN_FRIEND_ROOM: 'join_friend_room'
   };
 
   export const playerType = {
