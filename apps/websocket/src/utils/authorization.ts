@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'ws';
 import { STATUS_MESSAGES } from '@repo/lib/status';
 import { webSocketManager } from '..';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 import { AuthorizationResponse } from "@repo/lib/types"
 import { NodeType, userWebSocketServer } from "@repo/lib/types"
@@ -27,7 +27,7 @@ const updateRoomUser = (roomId: string, node: NodeType, userId: string) => {
     }
 };
 
-// Function to verify the token by calling the verification API
+// Not in use now
 const verifyToken = async (token: string): Promise<AxiosResponse<AuthorizationResponse>> => {
     return await axios.post(
         `http://localhost:3000/api/verifyJWT`,

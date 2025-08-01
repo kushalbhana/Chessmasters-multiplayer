@@ -37,8 +37,8 @@ export default function GamewithFriends(){
         const [inviteCode, setInviteCode] = useState("");
         const [generatedCode, setGeneratedCode] = useState("");
         const [selectedColor, setSelectedColor] = useState("white")
+        const [ws, setWs] = useState<WebSocketClient | null>(null);
         const { toast } = useToast();
-        const ws = useMemo( () => WebSocketClient.getInstance(),[])
     
 
         useEffect(() => {
@@ -51,6 +51,7 @@ export default function GamewithFriends(){
             }
         
             const socket = WebSocketClient.getInstance();
+             setWs(socket);
             console.log('READY STATE:', socket.readyState);
         
             if (socket.readyState === WebSocket.OPEN) {
@@ -213,7 +214,7 @@ export default function GamewithFriends(){
                                 />
                                 <Button className="h-10 rounded-l-none"
                                 onClick={() => {
-                                    ws.sendMessage(JSON.stringify({ type: WebSocketMessageType.JOIN_FRIEND_ROOM, JWT_token: session?.user.jwt, roomId: inviteCode}));
+                                    ws?.sendMessage(JSON.stringify({ type: WebSocketMessageType.JOIN_FRIEND_ROOM, JWT_token: session?.user.jwt, roomId: inviteCode}));
                                     console.log('Invite code sent')
                                 }}>Join Room</Button>
                             </div>

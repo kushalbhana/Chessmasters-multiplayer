@@ -11,10 +11,12 @@ import {openings} from './lib/openings';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
 app.use(cors({
-  origin: "*"
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -187,7 +189,7 @@ class StockfishManager {
   private initEngine() {
     try {
       // Path to stockfish binary (adjust based on your setup)
-      const stockfishPath = process.env.STOCKFISH_PATH || 'stockfish';
+      const stockfishPath = process.env.STOCKFISH_PATH || "/usr/games/stockfish";
       this.engine = spawn(stockfishPath);
       
       this.engine.stdout?.on('data', (data) => {

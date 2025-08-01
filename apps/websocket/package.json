@@ -21,7 +21,7 @@
     "ioredis": "^5.4.1",
     "redis": "^4.6.15",
     "ws": "^8.17.0",
-    "@repo/db": "*"
+    "@repo/lib": "*"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

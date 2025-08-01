@@ -15,7 +15,8 @@ export function usePGNParser() {
 
   async function getAnalysis(fen: string, moves: string[]){
     try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_CHESS_ENGINE}api/analyze-moves`, {
+    const BASE_URL = process.env.NEXT_PUBLIC_CHESS_ENGINE?.replace(/\/$/, '') // remove trailing slash
+    const response = await axios.post(`${BASE_URL}/api/analyze-moves`, {
       "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       "moves": moves,
       "gameInfo": {

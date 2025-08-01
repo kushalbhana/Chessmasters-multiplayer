@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 import { FaHome, FaRandom, FaUserFriends, FaSignOutAlt } from "react-icons/fa";
 import { BsRobot } from "react-icons/bs";
@@ -11,6 +11,7 @@ import { IoMdAnalytics } from "react-icons/io";
 export function TabsSection() {
   const router = useRouter();
   const pathname = usePathname();
+  const { status } = useSession();
 
   const Tabs: Record<
     string,
@@ -37,23 +38,28 @@ export function TabsSection() {
 
   return (
     <div className="flex flex-col gap-6 justify-center">
-      {Object.entries(Tabs).map(([label, { icon, path }], index) => (
-        <button
-          key={index}
-          onClick={() => {
-            if (typeof path === 'function') {
-              path();
-            } else {
-              router.push(path);
-            }
-          }}
-          className={`flex items-center gap-3 text-lg px-4 py-2 rounded-lg transition-all
-            ${activeTab === label ? 'bg-white text-black font-semibold' : 'text-white hover:bg-gray-700'}`}
-        >
-          {icon}
-          <span>{label}</span>
-        </button>
-      ))}
+      {Object.entries(Tabs).map(([label, { icon, path }], index) => {
+        // Hide "Sign Out" if user is not authenticated
+        if (label === 'Sign Out' && status !== 'authenticated') return null;
+
+        return (
+          <button
+            key={index}
+            onClick={() => {
+              if (typeof path === 'function') {
+                path();
+              } else {
+                router.push(path);
+              }
+            }}
+            className={`flex items-center gap-3 text-lg px-4 py-2 rounded-lg transition-all
+              ${activeTab === label ? 'bg-white text-black font-semibold' : 'text-white hover:bg-gray-700'}`}
+          >
+            {icon}
+            <span>{label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
