@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://kushal:kushal_password_chessmasters@localhost:5432/chessmasters"
+  url      = env("DATABASE_URL")
 }
 
 model User {

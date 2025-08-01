@@ -11,6 +11,7 @@ export async function initializeRedis(): Promise<RedisClientType> {
         return redisClient;
     
     try {
+        console.log(process.env.REDIS_URL);
         redisClient = createClient({
             url : process.env.REDIS_URL
           });

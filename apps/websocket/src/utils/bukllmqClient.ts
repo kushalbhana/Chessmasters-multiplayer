@@ -2,10 +2,12 @@ import { Queue, Worker } from 'bullmq';
 import { webSocketManager } from '..'; 
 import { gameStatusObj } from '@repo/lib/status';
 import { postGameCleanUp } from './redisUtils';
+import 'dotenv/config';  // or require('dotenv').config();
+
 
 export const chessTimersQueue = new Queue('chess-timers', {
   connection: {
-    url: "redis://default:kushal_password_chessmaster@localhost:6379",
+    url: process.env.REDIS_URL,
   },
 });
 
@@ -56,7 +58,7 @@ const timeoutWorker = new Worker(
   },
   {
     connection: {
-      url: "redis://default:kushal_password_chessmaster@localhost:6379",
+      url: process.env.REDIS_URL,
     },
   }
 );

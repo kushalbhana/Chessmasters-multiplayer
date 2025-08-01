@@ -46,16 +46,21 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 wsuser
 
-# Copy built files
+# Copy built files and dependencies
 COPY --from=installer --chown=wsuser:nodejs /app/apps/websocket/dist ./apps/websocket/dist
 COPY --from=installer --chown=wsuser:nodejs /app/node_modules ./node_modules
 COPY --from=installer --chown=wsuser:nodejs /app/packages ./packages
 
-# Use non-root user
 USER wsuser
 
-# Expose websocket server ports
+# Expose websocket server port
 EXPOSE 8080
 
-# Run websocket server
-CMD ["node", "apps/websocket/dist/index.js"]
+# Runtime environment variables will be populated by Kubernetes
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Ensure we log environment for debugging
+CMD ["sh", "-c", "echo 'Starting with env:' && env && node apps/websocket/dist/index.js"]
+
+

@@ -8,7 +8,7 @@ class RedisSingleton {
   public static getInstance(): RedisClientType {
     if (!RedisSingleton.instance) {
       RedisSingleton.instance = createClient({
-        url: process.env.REDIS_URL || 'redis://localhost:6379'
+        url: process.env.REDIS_URL
       });
 
       RedisSingleton.instance.on('error', (err) => console.error('Redis Client Error', err));
