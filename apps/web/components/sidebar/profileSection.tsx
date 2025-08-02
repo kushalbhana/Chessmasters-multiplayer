@@ -22,7 +22,16 @@ export function ProfileSection(){
                 <div>
                     <Avatar>
                         <AvatarImage src={session?.user?.image || ""} />
-                        <AvatarFallback>CN</AvatarFallback>
+                        <AvatarFallback>
+                            {session?.user?.name
+                                ? session.user.name
+                                    .split(" ")
+                                    .map((word) => word[0])
+                                    .join("")
+                                    .slice(0, 2)
+                                    .toUpperCase()
+                                : "CN"}
+                            </AvatarFallback>
                     </Avatar>
                 </div>
                 <div>

@@ -80,7 +80,8 @@ export const NEXT_AUTH_CONFIG: AuthOptions = {
           update: {
             id: profile?.sub,
             name: profile?.name,
-            picture: profile?.image,
+            // @ts-expect-error
+            picture: profile?.picture,
             oAuthId: profile?.sub,
           },
           create: {
