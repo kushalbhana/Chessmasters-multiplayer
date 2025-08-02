@@ -10,7 +10,7 @@ export function AboutGame() {
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold">
           Live Low Latency Video Calling
         </h1>
-        <h1 className="text-sm sm:text-base md:text-lg mt-4 text-gray-700">
+        <h1 className="text-sm sm:text-base md:text-lg mt-4 text-gray-400">
           Experience chess like never before with our built-in live video calling, 
           powered by low-latency WebRTC technology. Now, every match goes beyond 
           just moving pieces on a board — you can see and interact with your 
