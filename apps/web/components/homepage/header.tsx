@@ -10,11 +10,12 @@ export function Header() {
   return (
     <div className="h-20 flex justify-between items-center px-6 lg:px-20">
       <div className="hidden lg:block">
-        <p className="text-slate-950 text-lg font-extrabold font-sans">
+        <p className="text-slate-950 text-lg font-extrabold font-sans whitespace-nowrap">
           Chessmasters multiplayer
         </p>
         <p className="text-slate-700 -my-1 font-sans">Kushal Bhana</p>
       </div>
+
       <div className="w-full flex lg:gap-4 justify-end items-end">
         <div>
           {status !== "authenticated" ? (
