@@ -9,7 +9,7 @@ import fs from 'fs';
 import {openings} from './lib/openings';
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 app.use(cors({
   origin: "*",
@@ -1102,7 +1102,7 @@ const analysisService = new GameAnalysisService();
 
 // Routes
 // @ts-ignoreS
-app.post('/api/analyze-moves', async (req, res) => {
+app.post('/engine/api/analyze-moves', async (req, res) => {
   try {
     const { fen, moves, gameInfo }: AnalysisRequest = req.body;
 
@@ -1142,7 +1142,7 @@ app.post('/api/analyze-moves', async (req, res) => {
 
 // Original PGN analysis route (backward compatibility)
 // @ts-ignore
-app.post('/api/analyze', upload.single('pgn'), async (req, res) => {
+app.post('/engine/api/analyze', upload.single('pgn'), async (req, res) => {
   try {
     let pgnContent: string;
 
@@ -1181,7 +1181,7 @@ app.post('/api/analyze', upload.single('pgn'), async (req, res) => {
 
 
 // @ts-ignore
-app.post('/api/analyze-position', async (req, res) => {
+app.post('/engine/api/analyze-position', async (req, res) => {
   try {
     const { fen } = req.body;
     
@@ -1209,10 +1209,10 @@ app.post('/api/analyze-position', async (req, res) => {
 });
 
 // @ts-ignore
-app.post('/api/bot-move', async (req, res) => {
+app.post('/engine/api/bot-move', async (req, res) => {
   try {
     const { fen, depth, playerLevel }: BotMoveRequest = req.body;
-
+    console.log('Req recieved from ingress')
     if (!fen) {
       return res.status(400).json({ 
         error: 'FEN position is required',
@@ -1259,7 +1259,7 @@ app.post('/api/bot-move', async (req, res) => {
 });
 
 // HEalth Check EndPoint
-app.get('/api/health', (req, res) => {
+app.get('/engine/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Chess Analytics Server is running',
@@ -1285,11 +1285,12 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Chess Analytics Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-  console.log(`New endpoint: POST http://localhost:${PORT}/api/analyze-moves`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`New endpoint: POST http://0.0.0.0:${PORT}/api/analyze-moves`);
 });
+
 
 // Graceful shutdown
 process.on('SIGINT', () => {

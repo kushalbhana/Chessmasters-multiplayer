@@ -7,36 +7,29 @@ import { SpectateSection } from "@/components/homepage/spectatesection";
 
 
 export default function Home() {
-
   return (
-    <div>
+    <div className="overflow-x-hidden"> {/* ✅ Prevents unwanted horizontal scroll */}
       <div className="w-full h-screen bg-white flex flex-col">
-        <div>
-          <Header/>
-        </div>
+        <Header />
         <div className="h-full">
-          <HeroSection/>
+          <HeroSection />
         </div>
       </div>
 
       <div>
-        <div className="h-full px-32 py-32">
-          <AboutGame/>
+        <div className="h-full lg:px-32 lg:py-32">
+          <AboutGame />
         </div>
         <div className="h-full w-full">
-          <SpectateSection/>
+          <SpectateSection />
         </div>
         <div className="h-full">
-          <AnalyticsSection/>
+          <AnalyticsSection />
         </div>
-        {/* <div className="h-full">
-          <PieceDetails/>
-        </div> */}
       </div>
-      <div>
-        <Footer/>
-      </div>
+
+      <Footer />
     </div>
   );
-  
 }
+
