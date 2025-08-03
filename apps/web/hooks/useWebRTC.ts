@@ -20,14 +20,14 @@ export const useWebRTC = (playerType: PlayerType) => {
     if (event.candidate) {
       ws.sendMessage(JSON.stringify({
         type: WebSocketMessageType.ICE_CANDIDATE,
-        JWT_token: session?.user.jwt,
+        JWT_token: session?.user?.jwt,
         data: {
           roomId: room?.roomId,
           candidate: event.candidate
         }
       }));
     }
-  }, [room?.roomId, session?.user.jwt, ws]);
+  }, [room?.roomId, session?.user?.jwt, ws]);
 
   // Track handler
   const handleTrackEvent = useCallback((event: RTCTrackEvent) => {
@@ -45,7 +45,7 @@ export const useWebRTC = (playerType: PlayerType) => {
 
       ws.sendMessage(JSON.stringify({
         type: WebSocketMessageType.WEBRTCOFFER,
-        JWT_token: session?.user.jwt,
+        JWT_token: session?.user?.jwt,
         data: {
           roomId: room?.roomId,
           offer
@@ -54,7 +54,7 @@ export const useWebRTC = (playerType: PlayerType) => {
     } catch (err) {
       console.error("Negotiation failed:", err);
     }
-  }, [room?.roomId, session?.user.jwt, ws]);
+  }, [room?.roomId, session?.user?.jwt, ws]);
 
   const createAnswer = useCallback(async (offer: RTCSessionDescriptionInit) => {
     const peer = peerConnectionRef.current;
@@ -66,13 +66,13 @@ export const useWebRTC = (playerType: PlayerType) => {
 
     ws.sendMessage(JSON.stringify({
       type: WebSocketMessageType.WEBRTCOFFERANSWER,
-      JWT_token: session?.user.jwt,
+      JWT_token: session?.user?.jwt,
       data: {
         roomId: room?.roomId,
         answer
       }
     }));
-  }, [room?.roomId, session?.user.jwt, ws]);
+  }, [room?.roomId, session?.user?.jwt, ws]);
 
   const handleOfferAccepted = useCallback(async (answer: RTCSessionDescriptionInit) => {
     const peer = peerConnectionRef.current;

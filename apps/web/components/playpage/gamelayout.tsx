@@ -8,41 +8,48 @@ import { useRecoilState } from "recoil"
 import { gameStatus } from "@/store/atoms/game"
 import { MessageBox } from "./messagebox"
 
-export function GameLayout(){
+export function GameLayout() {
     const [gameStat, setGameStat] = useRecoilState(gameStatus);
 
-    return(
+    return (
         <div className="flex h-full w-full gap-1 flex-col lg:flex-row justify-center items-center">
-            <div className=" w-full lg:w-6/12">
-                <div className=" absolute z-20 h-full w-full bg-gradient-to-b from-[#111114] to-[#1c1c1f] rounded-2xl hidden">
-                <VictoryDialog
-                    open={gameStat.isGameOver}
-                    onClose={() =>
-                        setGameStat(prev => ({
-                        ...prev,
-                        isGameOver: false,
-                        }))
-                    }
-                    playerName="Kushal"
+            {/* Chessboard and Victory Dialog */}
+            <div className="w-full lg:w-6/12 relative">
+                <div className="absolute z-20 h-full w-full bg-gradient-to-b from-[#111114] to-[#1c1c1f] rounded-2xl hidden">
+                    <VictoryDialog
+                        open={gameStat.isGameOver}
+                        onClose={() =>
+                            setGameStat(prev => ({
+                                ...prev,
+                                isGameOver: false,
+                            }))
+                        }
+                        playerName="Kushal"
                     />
                 </div>
                 <ChessboardAndUtility />
             </div>
-            <div className="w-full lg:w-5/12 h-5/6 flex flex-col bg-slate-500 bg-opacity-20">
-                <div className="w-full">
+
+            {/* Right Section */}
+            <div className="w-full lg:w-5/12 h-max lg:h-5/6 flex flex-col bg-slate-500 bg-opacity-20">
+                {/* Video Section always on top */}
+                <div className="w-full order-1 lg:order-1">
                     <VideoSection />
                 </div>
-                <div className="flex gap-2 h-full w-full">
-                    <div>
-                        <MovesSection/>
+
+                {/* MessageBox & Utility below on mobile */}
+                <div className="flex flex-col lg:flex-row order-2 gap-2 h-full w-full">
+                    {/* MessageBox first on mobile, Moves first on large */}
+                    <div className="order-2 lg:order-2 p-3 flex flex-col justify-center w-full lg:w-1/2">
+                        <UtilitySection />
+                        <MessageBox />
                     </div>
-                    <div className="p-3 flex flex-col justify-center w-full">
-                        <UtilitySection/>
-                        <MessageBox/>
+
+                    <div className="order-3 lg:order-1 w-full lg:w-1/2">
+                        <MovesSection />
                     </div>
                 </div>
             </div>
-
         </div>
     )
 }

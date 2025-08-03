@@ -79,9 +79,11 @@ export async function getRoomFromRedis(redisClient: RedisClientType) {
 export async function CreateRoomCache(roomKey: string, data: any, whiteId: string, whiteData: any, blackId: string, blackData: any, expiryTimeInSeconds: number){
     const multi = webSocketManager.redisClient.multi();
 
-    multi.hSet(roomKey, data);
-    multi.hSet(whiteId, whiteData);
-    multi.hSet(blackId, blackData);
+    multi.hSet(roomKey, data as Record<string, string>);
+    multi.hSet(whiteId, whiteData as Record<string, string>);
+    multi.hSet(blackId, blackData as Record<string, string>);
+
+
     
     multi.expire(roomKey, expiryTimeInSeconds);
     multi.expire(whiteId, expiryTimeInSeconds);
@@ -93,7 +95,6 @@ export async function CreateRoomCache(roomKey: string, data: any, whiteId: strin
         user2: blackId
     }
     multi.rPush("queue:movesQueue", JSON.stringify(gameToDB));
-    
     await multi.exec();
 }
 
@@ -197,3 +198,26 @@ export async function handleWebRTCRequestsForPubSub(message: any, roomId: string
         console.log(error)
     }
 }
+
+export const deleteUserFromRedis = async (userId: string) => {
+  const client = webSocketManager.redisClient;
+
+  try {
+    // 1️⃣ Delete the user hash itself
+    await client.del(`player:${userId}`);
+
+    // 2️⃣ Check for related keys (like userId:session, userId:gameRoom)
+    const relatedKeys: string[] = await client.keys(`*:${userId}:*`);
+
+    if (relatedKeys.length > 0) {
+      // ✅ Pass the array directly (TS-safe)
+      await client.del(relatedKeys);
+      console.log(`🗑️ Deleted ${relatedKeys.length} related Redis keys for user: ${userId}`);
+    }
+
+    console.log(`✅ User ${userId} deleted from Redis`);
+  } catch (err) {
+    console.error(`❌ Failed to delete user ${userId} from Redis:`, err);
+  }
+};
+

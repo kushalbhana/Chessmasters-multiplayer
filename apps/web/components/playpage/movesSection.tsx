@@ -15,7 +15,7 @@ export function MovesSection() {
   }, [] as { number: number; white?: string; black?: string }[]);
 
   return (
-    <ScrollArea className="h-full w-48 lg:w-72 rounded-md border bg-[#111114]">
+    <ScrollArea className="h-[619px] pb-24 w-full lg:w-full rounded-md border bg-[#111114]">
       <div className="p-4">
         <h4 className="mb-4 text-sm font-medium leading-none">Moves</h4>
         {formattedMoves.map(({ number, white, black }, index) => (

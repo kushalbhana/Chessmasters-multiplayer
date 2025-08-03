@@ -52,7 +52,7 @@ export function MessageBox() {
       JSON.stringify({
         type: WebSocketMessageType.TEXTMESSAGE,
         message: newMessage,
-        JWT_token: session?.user.jwt,
+        JWT_token: session?.user?.jwt,
         roomId: room?.roomId,
       })
     );
@@ -66,8 +66,9 @@ export function MessageBox() {
   }, [message]);
 
   return (
-    <div className="w-full">
-      <ScrollArea className="h-80 w-full rounded-md border bg-muted p-4">
+    <div className="w-full flex flex-col h-full">
+      {/* Scrollable messages */}
+      <ScrollArea className="flex-1 w-full rounded-md border bg-muted p-4 overflow-y-auto">
         <div className="flex flex-col gap-3">
           {message.map((msg, idx) => (
             <div
@@ -86,7 +87,8 @@ export function MessageBox() {
         </div>
       </ScrollArea>
 
-      <div className="flex items-center gap-2 pt-4">
+      {/* Input */}
+      <div className="flex items-center gap-2 pt-2">
         <Input
           type="text"
           value={newMessage}

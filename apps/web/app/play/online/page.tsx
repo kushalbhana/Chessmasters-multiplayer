@@ -21,8 +21,6 @@ import Image from "next/image";
 import { ClipLoader } from "react-spinners";
 
 
-
-
 export default function GameLobby() {
     
     const { data: session, status } = useSession();

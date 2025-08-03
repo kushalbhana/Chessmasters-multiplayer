@@ -48,20 +48,22 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       const playerRoom = await redis.hGet(playerKey, "room");
       if (playerRoom) {
         const roomData = await redis.hGetAll(`gameRoom:${playerRoom}`);
-        roomData.roomId = playerRoom;
-        console.log(`User ${user.userId} is already in room ${playerRoom}.`);
-        ws.send(JSON.stringify({
-          type: WebSocketMessageType.JOINROOM,
-          roomId: playerRoom,
-          room: roomData,
-        }));
-        console.log('room Exist: ', JSON.stringify({
-          type: WebSocketMessageType.JOINROOM,
-          roomId: playerRoom,
-          room: roomData,
-        }))
-      }
-      return;
+        if(roomData){
+            roomData.roomId = playerRoom;
+            console.log(`User ${user.userId} is already in room ${playerRoom}.`);
+            ws.send(JSON.stringify({
+              type: WebSocketMessageType.JOINROOM,
+              roomId: playerRoom,
+              room: roomData,
+            }));
+            console.log('room Exist: ', JSON.stringify({
+              type: WebSocketMessageType.JOINROOM,
+              roomId: playerRoom,
+              room: roomData,
+            }))
+          }
+          return;
+        }
     }
 
     // Matchmaking logic
@@ -101,12 +103,12 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
     webSocketManager.gameRoom[roomId] = newRoom;
 
     const redisRoom: RedisRoom = {
-      whiteId: newRoom.whiteId,
-      whiteName: newRoom.whiteName,
-      whiteProfilePicture: newRoom.whiteProfilePicture,
-      blackId: newRoom.blackId,
-      blackName: newRoom.blackName,
-      blackProfilePicture: newRoom.blackProfilePicture,
+      whiteId: newRoom.whiteId || "",
+      whiteName: newRoom.whiteName || "",
+      whiteProfilePicture: newRoom.whiteProfilePicture || "",
+      blackId: newRoom.blackId || "",
+      blackName: newRoom.blackName || "",
+      blackProfilePicture: newRoom.blackProfilePicture || "",
       whiteSocket: 'connected',
       blackSocket: 'connected',
       blackTime: 600,

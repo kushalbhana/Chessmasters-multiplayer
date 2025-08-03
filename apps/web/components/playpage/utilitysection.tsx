@@ -15,7 +15,7 @@ export function UtilitySection() {
     const [micropohoneStatus, setMicropohoneStatus] = useRecoilState(micStatus);
   const [cameraStatus, setCameraStatus] = useRecoilState(camStatus);
     return (
-        <div className="w-full h-full flex flex-col gap-2">
+        <div className="w-full h-full flex flex-col gap-2 pb-4">
             <div className="pt-6 flex gap-4 flex-wrap justify-center items-center">
                 <div className="hidden lg:block">
                     <Dropdown type={"audio"}/>
