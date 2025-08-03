@@ -13,51 +13,66 @@ import { PrevUtility } from "./prevMoveAndresign";
 
 export function PlayPage() {
   const [gameStat, setGameStat] = useRecoilState(gameResult);
-  const {data: session} = useSession();
+  const { data: session } = useSession();
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full min-h-[100dvh] overflow-auto">
+      {/* Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center z-0 ml-18"
+        className="absolute inset-0 bg-cover bg-center z-0"
         style={{
-          backgroundImage: `url('/images/chess-background.png')`, // Make sure this path is correct and inside `public/`
+          backgroundImage: `url('/images/chess-background.png')`,
         }}
       />
+      <div className="absolute inset-0 bg-black/60 z-10 lg:ml-10" />
 
-      <div className="absolute inset-0 bg-black/60 z-10 ml-10" />
-
-      {/* ✅ Main content on top */}
-      <div className="relative z-20 flex h-full w-full gap-2 flex-col lg:flex-row justify-center items-center lg:ml-10">
-        <div className="w-full lg:w-6/12">
-          <div className=" absolute z-20 h-full w-full bg-gradient-to-b from-[#111114] to-[#1c1c1f] rounded-2xl hidden">
+      {/* Main Content */}
+      <div className="relative z-20 flex flex-col lg:flex-row w-full min-h-[100dvh] lg:gap-4 justify-center items-center px-2 sm:px-4 lg:px-10 py-4 lg:py-8">
+        
+        {/* Chessboard Section */}
+        <div className="w-full lg:w-6/12 flex justify-center items-center">
+          <div className="relative w-full flex justify-center items-center">
+            {/* Wrapper to maintain full size */}
+            <div className="w-full max-w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
               <VictoryDialog
                 open={gameStat.isGameOver}
                 onClose={() =>
-                setGameStat(prev => ({
-                ...prev,
-                isGameOver: false,
-                }))
+                  setGameStat((prev) => ({ ...prev, isGameOver: false }))
                 }
-                myImg={session?.user.image || ""}
+                myImg={session?.user?.image || ""}
                 oppositeImg="/images/bot.gif"
               />
-                          </div>
-          <ChessboardGame />
+              <ChessboardGame />
+            </div>
+          </div>
         </div>
-        <div className="w-full lg:w-5/12 h-5/6 flex flex-col px-4">
-          <div className="w-full hidden lg:block">
+
+        {/* Right Panel for Large Devices */}
+        <div className="hidden lg:flex w-full lg:w-5/12 flex-col h-[90vh] px-4">
+          <div className="w-full mb-4">
             <PlayerScreen />
           </div>
-          <div className="p-4 flex gap-4" >
-            <PeicesCategoryDropdown/>
-            <DownloadPGNButton/>
+
+          <div className="flex gap-4 mb-4">
+            <PeicesCategoryDropdown />
+            <DownloadPGNButton />
           </div>
-          <div className="flex gap-2 h-full w-full">
+
+          <div className="flex-1 overflow-y-auto mb-4">
             <MovesSection />
           </div>
-          <div className="h-full w-full">
-            <PrevUtility/>
+
+          <div className="w-full">
+            <PrevUtility />
           </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="flex lg:hidden flex-col w-full mt-6 space-y-4 pb-28">
+          <PrevUtility />
+          <MovesSection />
+          <PeicesCategoryDropdown />
+          <DownloadPGNButton />
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { FaArrowLeft } from "react-icons/fa";
 import { useRecoilState } from "recoil";
 import { prevMove } from "@/store/atoms/bot";
@@ -13,32 +13,36 @@ export function PrevUtility() {
   };
 
   const handleResign = () => {
-    localStorage.removeItem("fen")
+    localStorage.removeItem("fen");
     localStorage.removeItem("moves");
-    router.push('/');
-    console.log('Done>>')
-  }
+    router.push("/");
+    console.log("Done>>");
+  };
 
   return (
-    <div className="h-24 flex items-center justify-between gap-6 bg-[#111114]/20">
-      <span
-        onClick={handlePrev}
-        className="text-2xl cursor-pointer hover:text-blue-500 transition w-1/3 flex justify-center bg-[#111114]/80 p-4"
+    <div className="flex justify-center w-full mt-4">
+      <div
+        className="flex items-center justify-between gap-4 bg-[#111114]/20 rounded-lg 
+                   w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg px-2 py-2"
       >
-        <FaArrowLeft />
-      </span>
-      {/* <span
-        onClick={handleNext}
-        className="text-2xl cursor-pointer hover:text-blue-500 transition w-1/3 flex justify-center bg-[#111114]/80 p-4"
-      >
-        <FaArrowRight />
-      </span> */}
-      <span
-        className="text-2xl cursor-pointer hover:text-green-500 transition w-1/3 flex justify-center bg-[#111114]/80 p-4"
-        onClick={handleResign}
-      >
-        Resign
-      </span>
+        {/* Previous Button */}
+        <span
+          onClick={handlePrev}
+          className="text-lg sm:text-xl cursor-pointer hover:text-blue-500 transition 
+                     w-12 sm:w-14 flex justify-center items-center bg-[#111114]/80 p-2 sm:p-3 rounded-md"
+        >
+          <FaArrowLeft />
+        </span>
+
+        {/* Resign Button */}
+        <span
+          onClick={handleResign}
+          className="text-sm sm:text-base cursor-pointer hover:text-green-500 transition 
+                     px-4 sm:px-6 py-2 sm:py-2.5 bg-[#111114]/80 rounded-md"
+        >
+          Resign
+        </span>
+      </div>
     </div>
   );
 }

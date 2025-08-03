@@ -38,7 +38,7 @@ export function ChartAreaGame() {
   return (
     <Card className="h-48 w-full">
 
-      <CardContent className="h-full mt-6">
+      <CardContent className="h-full mt-6 -ml-12">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
