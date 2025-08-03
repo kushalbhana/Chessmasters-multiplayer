@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import axios from "axios";
@@ -48,6 +47,7 @@ export function ChessboardGame() {
   const [lastPlayerMove, setLastPlayerMove] = useState<string | null>(null);
   const peices = useRecoilValue(differentPeices);
   const prev = useRecoilValue(prevMove);
+  const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
 
   const [, setBot] = useState({
     id: "p1",
@@ -55,6 +55,11 @@ export function ChessboardGame() {
     rating: 400,
     avatar: "🤖",
   });
+
+  useEffect(()=> {
+    moveSound.currentTime = 0;
+    moveSound.play();
+  },[fen])
 
   console.log(game.turn())
   const [moves, setMoves] = useRecoilState(movesAtom);

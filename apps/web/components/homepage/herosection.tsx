@@ -9,7 +9,7 @@ export function HeroSection() {
         <h1 className="text-black font-extrabold text-[clamp(1.5rem,6vw,5rem)]">
           Where Chess Meets Video.
         </h1>
-        <div className="text-black font-extrabold text-[clamp(1.5rem,6vw,5rem)] lg:mt-2">
+        <div className="text-black font-extrabold text-[clamp(1.5rem,6vw,5rem)] -mt-1 lg:-mt-6">
           Play Live. See Live.
         </div>
       </div>

@@ -16,12 +16,18 @@ export function ChessboardGame() {
   const peices = useRecoilValue(differentPeices);
   const analyticsData = useRecoilValue(moveAnalyticsData);
   useGameReview(game, setFen);
+  const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
   
   useEffect( () => {
     if(analyticsData.currentMoveIndex>=0){
       setFen(analyticsData.data.moves[analyticsData.currentMoveIndex+1]?.position);
     }
   },[orientat])
+
+  useEffect(()=> {
+      moveSound.currentTime = 0;
+      moveSound.play();
+    },[fen]);
 
   useEffect(() => {
     setFen(game.fen());

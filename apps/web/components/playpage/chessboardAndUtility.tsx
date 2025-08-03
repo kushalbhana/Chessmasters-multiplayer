@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Chessboard } from "react-chessboard";
 import { useRecoilState, useRecoilValue, useRecoilCallback, useSetRecoilState } from "recoil";
 import { Chess } from "chess.js";
@@ -25,6 +25,8 @@ export function ChessboardAndUtility() {
   const moves = useRecoilValue(gameMoves);
   const setMyTimeRemaining = useSetRecoilState(playerTime);
   const setOppTimeRemaining = useSetRecoilState(opponentTime);
+  const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
+
 
   const addMove = useRecoilCallback(({ set }) => (move: string) => {
     set(gameMoves, (prev) => [...prev, move]);
@@ -36,7 +38,7 @@ export function ChessboardAndUtility() {
       return;
     }
     
-    (session?.user.id === room?.room.whiteId) ? setOrientation("white") : setOrientation("black");
+    (session?.user?.id === room?.room.whiteId) ? setOrientation("white") : setOrientation("black");
     if (session?.user && room?.room.game) {
       const newGame = new Chess(room.room.game);
       setGame(newGame);
@@ -48,6 +50,11 @@ export function ChessboardAndUtility() {
       }
     }
   }, [status]);
+
+  useEffect(()=> {
+    moveSound.currentTime = 0;
+    moveSound.play();
+  },[game])
 
   // Check if it's the player's turn
   useEffect(() => {
@@ -198,6 +205,7 @@ export function ChessboardAndUtility() {
       console.log("Invalid move.");
       return false;
     }
+    
     // @ts-expect-error
     // Send the move to the server
     sendMove(session?.user.jwt, 
@@ -248,7 +256,7 @@ console.log("Moves: ", moves);
   return (
     <div className="flex flex-col gap-1">
       <div className="pr-2">
-        <TimeAndUser  profilePicture={ session?.user.id !== room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id !== room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'opponent'} orientation={orientation} game={game}/>
+        <TimeAndUser  profilePicture={ session?.user?.id !== room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user?.id !== room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'opponent'} orientation={orientation} game={game}/>
       </div>
       <div className="p-2">
         <Chessboard
@@ -260,7 +268,7 @@ console.log("Moves: ", moves);
         />
       </div>
       <div className="pr-2">
-        <TimeAndUser profilePicture={ session?.user.id === room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user.id === room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'player'} orientation={orientation} game={game}/> 
+        <TimeAndUser profilePicture={ session?.user?.id === room?.room.whiteId ? room?.room.whiteProfilePicture: room?.room.blackProfilePicture} profileName={session?.user?.id === room?.room.whiteId ? room?.room.whiteName : room?.room.blackName} playerType={'player'} orientation={orientation} game={game}/> 
       </div>
     </div>
   );

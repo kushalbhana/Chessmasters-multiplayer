@@ -56,12 +56,12 @@ export default function GamewithFriends(){
         
             if (socket.readyState === WebSocket.OPEN) {
                 console.log('Socket already open, sending message immediately');
-                socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
+                socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user?.jwt }));
             } else {
                 console.log('Socket not open yet, adding open listener');
                 socket.addOpenListener(() => {
                     console.log('Socket opened, sending message');
-                    socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user.jwt }));
+                    socket.sendMessage(JSON.stringify({ type: WebSocketMessageType.ROOMEXIST, JWT_token: session?.user?.jwt }));
                 });
             }
             // @ts-expect-error
@@ -123,7 +123,7 @@ export default function GamewithFriends(){
                     console.log('WhiteTime: ', whiteTime)
                     console.log('Black time: ', blackTime)
                 
-                    if(session?.user.id === roomData.room.whiteId){
+                    if(session?.user?.id === roomData.room.whiteId){
                         setPlayerTime(2*(whiteTime))
                         setOpponentTime(2*(blackTime));
                     }else{
@@ -144,7 +144,7 @@ export default function GamewithFriends(){
             setIsJoiningGame(true);
             const socket = WebSocketClient.getInstance();
             socket.sendMessage(
-                JSON.stringify({ type: WebSocketMessageType.CREATE_INVITE_LINK, JWT_token: session?.user.jwt, color: selectedColor})
+                JSON.stringify({ type: WebSocketMessageType.CREATE_INVITE_LINK, JWT_token: session?.user?.jwt, color: selectedColor})
             );
         }
 
@@ -174,117 +174,150 @@ export default function GamewithFriends(){
                 }
             };
         return (
-            <div className="w-full lg:h-screen flex justify-center items-center bg-[#e0e0e0]">
-                <div className="flex flex-col lg:flex-row w-11/12 bg-[#111114] justify-center items-center p-10 rounded-3xl shadow-2xl shadow-slate-700">
-                    <div className="lg:w-1/2 w-5/6 outline-white outline-8">
-                        <Image
-                            src="/images/PlaywithFriend.svg"
-                            alt="Chessmasters"
-                            width={700}
-                            height={700}
-                            className="bg-white"
-                        />
-                    </div>
-                    <div className="lg:w-1/2 flex justify-center items-center flex-col p-10 px-">
-
-                        <h1 className=" text-3xl font-extrabold text-center">Invite. Play. Checkmate your friend!!</h1>
-                        <h1 className=" text-lg font-medium text-center mt-3"> Challenge your friend to a real-time chess duel and see who truly reigns supreme! 
-                        Just send an invite, and you're ready for head-to-head action—no hassle, no setup, just pure strategy. Sharpen your tactics, outsmart your rival, 
-                        and claim victory on the board. Play now and let the mind games begin! ♟️
-                        </h1>
-                        <div className="h-24 flex gap-4 justify-center items-center">
-                            <Dropdown type={"audio"}/>
-                            <div className="flex justify-center items-center rounded-2xl bg-red-600 h-10 w-10 hover:bg-red-700 hover:cursor-pointer">
-                                <FaMicrophone className=" text-black text-lg"/>
-                            </div>
-                            <Dropdown type={"video"}/>
-                            <div className="flex justify-center items-center rounded-2xl hover:bg-red-700 hover:cursor-pointer bg-red-600 h-10 w-10">
-                                <FaCamera className=" text-black text-lg"/>
-                            </div>
-
-                        </div>
-                        <div className="flex flex-col gap-4 md:flex-row md:gap-10">
-                            {/* Input for entering invitation code */}
-                            <div className="flex justify-center items-center">
-                                <Input 
-                                    placeholder="Enter invitation code"
-                                    value={inviteCode}
-                                    onChange={(e) => setInviteCode(e.target.value)}
-                                    className="w-40 rounded-r-none"
-                                />
-                                <Button className="h-10 rounded-l-none"
-                                onClick={() => {
-                                    ws?.sendMessage(JSON.stringify({ type: WebSocketMessageType.JOIN_FRIEND_ROOM, JWT_token: session?.user.jwt, roomId: inviteCode}));
-                                    console.log('Invite code sent')
-                                }}>Join Room</Button>
-                            </div>
-                            {/* Input for generated code + copy button */}
-                            <div className="flex justify-center items-center w-full md:w-auto">
-                                <Input 
-                                placeholder="Generate Code"
-                                readOnly
-                                value={generatedCode}
-                                className="w-40 h-10 rounded-r-none"
-                                />
-                                <Button onClick={handleCopy} variant="outline" className="h-10 rounded-l-none">
-                                <Copy className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-6 md:gap-10 mt-8">
-                            <h1 className="md:text-4xl"> <FaChessRook /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessKnight /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessBishop /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessQueen /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessKing /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessBishop /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessKnight /> </h1>
-                            <h1 className="md:text-4xl"> <FaChessRook /> </h1>
-                        </div>
-                        <div className="mt-10 w-full">
-                            <Button 
-                                className="w-full" 
-                                onClick={generateRoom} 
-                                disabled={isJoiningGame}
-                                >
-                                {isJoiningGame ? (
-                                    <ClipLoader
-                                    color={'#000'}
-                                    size={20}  // Smaller size to fit the button nicely
-                                    aria-label="Loading Spinner"
-                                    data-testid="loader"
-                                    />
-                                    
-                                ) : (
-                                    "Generate Code"
-                                )}
-                                </Button>
-                                <div className="w-full flex mt-2 justify-center items-center">
-                                    <div>
-                                    {isJoiningGame ? (<h1 className=" text-slate-500"> Waiting for player to join using generated code...</h1>) : ("")}
-                                    </div>
-                                </div>
-                                
-                        </div>
-                        <div className="flex gap-4 mt-6 w-full justify-center">
-                            <span 
-                            onClick={() => setSelectedColor("white")}
-                            className={`w-8 h-8 rounded-full border cursor-pointer ${
-                                selectedColor === "white" ? "ring-2 ring-blue-500" : ""
-                            }`}
-                            style={{ backgroundColor: "white", borderColor: "black" }}
-                            />
-                            <span 
-                            onClick={() => setSelectedColor("black")}
-                            className={`w-8 h-8 rounded-full border cursor-pointer ${
-                                selectedColor === "black" ? "ring-2 ring-blue-500" : ""
-                            }`}
-                            style={{ backgroundColor: "black" }}
-                            />
-                        </div>
-                    </div>    
-                </div>
+        <div className="w-full lg:h-screen flex justify-center items-center bg-[#e0e0e0] overflow-x-hidden py-6 pb-20">
+            <div className="flex flex-col lg:flex-row w-11/12 max-w-6xl bg-[#111114] justify-center items-center p-4 sm:p-6 md:p-10 rounded-3xl shadow-2xl shadow-slate-700">
+            
+            {/* Image Section */}
+            <div className="lg:w-1/2 w-5/6 flex justify-center">
+                <Image
+                src="/images/PlaywithFriend.svg"
+                alt="Chessmasters"
+                width={700}
+                height={700}
+                className="bg-white max-w-full h-auto rounded-xl"
+                />
             </div>
+
+            {/* Content Section */}
+            <div className="lg:w-1/2 w-full flex justify-center items-center flex-col p-4 sm:p-6 text-center">
+
+                <h1 className="text-2xl sm:text-3xl font-extrabold">
+                Invite. Play. Checkmate your friend!!
+                </h1>
+                <p className="text-sm sm:text-lg font-medium mt-3 px-2">
+                Challenge your friend to a real-time chess duel and see who truly reigns supreme! 
+                Just send an invite, and you're ready for head-to-head action—no hassle, no setup, just pure strategy. 
+                Sharpen your tactics, outsmart your rival, and claim victory on the board. Play now and let the mind games begin! ♟️
+                </p>
+
+                {/* Audio / Video Controls - 2 Rows */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mt-5 w-full">
+                
+                {/* Row 1 - Audio */}
+                <div className="flex flex-nowrap items-center justify-center gap-2 w-full sm:w-auto">
+                    <Dropdown type="audio" />
+                    <div className="flex justify-center items-center rounded-2xl bg-red-600 
+                                    h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 hover:bg-red-700 cursor-pointer">
+                    <FaMicrophone className="text-black text-sm sm:text-base md:text-lg" />
+                    </div>
+                </div>
+
+                {/* Row 2 - Video */}
+                <div className="flex flex-nowrap items-center justify-center gap-2 w-full sm:w-auto">
+                    <Dropdown type="video" />
+                    <div className="flex justify-center items-center rounded-2xl bg-red-600 
+                                    h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 hover:bg-red-700 cursor-pointer">
+                    <FaCamera className="text-black text-sm sm:text-base md:text-lg" />
+                    </div>
+                </div>
+
+                </div>
+
+                {/* Invitation + Generate Code Row */}
+                <div className="flex flex-nowrap items-center justify-center gap-2 sm:gap-4 mt-6 w-full overflow-hidden">
+                
+                {/* Join Room */}
+                <div className="flex items-center flex-shrink gap-0">
+                    <Input 
+                    placeholder="Enter code"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    className="w-20 sm:w-24 md:w-32 lg:w-36 rounded-r-none text-xs sm:text-sm"
+                    />
+                    <Button 
+                    className="h-9 sm:h-10 md:h-11 rounded-l-none text-xs sm:text-sm md:text-base px-3 sm:px-4"
+                    onClick={() => {
+                        ws?.sendMessage(JSON.stringify({ 
+                        type: WebSocketMessageType.JOIN_FRIEND_ROOM, 
+                        JWT_token: session?.user?.jwt, 
+                        roomId: inviteCode 
+                        }));
+                    }}
+                    >
+                    Join
+                    </Button>
+                </div>
+
+                {/* Generate Code */}
+                <div className="flex items-center flex-shrink gap-0">
+                    <Input 
+                    placeholder="Generate"
+                    readOnly
+                    value={generatedCode}
+                    className="w-20 sm:w-24 md:w-32 lg:w-36 h-9 sm:h-10 md:h-11 rounded-r-none text-xs sm:text-sm"
+                    />
+                    <Button 
+                    onClick={handleCopy} 
+                    variant="outline" 
+                    className="h-9 sm:h-10 md:h-11 rounded-l-none px-3 sm:px-4"
+                    >
+                    <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
+                </div>
+                </div>
+
+                {/* Chess Icons */}
+                <div className="flex gap-2 sm:gap-4 md:gap-6 mt-6 flex-wrap justify-center max-w-full">
+                {[FaChessRook, FaChessKnight, FaChessBishop, FaChessQueen, FaChessKing, FaChessBishop, FaChessKnight, FaChessRook].map((Icon, i) => (
+                    <Icon key={i} className="text-lg sm:text-2xl md:text-4xl" />
+                ))}
+                </div>
+
+                {/* Generate Code Button */}
+                <div className="mt-8 w-full max-w-lg">
+                <Button 
+                    className="w-full text-base sm:text-lg py-3 sm:py-4" 
+                    onClick={generateRoom} 
+                    disabled={isJoiningGame}
+                >
+                    {isJoiningGame ? (
+                    <ClipLoader color={'#000'} size={20} />
+                    ) : (
+                    "Generate Code"
+                    )}
+                </Button>
+
+                {isJoiningGame && (
+                    <p className="text-slate-500 mt-2 text-xs sm:text-sm px-2">
+                    Waiting for player to join using generated code...
+                    </p>
+                )}
+                </div>
+
+                {/* Color Selection */}
+                <div className="flex gap-4 mt-6 w-full justify-center">
+                <span 
+                    onClick={() => setSelectedColor("white")}
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border cursor-pointer ${
+                    selectedColor === "white" ? "ring-2 ring-blue-500" : ""
+                    }`}
+                    style={{ backgroundColor: "white", borderColor: "black" }}
+                />
+                <span 
+                    onClick={() => setSelectedColor("black")}
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border cursor-pointer ${
+                    selectedColor === "black" ? "ring-2 ring-blue-500" : ""
+                    }`}
+                    style={{ backgroundColor: "black" }}
+                />
+                </div>
+
+            </div>
+            </div>
+        </div>
         );
+
+
+
+
 }

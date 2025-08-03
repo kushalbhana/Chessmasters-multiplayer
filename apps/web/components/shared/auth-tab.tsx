@@ -10,7 +10,7 @@ import { SignupForm } from "../form/signup-form-demo"
 
 export function AuthTab() {
   return (
-    <Tabs defaultValue="account" className="w-[400px]">
+    <Tabs defaultValue="account" className="w-[300px] lg:w-[400px]">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="account">Login</TabsTrigger>
         <TabsTrigger value="password">Signup</TabsTrigger>

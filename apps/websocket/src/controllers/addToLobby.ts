@@ -116,6 +116,8 @@ export async function addToLobby(ws: WebSocket, message: any): Promise<void> {
       moves: JSON.stringify(JSON.stringify([])),
     };
 
+    console.log(redisRoom)
+
     const whitePlayer: PlayerHash = {
       id: newRoom.whiteId,
       room: roomId,

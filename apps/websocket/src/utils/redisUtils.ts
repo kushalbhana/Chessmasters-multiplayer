@@ -95,7 +95,6 @@ export async function CreateRoomCache(roomKey: string, data: any, whiteId: strin
     multi.rPush("queue:movesQueue", JSON.stringify(gameToDB));
     
     await multi.exec();
-
 }
 
 export async function subscribeToRoom(roomId: string) {
@@ -164,9 +163,11 @@ export async function postGameCleanUp(roomId: string, user1: string, user2: stri
     
     multi.rPush('queue:gameOverQueue', JSON.stringify(data));
     // Delete entire Redis keys
-    multi.del(`gameRoom:${roomId}`);
     multi.del(`player:${user1}`);
     multi.del(`player:${user2}`);
+    multi.del(`gameRoom:${roomId}`);
+    console.log('Post Cleanup playerId', user1);
+    console.log('Post Cleanup player 2 ID', user2);
   
     await multi.exec();
   }

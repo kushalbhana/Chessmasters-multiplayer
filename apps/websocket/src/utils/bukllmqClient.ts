@@ -3,6 +3,7 @@ import { webSocketManager } from '..';
 import { gameStatusObj } from '@repo/lib/status';
 import { postGameCleanUp } from './redisUtils';
 import 'dotenv/config';  // or require('dotenv').config();
+import { gameRoom } from '@repo/lib/types';
 
 
 export const chessTimersQueue = new Queue('chess-timers', {
@@ -28,14 +29,29 @@ export async function clearPlayerTimeout(roomId: string, userId: string) {
   await chessTimersQueue.remove(`timeout:${roomId}:${userId}`);
 }
 
+
 const timeoutWorker = new Worker(
   'chess-timers',
   async (job) => {
     console.log('⏱️ Timeout job received:', job.data);
 
-    const gameRoom = webSocketManager.gameRoom[job.data.roomId];
+    let gameRoom = webSocketManager.gameRoom[job.data.roomId];
+
+    // 🔹 If not found in memory, fetch from Redis Hash
     if (!gameRoom) {
-      console.warn(`No game room found for timeout: ${job.data.roomId}`);
+      console.warn(`No game room found in memory for timeout: ${job.data.roomId}, checking Redis...`);
+
+      const data = await webSocketManager.redisClient.hGetAll(`gameRoom:${job.data.roomId}`);
+      
+      if (Object.keys(data).length > 0) {
+        gameRoom = data as unknown as gameRoom; // Already an object from HGETALL
+        console.log(`Game room loaded from Redis (hash) for roomId: ${job.data.roomId}`);
+      }
+    }
+
+    // 🔹 If still no gameRoom, skip this job
+    if (!gameRoom) {
+      console.warn(`No game room found anywhere for timeout: ${job.data.roomId}`);
       return;
     }
 
@@ -50,10 +66,17 @@ const timeoutWorker = new Worker(
 
     console.log('Game over due to timeout:', winner);
     console.log('Winner:', winner === gameRoom.whiteId ? 'White' : 'Black');
+
     clearPlayerTimeout(job.data.roomId, gameRoom.whiteId);
     clearPlayerTimeout(job.data.roomId, gameRoom.blackId);
 
-    await postGameCleanUp(job.data.roomId, gameRoom.whiteId, gameRoom.blackId, updateDBAboutGameOver);
+    await postGameCleanUp(
+      job.data.roomId,
+      gameRoom.whiteId,
+      gameRoom.blackId,
+      updateDBAboutGameOver
+    );
+
     delete webSocketManager.gameRoom[job.data.roomId];
   },
   {
@@ -70,3 +93,4 @@ timeoutWorker.on('completed', (job) => {
 timeoutWorker.on('failed', (job, err) => {
   console.error(`❌ Job ${job?.id} failed:`, err);
 });
+

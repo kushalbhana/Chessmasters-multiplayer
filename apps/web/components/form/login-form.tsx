@@ -121,7 +121,7 @@ export function LoginForm({
         </div>
         
       </form>
-      <div className="mt-5">
+      <div className="mt-5 pb-12">
         <Button variant="outline" className="w-full h-12" 
             onClick={async () => {
                 await signIn("google");

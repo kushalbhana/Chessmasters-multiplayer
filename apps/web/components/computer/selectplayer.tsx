@@ -7,6 +7,7 @@ import { isBotChoosen } from "@/store/atoms/bot";
 export function PlayerTabs() {
   const [selectedId, setSelectedId] = useState<string>("");
   const setBot = useSetRecoilState(isBotChoosen);
+  
 
   function getStockfishDepthFromRating(rating: number): number {
     if (rating <= 800) return 1;
@@ -33,7 +34,7 @@ export function PlayerTabs() {
   };
 
   return (
-    <div className="flex gap-4 justify-center mt-6">
+    <div className="flex flex-wrap lg:flex-nowrap justify-center gap-3 sm:gap-4 mt-6 w-full max-w-4xl mx-auto">
       {players.map((player) => {
         const isSelected = player.id === selectedId;
 
@@ -41,14 +42,22 @@ export function PlayerTabs() {
           <button
             key={player.id}
             onClick={() => selectPlayer(player.id)}
-            className={`flex flex-col items-center p-4 rounded-xl border-2 w-24 transition-all 
+            className={`flex flex-col items-center p-3 sm:p-4 rounded-xl border-2 w-20 sm:w-24 transition-all
               ${isSelected ? "border-blue-500 bg-blue-100" : "border-gray-300"}`}
           >
-            <div className="text-3xl">{player.avatar}</div>
-            <div className={`mt-2 text-sm font-semibold ${isSelected ? "text-black" : "text-gray-700"}`}>
+            <div className="text-2xl sm:text-3xl">{player.avatar}</div>
+            <div
+              className={`mt-1 sm:mt-2 text-xs sm:text-sm font-semibold ${
+                isSelected ? "text-black" : "text-gray-700"
+              }`}
+            >
               {player.name}
             </div>
-            <div className={`text-xs ${isSelected ? "text-black" : "text-gray-500"}`}>
+            <div
+              className={`text-[10px] sm:text-xs ${
+                isSelected ? "text-black" : "text-gray-500"
+              }`}
+            >
               Rating: {player.rating}
             </div>
           </button>
@@ -56,4 +65,6 @@ export function PlayerTabs() {
       })}
     </div>
   );
+
+
 }
