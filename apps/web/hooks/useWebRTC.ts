@@ -5,6 +5,7 @@ import { PlayerType } from "@repo/lib/types";
 import { useSession } from "next-auth/react";
 import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { useRecoilValue } from "recoil";
+import { camStatus, micStatus } from "@/store/atoms/videoutility";
 
 export const useWebRTC = (playerType: PlayerType) => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -14,6 +15,8 @@ export const useWebRTC = (playerType: PlayerType) => {
   const { data: session } = useSession();
   const room = useRecoilValue(roomInfo);
   const ws = useMemo(() => WebSocketClient.getInstance(), []);
+  const microphoneStatus = useRecoilValue<boolean>(micStatus);
+  const cameraStatus = useRecoilValue<boolean>(camStatus);
 
   // Send ICE candidate to remote peer
   const handleIceCandidate = useCallback((event: RTCPeerConnectionIceEvent) => {
@@ -134,6 +137,29 @@ export const useWebRTC = (playerType: PlayerType) => {
     };
     initMedia();
   }, []);
+
+  // Control microphone based on microphoneStatus
+  useEffect(() => {
+    if (localStream) {
+      const audioTracks = localStream.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = microphoneStatus;
+      });
+    }
+
+    localStorage.setItem('microphoneStatus', JSON.stringify(microphoneStatus))
+  }, [microphoneStatus, localStream]);
+
+  // Control camera based on cameraStatus
+  useEffect(() => {
+    if (localStream) {
+      const videoTracks = localStream.getVideoTracks();
+      videoTracks.forEach(track => {
+        track.enabled = cameraStatus;
+      });
+    }
+    localStorage.setItem('cameraStatus', JSON.stringify(microphoneStatus))
+  }, [cameraStatus, localStream]);
 
   // WebSocket handler
   useEffect(() => {

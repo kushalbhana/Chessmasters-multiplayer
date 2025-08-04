@@ -2,13 +2,18 @@ import { atom } from 'recoil';
 
 export const camStatus = atom<boolean>({
   key: 'camStatus',
-  default: true,
+  default: typeof window !== 'undefined'
+    ? JSON.parse(localStorage.getItem('cameraStatus') ?? 'true')
+    : true,
 });
 
 export const micStatus = atom<boolean>({
   key: 'micStatus',
-  default: true,
+  default: typeof window !== 'undefined'
+    ? JSON.parse(localStorage.getItem('microphoneStatus') ?? 'true')
+    : true,
 });
+
 
 export const micInUse = atom<number>({
   key: 'micInUse',

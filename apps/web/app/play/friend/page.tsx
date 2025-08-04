@@ -1,7 +1,8 @@
 "use client"
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSetRecoilState } from "recoil";
+import { useSetRecoilState, useRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
@@ -14,15 +15,14 @@ import { roomInfo } from "@/store/selectors/getRoomSelector";
 import { GameLayout } from "@/components/playpage/gamelayout";
 import { clientSideRoom } from "@repo/lib/types";
 import { GameManager } from "@/lib/game/gamemanager";
-import { FaMicrophone } from "react-icons/fa";
-import { FaCamera } from "react-icons/fa";
+import { FaMicrophone,FaCamera } from "react-icons/fa";
 import { Dropdown } from "@/components/ui/dropdown";
 import { gameMoves } from "@/store/atoms/moves";
 import { playerTime, opponentTime } from "@/store/atoms/game";
 import { ClipLoader } from "react-spinners";
 import { Chess } from "chess.js";
 import { Input } from "@/components/ui/input";
-import { Copy } from "lucide-react";
+import { micStatus, camStatus } from "@/store/atoms/videoutility";
 
 
 export default function GamewithFriends(){
@@ -39,6 +39,8 @@ export default function GamewithFriends(){
         const [selectedColor, setSelectedColor] = useState("white")
         const [ws, setWs] = useState<WebSocketClient | null>(null);
         const { toast } = useToast();
+        const [microphoneStatus, setMicStatus] = useRecoilState(micStatus);
+        const [cameraStatus, setCamStatus] = useRecoilState(camStatus);
     
 
         useEffect(() => {
@@ -206,8 +208,9 @@ export default function GamewithFriends(){
                 {/* Row 1 - Audio */}
                 <div className="flex flex-nowrap items-center justify-center gap-2 w-full sm:w-auto">
                     <Dropdown type="audio" />
-                    <div className="flex justify-center items-center rounded-2xl bg-red-600 
-                                    h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 hover:bg-red-700 cursor-pointer">
+                    <div className={`flex justify-center items-center rounded-2xl 
+                        ${!microphoneStatus ? "bg-red-600 hover:bg-red-700" : "bg-current hover:bg-slate-300"}
+                        h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 cursor-pointer `} onClick={() => setMicStatus((prev) => !prev)}>
                     <FaMicrophone className="text-black text-sm sm:text-base md:text-lg" />
                     </div>
                 </div>
@@ -215,8 +218,9 @@ export default function GamewithFriends(){
                 {/* Row 2 - Video */}
                 <div className="flex flex-nowrap items-center justify-center gap-2 w-full sm:w-auto">
                     <Dropdown type="video" />
-                    <div className="flex justify-center items-center rounded-2xl bg-red-600 
-                                    h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 hover:bg-red-700 cursor-pointer">
+                    <div className={`flex justify-center items-center rounded-2xl
+                        ${!cameraStatus ? "bg-red-600 hover:bg-red-700" : "bg-current hover:bg-slate-300"}
+                    h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 cursor-pointer`} onClick={() => setCamStatus((prev) => !prev)}>
                     <FaCamera className="text-black text-sm sm:text-base md:text-lg" />
                     </div>
                 </div>

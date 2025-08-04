@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { useSession } from "next-auth/react";
 import { Chess } from "chess.js";
 
@@ -19,6 +19,7 @@ import { gameMoves } from "@/store/atoms/moves";
 import { playerTime, opponentTime } from "@/store/atoms/game";
 import Image from "next/image";
 import { ClipLoader } from "react-spinners";
+import { camStatus, micStatus } from "@/store/atoms/videoutility";
 
 
 export default function GameLobby() {
@@ -30,6 +31,8 @@ export default function GameLobby() {
     const setPlayerTime = useSetRecoilState(playerTime);
     const setOpponentTime = useSetRecoilState(opponentTime);
     const [isJoiningGame, setIsJoiningGame] = useState<boolean>(false);
+    const [microphoneStatus, setMicStatus] = useRecoilState(micStatus);
+    const [cameraStatus, setCamStatus] = useRecoilState(camStatus);
 
     useEffect(() => {
         if (status === 'loading') {
@@ -179,11 +182,15 @@ export default function GameLobby() {
                 {/* Controls */}
                 <div className="h-24 flex flex-wrap gap-3 sm:gap-4 justify-center items-center mt-5">
                 <Dropdown type={"audio"} />
-                <div className="flex justify-center items-center rounded-2xl bg-red-600 h-9 w-9 sm:h-10 sm:w-10 hover:bg-red-700 cursor-pointer">
-                    <FaMicrophone className="text-black text-base sm:text-lg" />
+                <div className={`flex justify-center items-center rounded-2xl ${!microphoneStatus ? "bg-red-600 hover:bg-red-700" : "bg-current hover:bg-slate-300"} h-9 w-9 sm:h-10 sm:w-10 cursor-pointer`}
+                    onClick={() => setMicStatus((prev) => !prev)}
+                    >
+                    <FaMicrophone className="text-black text-base sm:text-lg"/>
                 </div>
                 <Dropdown type={"video"} />
-                <div className="flex justify-center items-center rounded-2xl bg-red-600 h-9 w-9 sm:h-10 sm:w-10 hover:bg-red-700 cursor-pointer">
+                <div className={`flex justify-center items-center rounded-2xl ${!cameraStatus ? "bg-red-600 hover:bg-red-700" : "bg-current hover:bg-slate-300"}  h-9 w-9 sm:h-10 sm:w-10 cursor-pointer`}
+                     onClick={() => setCamStatus((prev) => !prev)}
+                    >
                     <FaCamera className="text-black text-base sm:text-lg" />
                 </div>
                 </div>
