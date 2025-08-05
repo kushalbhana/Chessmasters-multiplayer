@@ -4,6 +4,7 @@ import { gameStatusObj } from '@repo/lib/status';
 import { postGameCleanUp } from './redisUtils';
 import 'dotenv/config';  // or require('dotenv').config();
 import { gameRoom } from '@repo/lib/types';
+import { WebSocketMessageType, gameStatusMessage } from '@repo/lib/status';
 
 
 export const chessTimersQueue = new Queue('chess-timers', {
@@ -21,6 +22,8 @@ export async function schedulePlayerTimeout(roomId: string, userId: string, time
     {
       delay: timeLeft * 1000,
       jobId: `timeout:${roomId}:${userId}`,
+      removeOnComplete: true,
+      removeOnFail: true,
     }
   );
 }
@@ -28,7 +31,6 @@ export async function schedulePlayerTimeout(roomId: string, userId: string, time
 export async function clearPlayerTimeout(roomId: string, userId: string) {
   await chessTimersQueue.remove(`timeout:${roomId}:${userId}`);
 }
-
 
 const timeoutWorker = new Worker(
   'chess-timers',
@@ -63,6 +65,24 @@ const timeoutWorker = new Worker(
       winner,
       overType: gameStatusObj.TIMEOUT,
     };
+
+   if(gameRoom.game.turn() === 'b'){
+    if(gameRoom.whiteSocket)
+        gameRoom.whiteSocket.send(JSON.stringify({type: WebSocketMessageType.GAMEOVER, gameOverType: 'Timeout',
+        gameOverMessage: gameStatusMessage.TimeoutWIN , OverType: 'Win'}));
+    if(gameRoom.blackSocket){
+        gameRoom.blackSocket.send(JSON.stringify({type: WebSocketMessageType.GAMEOVER, gameOverType: 'Timeout',
+        gameOverMessage: gameStatusMessage.TimeoutLOST , OverType: 'Lose'}))
+    }
+    }else{
+      if(gameRoom.whiteSocket)
+          gameRoom.whiteSocket.send(JSON.stringify({type: WebSocketMessageType.GAMEOVER, gameOverType: 'Timeout',
+          gameOverMessage: gameStatusMessage.TimeoutLOST , OverType: 'Lose'}));
+      if(gameRoom.blackSocket){
+          gameRoom.blackSocket.send(JSON.stringify({type: WebSocketMessageType.GAMEOVER, gameOverType: 'Timeout',
+          gameOverMessage: gameStatusMessage.TimeoutWIN , OverType: 'Win'}))
+      }
+  }
 
     console.log('Game over due to timeout:', winner);
     console.log('Winner:', winner === gameRoom.whiteId ? 'White' : 'Black');

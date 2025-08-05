@@ -4,7 +4,7 @@ import { userWebSocketServer } from "@repo/lib/types";
 import { webSocketManager } from "..";
 import WebSocket from "ws";
 
-export const handleResignation = (message: any, ws: WebSocket) => {
+export const handleResignation = async (message: any, ws: WebSocket) => {
         if (!message.JWT_token || !message.roomId) {
             ws.send(JSON.stringify({
                 code: '1007',
@@ -49,5 +49,19 @@ export const handleResignation = (message: any, ws: WebSocket) => {
                 playerRoom.blackSocket.send(JSON.stringify({type: WebSocketMessageType.GAMEOVER, gameOverType: 'Resignation',
                 gameOverMessage: gameStatusMessage.ResignationWin , OverType: 'Win'}))
             }
+        }
+
+        delete webSocketManager.gameRoom[message?.roomId];
+        const client = webSocketManager.redisClient;
+        const keys = [`player:${playerRoom.blackId}`, `player:${playerRoom.whiteId}`, `gameRoom:${message.roomId}`]
+
+        if (keys.length > 0) {
+        const multi = client.multi(); // start multi/transaction
+
+        keys.forEach((key) => {
+            multi.del(key); // queue deletion
+        });
+
+        await multi.exec(); // execute all at once
         }
 }

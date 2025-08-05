@@ -27,37 +27,6 @@ export async function initializeRedis(): Promise<RedisClientType> {
     }
 }
 
-export async function setRoomFromRedis(){
-        try {
-            const cachedRoom = await redisClient?.hGetAll('rooms');
-            console.log('cached Rooms from redis',typeof(cachedRoom))
-            if (cachedRoom) {
-                let colledtedRooms: { [key: string]: Room } = {};
-                for (const key in cachedRoom) {
-                        let room: Room = JSON.parse(cachedRoom[key]!)
-
-                        if(room.senderSocket) room.senderSocket = null;
-                        if(room.receiverSocket) room.receiverSocket = null;
-                        
-                        colledtedRooms[key] = room;
-                    }
-                    return colledtedRooms; 
-            }
-             
-        } catch (error) {
-            console.log(error)
-            return {};
-        }
-    }
-export async function pushToRedis(roomId: string){
-        try {
-            console.log('started pushing to redis..')
-            // Retrieve the cached moves
-            webSocketManager.redisClient.hSet('rooms', roomId, JSON.stringify(webSocketManager.rooms[roomId]));
-        } catch (error) {
-            console.log(error);
-        }  
-    }
 export async function getRoomFromRedis(redisClient: RedisClientType) {
     try {
         const cachedRoom = await redisClient.hGetAll('rooms');
