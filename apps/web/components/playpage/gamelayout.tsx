@@ -3,10 +3,10 @@ import { ChessboardAndUtility } from "@/components/playpage/chessboardAndUtility
 import { VideoSection } from "./videoSection"
 import { MovesSection } from "./movesSection"
 import { UtilitySection } from "./utilitysection"
-import { VictoryDialog } from "./victorydialog"
 import { useRecoilState } from "recoil"
 import { gameStatus } from "@/store/atoms/game"
 import { MessageBox } from "./messagebox"
+import { GameOverDialog } from "../shared/gameOverDialogBox"
 
 export function GameLayout() {
     const [gameStat, setGameStat] = useRecoilState(gameStatus);
@@ -16,16 +16,7 @@ export function GameLayout() {
             {/* Chessboard and Victory Dialog */}
             <div className="w-full lg:w-6/12 relative">
                 <div className="absolute z-20 h-full w-full bg-gradient-to-b from-[#111114] to-[#1c1c1f] rounded-2xl hidden">
-                    <VictoryDialog
-                        open={gameStat.isGameOver}
-                        onClose={() =>
-                            setGameStat(prev => ({
-                                ...prev,
-                                isGameOver: false,
-                            }))
-                        }
-                        playerName="Kushal"
-                    />
+                        <GameOverDialog/>               
                 </div>
                 <ChessboardAndUtility />
             </div>

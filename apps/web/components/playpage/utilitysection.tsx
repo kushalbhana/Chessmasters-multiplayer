@@ -1,5 +1,5 @@
 "use client"
-import { useRecoilState} from "recoil";
+import { RecoilState, useRecoilState} from "recoil";
 
 import { Dropdown } from "../ui/dropdown";
 import { FaCamera, FaMicrophone } from "react-icons/fa";
@@ -10,10 +10,19 @@ import { MdOutlineReportGmailerrorred } from "react-icons/md";
 import { FaMicrophoneAltSlash } from "react-icons/fa";
 import { micStatus, camStatus } from "@/store/atoms/videoutility";
 import { BiSolidCameraOff } from "react-icons/bi";
+import { useMemo } from "react";
+import WebSocketClient from "@/lib/websocket/websocket-client";
+import { WebSocketMessageType } from "@repo/lib/status";
+import { useSession } from "next-auth/react";
+import { roomInfo } from "@/store/selectors/getRoomSelector";
+
 
 export function UtilitySection() {
     const [micropohoneStatus, setMicropohoneStatus] = useRecoilState(micStatus);
-  const [cameraStatus, setCameraStatus] = useRecoilState(camStatus);
+    const [cameraStatus, setCameraStatus] = useRecoilState(camStatus);
+    const ws = useMemo(() => WebSocketClient.getInstance(), []);
+    const {data: session} = useSession();
+    const [room,_] = useRecoilState(roomInfo);
     return (
         <div className="w-full h-full flex flex-col gap-2 pb-4">
             <div className="pt-6 flex gap-4 flex-wrap justify-center items-center">
@@ -32,10 +41,18 @@ export function UtilitySection() {
             </div>
             <div className=" flex pt-6 gap-2 flex-wrap justify-center items-center">
                 <div>
-                    <Button variant="secondary" className="w-28"> <FaFlag/> Resign</Button>
+                    <Button variant="secondary" className="w-28"
+                        onClick={() => {
+                            ws.sendMessage(JSON.stringify({type: WebSocketMessageType.RESIGN_REQUEST, JWT_token: session?.user?.jwt, roomId: (room?.roomId || "") }))
+                        }}
+                    > <FaFlag/> Resign </Button>
                 </div>
                 <div>
-                    <Button variant="secondary" className="w-28"> <GiPerspectiveDiceOne/> Draw</Button>
+                    <Button variant="secondary" className="w-28"
+                        onClick={() => {
+                                ws.sendMessage(JSON.stringify({type: WebSocketMessageType.DRAW_REQUEST, JWT_token: session?.user?.jwt, roomId: (room?.roomId || "")}))
+                            }}
+                    > <GiPerspectiveDiceOne/> Draw </Button>
                 </div>
                 <div>
                     <Button variant="secondary" className="w-28"><MdOutlineReportGmailerrorred/> Report</Button>

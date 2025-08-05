@@ -14,11 +14,16 @@ export const opponentTime = atom({
     default: 600, 
   });
 
-export const gameStatus = atom({ 
-    key: 'gameStatus',
-    default: {
-      isGameOver: false,
-      overType: 'Stalemate', // checkmate, stalemate, draw
-      status: 'Lost', //win, lost, draw
-    }, 
-  });
+export const gameStatus = atom({
+  key: "gameResult",
+  default: {
+    isGameOver: false,
+    overType: "Stalemate",
+    status: "Lost",
+
+    // New fields
+    gameOverType: "",
+    gameOverMessage: "",
+    OverType: "",
+  },
+});

@@ -39,7 +39,7 @@ export default function LobbyClient() {
       socket.sendMessage(
         JSON.stringify({
           type: WebSocketMessageType.ROOMEXIST,
-          JWT_token: session?.user.jwt,
+          JWT_token: session?.user?.jwt,
         })
       );
     };
@@ -74,7 +74,7 @@ export default function LobbyClient() {
         const whiteTime = Math.max(0, parseInt(data.room.whiteTime) - (currentTurn === "w" ? elapsedSeconds : 0));
         const blackTime = Math.max(0, parseInt(data.room.blackTime) - (currentTurn === "b" ? elapsedSeconds : 0));
 
-        if (session?.user.id === roomData.room.whiteId) {
+        if (session?.user?.id === roomData.room.whiteId) {
           setPlayerTime(2 * whiteTime);
           setOpponentTime(2 * blackTime);
         } else {
@@ -95,7 +95,7 @@ export default function LobbyClient() {
     socket.sendMessage(
       JSON.stringify({
         type: WebSocketMessageType.JOINLOBBY,
-        JWT_token: session?.user.jwt,
+        JWT_token: session?.user?.jwt,
       })
     );
   };

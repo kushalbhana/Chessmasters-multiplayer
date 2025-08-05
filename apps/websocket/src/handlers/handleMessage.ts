@@ -7,6 +7,7 @@ import { handleTextMessage } from "../controllers/textMessage";
 import { handleJoinCall } from "../controllers/webrtc";
 import { handleICECandidate, handleWebRTCAnswer, handleWebRTCOffer } from "../controllers/webRTCHandler";
 import { createInviteCode, JoinFriendRoom } from "../controllers/joinGameFriend";
+import { handleResignation } from "../controllers/handleResignation";
 
 
 export async function handleMessage(ws: WebSocket, data: string) {
@@ -44,6 +45,12 @@ export async function handleMessage(ws: WebSocket, data: string) {
     }else if(message.type === WebSocketMessageType.JOIN_FRIEND_ROOM){
         JoinFriendRoom(ws, message);
         return;
+    }else if(message.type ===  WebSocketMessageType.RESIGN_REQUEST){
+        console.log('Resign Request recieved', message)
+        handleResignation(message, ws);
+        return;
+    }else if(message.type === WebSocketMessageType.DRAW_REQUEST){
+
     }
     
     

@@ -30,7 +30,10 @@ export const WebSocketMessageType = {
     WEBRTCOFFERANSWER: 'webrtc_offer_answer',
     ICE_CANDIDATE: 'ice_candidate',
     CREATE_INVITE_LINK: 'create_invite_link',
-    JOIN_FRIEND_ROOM: 'join_friend_room'
+    JOIN_FRIEND_ROOM: 'join_friend_room',
+    RESIGN_REQUEST: 'resign_request',
+    DRAW_REQUEST: 'draw_request',
+    GAMEOVER: 'game_overs'
   };
 
   export const playerType = {
@@ -46,6 +49,7 @@ export const WebSocketMessageType = {
         INSUFFICIENT_MATERIAL: 'Insufficient-material',
         THREEFOLD_REPETITION: 'Threefold-repetition',
         TIMEOUT: 'Timeout',
+        RESIGNATION: 'resignations'
   }
   export const gameStatusMessage = {
         CheckmateWin: "Checkmate! You've cornered the king and claimed victory!",
@@ -56,6 +60,8 @@ export const WebSocketMessageType = {
         Threefold_Repetition: "Draw declared! The same position has occurred three times on the board.",
         TimeoutWIN: "Time's up! The game is over due to time expiration.",
         TimeoutLOST: "Time's up! You've run out of time, and the game is over.",
+        ResignationWin: "Congratulations! Your opponent has chosen to resign, granting you a well-earned victory.",
+        ResignationLose: "You have resigned from the match, and your opponent has been declared the winner."
   }
 
   interface Player {
