@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Chessboard } from "react-chessboard";
 import { useRecoilState, useRecoilValue, useRecoilCallback, useSetRecoilState } from "recoil";
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import { useSession } from "next-auth/react";
 
 import { TimeAndUser } from "./timeAndUser";
@@ -26,6 +26,10 @@ export function ChessboardAndUtility() {
   const setOppTimeRemaining = useSetRecoilState(opponentTime);
   const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
 
+  // New state for piece selection and move highlighting
+  const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
+  const [possibleMoves, setPossibleMoves] = useState<Square[]>([]);
+  const [lastMove, setLastMove] = useState<{from: Square, to: Square} | null>(null);
 
   const addMove = useRecoilCallback(({ set }) => (move: string) => {
     set(gameMoves, (prev) => [...prev, move]);
@@ -83,6 +87,17 @@ export function ChessboardAndUtility() {
           setGame(newGame);
           setPlayerTurn(true); // Your turn now
           addMove(moveResult.san);
+          
+          // Update last move highlight
+          setLastMove({
+            from: moveResult.from as Square,
+            to: moveResult.to as Square
+          });
+          
+          // Clear selection when opponent moves
+          setSelectedSquare(null);
+          setPossibleMoves([]);
+          
           setRoom((prevRoom) => {
             if (!prevRoom) return null;
             return {
@@ -124,10 +139,69 @@ export function ChessboardAndUtility() {
       socket.removeMessageListener(handleMessage);
     };
   }, [game]);
+
+  // Handle square click for piece selection and move execution
+  const handleSquareClick = (square: Square) => {
+    if (!playerTurn) {
+      console.log("It's not your turn.");
+      return;
+    }
+
+    const piece = game.get(square);
+    
+    // If clicking on a square with possible moves, make the move
+    if (selectedSquare && possibleMoves.includes(square)) {
+      const move = makeAMove({
+        from: selectedSquare,
+        to: square,
+        promotion: "q", // always promote to a queen for simplicity
+      });
+
+      if (move) {
+        // Send the move to the server
+        if (session?.user?.jwt && room?.roomId && selectedSquare) {
+          sendMove(session.user.jwt, 
+            room.roomId, 
+            color === 'w' ? playerType.WHITE : playerType.BLACK, 
+            {
+            from: selectedSquare,
+            to: square,
+            promotion: "q", 
+          });
+        }
+        
+        // Update last move highlight
+        if (selectedSquare) {
+          setLastMove({
+            from: selectedSquare,
+            to: square
+          });
+        }
+        
+        // Clear selection
+        setSelectedSquare(null);
+        setPossibleMoves([]);
+      }
+      return;
+    }
+
+    // If clicking on own piece, select it and show possible moves
+    if (piece && piece.color === color) {
+      setSelectedSquare(square);
+      
+      // Get all possible moves for this piece
+      const moves = game.moves({ square: square as Square, verbose: true });
+      const moveSquares = moves.map(move => move.to as Square);
+      setPossibleMoves(moveSquares);
+    } else {
+      // Clear selection if clicking on empty square or opponent's piece
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+    }
+  };
   
 
-  // @ts-expect-error
-  function makeAMove(move) {
+  function makeAMove(move: {from: Square, to: Square, promotion?: string}) {
     try {
       const validMove = game.move(move);
       if (!validMove) {
@@ -160,8 +234,8 @@ export function ChessboardAndUtility() {
     }
    
   }
-  // @ts-expect-error
-  const handleMove = (sourceSquare, targetSquare) => {
+  
+  const handleMove = (sourceSquare: Square, targetSquare: Square) => {
     if (!playerTurn) {
       console.log("It's not your turn.");
       return false;
@@ -178,19 +252,109 @@ export function ChessboardAndUtility() {
       return false;
     }
     
-    // @ts-expect-error
-    // Send the move to the server
-    sendMove(session?.user.jwt, 
-      room?.roomId, 
-      color === 'w' ? playerType.WHITE : playerType.BLACK, 
-      {
+    // Update last move highlight
+    setLastMove({
       from: sourceSquare,
-      to: targetSquare,
-      promotion: "q", 
+      to: targetSquare
     });
+    
+    // Clear selection
+    setSelectedSquare(null);
+    setPossibleMoves([]);
+    
+    // Send the move to the server
+    if (session?.user?.jwt && room?.roomId) {
+      sendMove(session.user.jwt, 
+        room.roomId, 
+        color === 'w' ? playerType.WHITE : playerType.BLACK, 
+        {
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q", 
+      });
+    }
     return true;
   };
-console.log("Moves: ", moves);
+
+  // Custom square styles for highlighting
+  const customSquareStyles = useMemo(() => {
+    const styles: { [square: string]: React.CSSProperties } = {};
+    
+    // Highlight selected square
+    if (selectedSquare) {
+      styles[selectedSquare] = {
+        backgroundColor: 'rgba(255, 255, 0, 0.4)'
+      };
+    }
+    
+    // Highlight last move squares
+    if (lastMove) {
+      styles[lastMove.from] = {
+        ...styles[lastMove.from],
+        backgroundColor: 'rgba(255, 255, 0, 0.6)'
+      };
+      styles[lastMove.to] = {
+        ...styles[lastMove.to],
+        backgroundColor: 'rgba(255, 255, 0, 0.6)'
+      };
+    }
+    
+    return styles;
+  }, [selectedSquare, possibleMoves, lastMove, game]);
+
+  // Custom square component to render dots for possible moves
+  const customSquare = ({ children, square, style }: any) => {
+    const isPossibleMove = possibleMoves.includes(square);
+    const piece = game.get(square);
+    const hasCapture = isPossibleMove && piece;
+    const hasMove = isPossibleMove && !piece;
+
+    return (
+      <div
+        style={{
+          ...style,
+          position: 'relative',
+        }}
+      >
+        {children}
+        {hasMove && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '22%',
+              height: '22%',
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              zIndex: 1
+            }}
+          />
+        )}
+        {hasCapture && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              right: '0',
+              bottom: '0',
+              border: '4px solid rgba(255, 0, 0, 0.7)',
+              borderRadius: '50%',
+              boxSizing: 'border-box',
+              pointerEvents: 'none',
+              zIndex: 1
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
+  console.log("Moves: ", moves);
+  
   return (
     <div className="flex flex-col gap-1">
       <div className="pr-2">
@@ -202,7 +366,14 @@ console.log("Moves: ", moves);
           position={room?.room.game}
           arePiecesDraggable={playerTurn}
           onPieceDrop={handleMove}
+          onSquareClick={handleSquareClick}
           boardOrientation={orientation}
+          customSquareStyles={customSquareStyles}
+          customSquare={customSquare}
+          customBoardStyle={{
+            borderRadius: '4px',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)'
+          }}
         />
       </div>
       <div className="pr-2">
