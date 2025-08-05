@@ -3,21 +3,25 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useRecoilState } from "recoil";
 import { prevMove } from "@/store/atoms/bot";
 import { useRouter } from "next/navigation";
+import { useResetGame } from "@/hooks/useResetGame";
+
 
 export function PrevUtility() {
   const [, setPrev] = useRecoilState(prevMove);
+  const resetGame = useResetGame();
+
+
   const router = useRouter();
 
   const handlePrev = () => {
     setPrev((prev) => prev - 1);
   };
 
-  const handleResign = () => {
-    localStorage.removeItem("fen");
-    localStorage.removeItem("moves");
-    router.push("/");
-    console.log("Done>>");
+   const handleResign = () => {
+    resetGame();
+    router.push("/");  
   };
+
 
   return (
     <div className="flex justify-center w-full mt-4">

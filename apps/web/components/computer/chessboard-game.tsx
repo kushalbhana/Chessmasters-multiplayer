@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import axios from "axios";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
@@ -48,6 +48,11 @@ export function ChessboardGame() {
   const peices = useRecoilValue(differentPeices);
   const prev = useRecoilValue(prevMove);
   const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
+
+  // New state for piece selection and move highlighting
+  const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
+  const [possibleMoves, setPossibleMoves] = useState<Square[]>([]);
+  const [lastMove, setLastMove] = useState<{from: Square, to: Square} | null>(null);
 
   const [, setBot] = useState({
     id: "p1",
@@ -147,40 +152,101 @@ export function ChessboardGame() {
     }
   };
 
-  function handleMove(sourceSquare: string, targetSquare: string): boolean {
-      try {
-          const move = game.move({
-            from: sourceSquare,
-            to: targetSquare,
-            promotion: "q",
+  // Handle square click for piece selection and move execution
+  const handleSquareClick = (square: Square) => {
+    if (!playerTurn) {
+      console.log("It's not your turn.");
+      return;
+    }
+
+    const piece = game.get(square);
+    const playerColor = orientation === "white" ? "w" : "b";
+    
+    // If clicking on a square with possible moves, make the move
+    if (selectedSquare && possibleMoves.includes(square)) {
+      const move = makeMove(selectedSquare, square);
+
+      if (move) {
+        // Update last move highlight
+        setLastMove({
+          from: selectedSquare,
+          to: square
         });
-
-        if (!move) return false;
-
-        const newMove: MoveAnalytics = {
-            move: move.from + move.to,
-            by: "player",
-            fen: game.fen(),
-            moveSan: move.san
-          };
-
-          setFen(game.fen());
-          setPlayerTurn(false);
-          setMoves((prev) => [...prev, newMove]);
-          setLastPlayerMove(newMove.move);
-          localStorage.setItem("fen", game.fen());
-          setGameOver('player');
-          localStorage.setItem('moves', JSON.stringify([...moves, newMove]));
-
-          return true;
-      } catch {
-          return false;
+        
+        // Clear selection
+        setSelectedSquare(null);
+        setPossibleMoves([]);
       }
+      return;
+    }
+
+    // If clicking on own piece, select it and show possible moves
+    if (piece && piece.color === playerColor) {
+      setSelectedSquare(square);
+      
+      // Get all possible moves for this piece
+      const moves = game.moves({ square: square, verbose: true });
+      const moveSquares = moves.map(move => move.to as Square);
+      setPossibleMoves(moveSquares);
+    } else {
+      // Clear selection if clicking on empty square or opponent's piece
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+    }
+  };
+
+  // Extract move logic into separate function for reuse
+  function makeMove(sourceSquare: Square, targetSquare: Square): boolean {
+    try {
+      const move = game.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
+
+      if (!move) return false;
+
+      const newMove: MoveAnalytics = {
+        move: move.from + move.to,
+        by: "player",
+        fen: game.fen(),
+        moveSan: move.san
+      };
+
+      setFen(game.fen());
+      setPlayerTurn(false);
+      setMoves((prev) => [...prev, newMove]);
+      setLastPlayerMove(newMove.move);
+      localStorage.setItem("fen", game.fen());
+      setGameOver('player');
+      localStorage.setItem('moves', JSON.stringify([...moves, newMove]));
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
+  function handleMove(sourceSquare: Square, targetSquare: Square): boolean {
+    const success = makeMove(sourceSquare, targetSquare);
+    
+    if (success) {
+      // Update last move highlight
+      setLastMove({
+        from: sourceSquare,
+        to: targetSquare
+      });
+      
+      // Clear selection
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+    }
+    
+    return success;
+  }
 
   useEffect(() => {
-    async function runBotMove() {
+    async function  runBotMove() {
       // If it's bot's turn, make a move
       if (!playerTurn && game.turn() === (orientation === "white" ? "b" : "w")) {
         const response = await makeBotMove(fen, depth);
@@ -188,8 +254,8 @@ export function ChessboardGame() {
         if (!response || !response.success) return;
 
         const { bestMove, evaluation, bestMoveSan } = response;
-        const from = bestMove.slice(0, 2);
-        const to = bestMove.slice(2, 4);
+        const from = bestMove.slice(0, 2) as Square;
+        const to = bestMove.slice(2, 4) as Square;
         const promotion = bestMove.slice(4) || undefined;
 
         const move = game.move({
@@ -197,11 +263,20 @@ export function ChessboardGame() {
           to,
           promotion: promotion,
         });
-
         if (move) {
           setFen(game.fen());
           setPlayerTurn(true);
           localStorage.setItem("fen", game.fen());
+
+          // Update last move highlight for bot move
+          setLastMove({
+            from: from,
+            to: to
+          });
+
+          // Clear player selection when bot moves
+          setSelectedSquare(null);
+          setPossibleMoves([]);
 
           setGameOver('bot');
           setMoves((prev) => [
@@ -222,29 +297,36 @@ export function ChessboardGame() {
   }, [fen, playerTurn, game, orientation, depth, lastPlayerMove]);
 
   useEffect(() => {
-    const savedFen =
-      localStorage.getItem("fen") ||
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    const savedPlayerId = localStorage.getItem("playerId") || "p2";
-    const savedDepth = Number(localStorage.getItem("depth")) || 4;
-    const savedColor = localStorage.getItem("color") || "white";
-    const savedMoves: MoveAnalytics[] = JSON.parse(localStorage.getItem("moves") || "[]");
+  if (localStorage.getItem("resigned") === "true") {
+    localStorage.removeItem("resigned"); // consume the flag
+    return; // ✅ skip restoring old game
+  }
 
-    const newGame = new Chess(savedFen);
-    const isPlayersTurn =
-      (savedColor === "white" && newGame.turn() === "w") ||
-      (savedColor === "black" && newGame.turn() === "b");
+  const savedFen =
+    localStorage.getItem("fen") ||
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    setFen(savedFen);
-    setDepth(savedDepth);
-    setMoves(savedMoves);
-    setOrientation(savedColor === "black" ? "black" : "white");
-    setPlayerTurn(isPlayersTurn);
-    setGame(newGame);
+  const savedMoves: MoveAnalytics[] = JSON.parse(localStorage.getItem("moves") || "[]");
+  const savedColor = localStorage.getItem("color") || "white";
+  const savedDepth = Number(localStorage.getItem("depth")) || 4;
+  const savedPlayerId = localStorage.getItem("playerId") || "p2";
 
-    const botPlayer = players.find((p) => p.id === savedPlayerId);
-    if (botPlayer) setBot(botPlayer);
-  }, []);
+  const newGame = new Chess(savedFen);
+  const isPlayersTurn =
+    (savedColor === "white" && newGame.turn() === "w") ||
+    (savedColor === "black" && newGame.turn() === "b");
+
+  setFen(savedFen);
+  setDepth(savedDepth);
+  setMoves(savedMoves);
+  setOrientation(savedColor === "black" ? "black" : "white");
+  setPlayerTurn(isPlayersTurn);
+  setGame(newGame);
+
+  const botPlayer = players.find((p) => p.id === savedPlayerId);
+  if (botPlayer) setBot(botPlayer);
+}, []);
+
 
   const customPieces = Object.fromEntries(
     Object.entries(peices).map(([piece, url]) => [
@@ -255,6 +337,83 @@ export function ChessboardGame() {
     ])
   );
 
+  // Custom square styles for highlighting
+  const customSquareStyles = useMemo(() => {
+    const styles: { [square: string]: React.CSSProperties } = {};
+    
+    // Highlight selected square
+    if (selectedSquare) {
+      styles[selectedSquare] = {
+        backgroundColor: 'rgba(255, 255, 0, 0.4)'
+      };
+    }
+    
+    // Highlight last move squares
+    if (lastMove) {
+      styles[lastMove.from] = {
+        ...styles[lastMove.from],
+        backgroundColor: 'rgba(255, 255, 0, 0.6)'
+      };
+      styles[lastMove.to] = {
+        ...styles[lastMove.to],
+        backgroundColor: 'rgba(255, 255, 0, 0.6)'
+      };
+    }
+    
+    return styles;
+  }, [selectedSquare, possibleMoves, lastMove, game]);
+
+  // Custom square component to render dots for possible moves
+  const customSquare = ({ children, square, style }: any) => {
+    const isPossibleMove = possibleMoves.includes(square);
+    const piece = game.get(square);
+    const hasCapture = isPossibleMove && piece;
+    const hasMove = isPossibleMove && !piece;
+
+    return (
+      <div
+        style={{
+          ...style,
+          position: 'relative',
+        }}
+      >
+        {children}
+        {hasMove && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '22%',
+              height: '22%',
+              backgroundColor: 'rgba(227, 223, 211, 0.3)',
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              zIndex: 1
+            }}
+          />
+        )}
+        {hasCapture && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              right: '0',
+              bottom: '0',
+              border: '4px solid rgba(255, 0, 0, 0.7)',
+              borderRadius: '50%',
+              boxSizing: 'border-box',
+              pointerEvents: 'none',
+              zIndex: 1
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="w-full h-full">
       <Chessboard
@@ -262,6 +421,7 @@ export function ChessboardGame() {
         position={fen}
         arePiecesDraggable={playerTurn}
         onPieceDrop={handleMove}
+        onSquareClick={handleSquareClick}
         boardOrientation={orientation}
         customDarkSquareStyle={{
           background: "rgba(0, 0, 0, 0.3)",
@@ -274,6 +434,8 @@ export function ChessboardGame() {
           border: "1px solid rgba(255, 255, 255, 0.1)",
         }}
         customPieces={customPieces}
+        customSquareStyles={customSquareStyles}
+        customSquare={customSquare}
       />
     </div>
   );
