@@ -22,6 +22,16 @@ class WebSocketClient {
     public addOpenListener(listener: () => void) {
         this.openListeners.push(listener);
     }
+    
+    static reconnect(): WebSocketClient {
+        console.log("Reconnecting WebSocket...");
+        WebSocketClient.instance = new WebSocketClient();
+        return WebSocketClient.instance;
+    }
+
+    public isConnected(): boolean {
+        return this.socket?.readyState === WebSocket.OPEN;
+    }
 
     public static getInstance(): WebSocketClient {
         if (!WebSocketClient.instance) {

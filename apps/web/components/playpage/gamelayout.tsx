@@ -3,14 +3,10 @@ import { ChessboardAndUtility } from "@/components/playpage/chessboardAndUtility
 import { VideoSection } from "./videoSection"
 import { MovesSection } from "./movesSection"
 import { UtilitySection } from "./utilitysection"
-import { useRecoilState } from "recoil"
-import { gameStatus } from "@/store/atoms/game"
 import { MessageBox } from "./messagebox"
 import { GameOverDialog } from "../shared/gameOverDialogBox"
 
 export function GameLayout() {
-    const [gameStat, setGameStat] = useRecoilState(gameStatus);
-
     return (
         <div className="flex h-full w-full gap-1 flex-col lg:flex-row justify-center items-center">
             {/* Chessboard and Victory Dialog */}

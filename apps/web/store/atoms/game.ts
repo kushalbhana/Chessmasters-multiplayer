@@ -18,10 +18,6 @@ export const gameStatus = atom({
   key: "gameResult",
   default: {
     isGameOver: false,
-    overType: "Stalemate",
-    status: "Lost",
-
-    // New fields
     gameOverType: "",
     gameOverMessage: "",
     OverType: "",

@@ -1,11 +1,10 @@
 "use client"
-import { RecoilState, useRecoilState} from "recoil";
+import { useRecoilState} from "recoil";
 
 import { Dropdown } from "../ui/dropdown";
 import { FaCamera, FaMicrophone } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { FaFlag } from "react-icons/fa";
-import { GiPerspectiveDiceOne } from "react-icons/gi";
 import { MdOutlineReportGmailerrorred } from "react-icons/md";
 import { FaMicrophoneAltSlash } from "react-icons/fa";
 import { micStatus, camStatus } from "@/store/atoms/videoutility";
@@ -46,13 +45,6 @@ export function UtilitySection() {
                             ws.sendMessage(JSON.stringify({type: WebSocketMessageType.RESIGN_REQUEST, JWT_token: session?.user?.jwt, roomId: (room?.roomId || "") }))
                         }}
                     > <FaFlag/> Resign </Button>
-                </div>
-                <div>
-                    <Button variant="secondary" className="w-28"
-                        onClick={() => {
-                                ws.sendMessage(JSON.stringify({type: WebSocketMessageType.DRAW_REQUEST, JWT_token: session?.user?.jwt, roomId: (room?.roomId || "")}))
-                            }}
-                    > <GiPerspectiveDiceOne/> Draw </Button>
                 </div>
                 <div>
                     <Button variant="secondary" className="w-28"><MdOutlineReportGmailerrorred/> Report</Button>

@@ -1,5 +1,5 @@
 import { Chess } from "chess.js"
-import { gameStatusObj } from "@repo/lib/status"
+import { gameStatusMessage, gameStatusObj, WebSocketMessageType } from "@repo/lib/status"
 import { webSocketManager } from ".."
 import { postGameCleanUp } from "./redisUtils"
 import { clearPlayerTimeout } from "./bukllmqClient"
@@ -17,11 +17,12 @@ export function getGameStatus(chess: Chess): string {
 export async function postGameOverCleanup(roomId: string) {
     if (!webSocketManager.gameRoom[roomId]) return;
 
-    const game = webSocketManager.gameRoom[roomId]!.game;
+    const gameRoom = webSocketManager.gameRoom[roomId]!;
+    const game = gameRoom.game;
     const status = getGameStatus(game);
 
-    const whiteId = webSocketManager.gameRoom[roomId]!.whiteId;
-    const blackId = webSocketManager.gameRoom[roomId]!.blackId;
+    const whiteId = gameRoom.whiteId;
+    const blackId = gameRoom.blackId;
 
     if (status === gameStatusObj.CHECKMATE) {
         const winner = game.turn() === 'w' ? 'Black' : 'White';
@@ -32,8 +33,27 @@ export async function postGameOverCleanup(roomId: string) {
             winner: winnerId,
             overType: gameStatusObj.CHECKMATE
         };
-        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.whiteId);
-        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.blackId);
+
+        // Notify both players
+        if (gameRoom.whiteSocket) {
+            gameRoom.whiteSocket.send(JSON.stringify({
+                type: WebSocketMessageType.GAMEOVER,
+                gameOverType: gameStatusObj.CHECKMATE,
+                gameOverMessage: game.turn() === 'b' ? gameStatusMessage.CheckmateWin : gameStatusMessage.CheckmateLoss,
+                OverType: game.turn() === 'b' ? 'Win' : 'Lose'
+            }));
+        }
+        if (gameRoom.blackSocket) {
+            gameRoom.blackSocket.send(JSON.stringify({
+                type: WebSocketMessageType.GAMEOVER,
+                gameOverType: gameStatusObj.CHECKMATE,
+                gameOverMessage: game.turn() === 'b' ? gameStatusMessage.CheckmateLoss : gameStatusMessage.CheckmateWin,
+                OverType: game.turn() === 'w' ? 'Win' : 'Lose'
+            }));
+        }
+
+        clearPlayerTimeout(roomId, whiteId);
+        clearPlayerTimeout(roomId, blackId);
         await postGameCleanUp(roomId, whiteId, blackId, updateDBAboutGameOver);
         delete webSocketManager.gameRoom[roomId];
 
@@ -49,14 +69,33 @@ export async function postGameOverCleanup(roomId: string) {
             overType: status
         };
 
+        // Notify both players as draw
+        if (gameRoom.whiteSocket) {
+            gameRoom.whiteSocket.send(JSON.stringify({
+                type: WebSocketMessageType.GAMEOVER,
+                gameOverType: status,
+                gameOverMessage: gameStatusMessage.Draw,
+                OverType: 'Draw'
+            }));
+        }
+        if (gameRoom.blackSocket) {
+            gameRoom.blackSocket.send(JSON.stringify({
+                type: WebSocketMessageType.GAMEOVER,
+                gameOverType: status,
+                gameOverMessage: gameStatusMessage.Draw,
+                OverType: 'Draw'
+            }));
+        }
+
+        clearPlayerTimeout(roomId, whiteId);
+        clearPlayerTimeout(roomId, blackId);
         await postGameCleanUp(roomId, whiteId, blackId, updateDBAboutGameOver);
-        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.whiteId);
-        clearPlayerTimeout(roomId, webSocketManager.gameRoom[roomId]!.blackId);
         delete webSocketManager.gameRoom[roomId];
     }
 
     return;
 }
+
 
 
 export function calculateUpdatedRemainingTime( roomId: string,){

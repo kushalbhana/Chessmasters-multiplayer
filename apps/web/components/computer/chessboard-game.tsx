@@ -10,10 +10,11 @@ import {
   differentPeices,
   prevMove,
 } from "@/store/atoms/bot";
-import { players } from "@repo/lib/status";
+import { gameStatusMessage, players } from "@repo/lib/status";
 import { getGameStatus } from "@/lib/game/gamestatus";
 import { gameResult } from "@/store/atoms/sharedGame";
 import { gameStatusObj } from "@repo/lib/status";
+import { gameStatus } from "@/store/atoms/game";
 
 // Simple type definition matching your first version API response
 type BotResponse = {
@@ -68,7 +69,7 @@ export function ChessboardGame() {
 
   console.log(game.turn())
   const [moves, setMoves] = useRecoilState(movesAtom);
-  const setGameStat = useSetRecoilState(gameResult);
+  const setGameStat = useSetRecoilState(gameStatus);
   console.log(moves)
   async function makeBotMove(
     fen: string,
@@ -99,7 +100,7 @@ export function ChessboardGame() {
       : undefined;
 
     if (lastFen) {
-      setGame(new Chess(lastFen)) // update game instance
+      setGame(new Chess(lastFen)) 
       setFen(lastFen)
       setMoves(updatedMoves)
       localStorage.setItem('moves', JSON.stringify(updatedMoves));
@@ -115,37 +116,42 @@ export function ChessboardGame() {
       if (isGameOver === gameStatusObj.CHECKMATE) {
         setGameStat({
           isGameOver: true,
-          overType: gameStatusObj.CHECKMATE,
-          status: player === 'player' ? 'Win' : 'Lose'
+          gameOverType: gameStatusObj.CHECKMATE,
+          gameOverMessage: player === 'player' ? gameStatusMessage.CheckmateWin : gameStatusMessage.CheckmateLoss,
+          OverType: player === 'player' ? 'Win' : 'Lose'
         });
         console.log("Checkmate! Game over.");
       }
       if (isGameOver === gameStatusObj.STALEMATE) {
         setGameStat({
           isGameOver: true,
-          overType: gameStatusObj.STALEMATE,
-          status: 'Draw'
+          gameOverType: gameStatusObj.STALEMATE,
+          gameOverMessage: gameStatusMessage.Stalemate,
+          OverType: 'Draw'
         });
       }
       if (isGameOver === gameStatusObj.DRAW) {
         setGameStat({
           isGameOver: true,
-          overType: gameStatusObj.DRAW,
-          status: 'Draw'
+          gameOverType: gameStatusObj.DRAW,
+          gameOverMessage: gameStatusMessage.Draw,
+          OverType: 'Draw'
         });
       }
       if (isGameOver === gameStatusObj.INSUFFICIENT_MATERIAL) {
         setGameStat({
           isGameOver: true,
-          overType: gameStatusObj.INSUFFICIENT_MATERIAL,
-          status: 'Draw'
+          gameOverType: gameStatusObj.INSUFFICIENT_MATERIAL,
+          gameOverMessage: gameStatusMessage.Insufficient_Material,
+          OverType: 'Draw'
         });
       }
       if (isGameOver === gameStatusObj.THREEFOLD_REPETITION) {
         setGameStat({
           isGameOver: true,
-          overType: gameStatusObj.THREEFOLD_REPETITION,
-          status: 'Draw'
+          gameOverType: gameStatusObj.THREEFOLD_REPETITION,
+          gameOverMessage: gameStatusMessage.Threefold_Repetition,
+          OverType: 'Draw'
         });
       }
       localStorage.removeItem("fen");
@@ -299,7 +305,7 @@ export function ChessboardGame() {
   useEffect(() => {
   if (localStorage.getItem("resigned") === "true") {
     localStorage.removeItem("resigned"); // consume the flag
-    return; // ✅ skip restoring old game
+    return; // skip restoring old game
   }
 
   const savedFen =

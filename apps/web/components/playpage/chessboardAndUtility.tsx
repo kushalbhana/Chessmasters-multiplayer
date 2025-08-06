@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { useRecoilState, useRecoilValue, useRecoilCallback, useSetRecoilState } from "recoil";
 import { Chess, Square } from "chess.js";
@@ -12,6 +12,7 @@ import WebSocketClient from "@/lib/websocket/websocket-client";
 import { WebSocketMessageType, playerType } from "@repo/lib/status";
 import { gameMoves } from "@/store/atoms/moves";
 import { gameStatus, playerTime, opponentTime } from "@/store/atoms/game";
+import { useToast } from "@/hooks/use-toast";
 
 export function ChessboardAndUtility() {
   const { data: session, status } = useSession();
@@ -21,7 +22,6 @@ export function ChessboardAndUtility() {
   const [playerTurn, setPlayerTurn] = useState(false);
   const [color, setColor] = useState("w");
   const [orientation, setOrientation] = useState<"white" | "black">("white");
-  const moves = useRecoilValue(gameMoves);
   const setMyTimeRemaining = useSetRecoilState(playerTime);
   const setOppTimeRemaining = useSetRecoilState(opponentTime);
   const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
@@ -30,6 +30,8 @@ export function ChessboardAndUtility() {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [possibleMoves, setPossibleMoves] = useState<Square[]>([]);
   const [lastMove, setLastMove] = useState<{from: Square, to: Square} | null>(null);
+  const {toast, dismiss} = useToast();
+  const disconnectToastId = useRef<string | null>(null);
 
   const addMove = useRecoilCallback(({ set }) => (move: string) => {
     set(gameMoves, (prev) => [...prev, move]);
@@ -70,61 +72,52 @@ export function ChessboardAndUtility() {
   }, [game, color]);
 
   useEffect(() => {
-    const socket = WebSocketClient.getInstance();
-  
+    let socket = WebSocketClient.getInstance();
     if (!socket) return;
-  
+
+    /** 🔹 Handle incoming messages */
     const handleMessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data);
-  
+
       if (message.type === WebSocketMessageType.INGAMEMOVE) {
         const incomingMove = message.move;
-  
         const newGame = new Chess(game.fen());
         const moveResult = newGame.move(incomingMove);
 
         if (moveResult) {
           setGame(newGame);
-          setPlayerTurn(true); // Your turn now
+          setPlayerTurn(true);
           addMove(moveResult.san);
-          
-          // Update last move highlight
-          setLastMove({
-            from: moveResult.from as Square,
-            to: moveResult.to as Square
-          });
-          
-          // Clear selection when opponent moves
+
+          setLastMove({ from: moveResult.from as Square, to: moveResult.to as Square });
+
+          // Clear selection
           setSelectedSquare(null);
           setPossibleMoves([]);
-          
-          setRoom((prevRoom) => {
+
+          // Update room
+          setRoom((prevRoom: any) => {
             if (!prevRoom) return null;
             return {
               ...prevRoom,
-              room: {
-                ...prevRoom.room,
-                game: newGame.fen(),
-              },
-              type: prevRoom.type,
-              roomId: prevRoom.roomId,
+              room: { ...prevRoom.room, game: newGame.fen() },
             };
           });
 
-          if(orientation === 'white'){
-            setOppTimeRemaining(2*message.blackTime);
-            setMyTimeRemaining(2*message.whiteTime);
-          }else{
-            setOppTimeRemaining(2*message.whiteTime);
-            setMyTimeRemaining(2*message.blackTime);
+          // Update timers
+          if (orientation === "white") {
+            setOppTimeRemaining(2 * message.blackTime);
+            setMyTimeRemaining(2 * message.whiteTime);
+          } else {
+            setOppTimeRemaining(2 * message.whiteTime);
+            setMyTimeRemaining(2 * message.blackTime);
           }
         } else {
           console.warn("Received invalid move from server:", incomingMove);
         }
-      }else if(message.type === WebSocketMessageType.GAMEOVER){
+      } else if (message.type === WebSocketMessageType.GAMEOVER) {
         const { gameOverType, gameOverMessage, OverType } = message;
-        console.log('Recieve GameOver Message...')
-        setGameResult((prev) => ({
+        setGameResult((prev: any) => ({
           ...prev,
           isGameOver: true,
           gameOverType,
@@ -133,17 +126,66 @@ export function ChessboardAndUtility() {
         }));
       }
     };
-  
+
+    /** 🔹 Handle Disconnection with Auto-Reconnect */
+    const handleClose = () => {
+      console.warn("WebSocket disconnected. Attempting to reconnect...");
+
+      // Show toast if not already shown
+      if (!disconnectToastId.current) {
+        const id = toast({
+          title: "Disconnected",
+          description: "Trying to reconnect to the server...",
+          variant: "destructive",
+          duration: Infinity,
+        }).id;
+        disconnectToastId.current = id;
+      }
+
+      let retries = 0;
+      const maxRetries = 5;
+
+      const tryReconnect = () => {
+        retries++;
+        socket = WebSocketClient.reconnect();
+
+        if (socket.isConnected()) {
+          console.log("WebSocket reconnected successfully.");
+
+          // Remove disconnect toast
+          if (disconnectToastId.current) {
+            dismiss(disconnectToastId.current);
+            disconnectToastId.current = null;
+          }
+
+          socket.onMessage(handleMessage);
+        } else if (retries < maxRetries) {
+          const delay = Math.min(1000 * 2 ** retries, 10000); // 1s -> 2s -> 4s -> 8s -> 10s
+          setTimeout(tryReconnect, delay);
+        } else {
+          console.error("Max WebSocket reconnection attempts reached.");
+        }
+      };
+
+      tryReconnect();
+    };
+
+    /** Attach listeners */
     socket.onMessage(handleMessage);
+    socket.onClose(handleClose);
+    socket.onError(handleClose);
+
     return () => {
       socket.removeMessageListener(handleMessage);
+      socket.removeCloseListener(handleClose);
+      socket.removeErrorListener(handleClose);
     };
   }, [game]);
+
 
   // Handle square click for piece selection and move execution
   const handleSquareClick = (square: Square) => {
     if (!playerTurn) {
-      console.log("It's not your turn.");
       return;
     }
 
@@ -209,12 +251,10 @@ export function ChessboardAndUtility() {
         return null;
       }
       addMove(validMove.san);
-  
-      console.log('Move made:', validMove);
       setGame(game); // Update the game object with the new move
       
       // Toggle the player's turn
-      setPlayerTurn(false); // Assume the opponent's turn now
+      setPlayerTurn(false); 
       setRoom((prevRoom) => {
         if (!prevRoom) return null;  
       
@@ -248,7 +288,6 @@ export function ChessboardAndUtility() {
       });
 
     if (move === null) {
-      console.log("Invalid move.");
       return false;
     }
     
@@ -352,8 +391,6 @@ export function ChessboardAndUtility() {
       </div>
     );
   };
-
-  console.log("Moves: ", moves);
   
   return (
     <div className="flex flex-col gap-1">
