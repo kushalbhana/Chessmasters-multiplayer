@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Square } from "chess.js";
 import axios from "axios";
@@ -12,7 +12,6 @@ import {
 } from "@/store/atoms/bot";
 import { gameStatusMessage, players } from "@repo/lib/status";
 import { getGameStatus } from "@/lib/game/gamestatus";
-import { gameResult } from "@/store/atoms/sharedGame";
 import { gameStatusObj } from "@repo/lib/status";
 import { gameStatus } from "@/store/atoms/game";
 
@@ -46,9 +45,11 @@ export function ChessboardGame() {
   const [game, setGame] = useState(new Chess());
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [lastPlayerMove, setLastPlayerMove] = useState<string | null>(null);
+  const [botMoveInProgress, setBotMoveInProgress] = useState(false);
   const peices = useRecoilValue(differentPeices);
   const prev = useRecoilValue(prevMove);
   const moveSound = useMemo(() => new Audio('/sounds/move-self.mp3'), []);
+  const botMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // New state for piece selection and move highlighting
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
@@ -71,6 +72,16 @@ export function ChessboardGame() {
   const [moves, setMoves] = useRecoilState(movesAtom);
   const setGameStat = useSetRecoilState(gameStatus);
   console.log(moves)
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (botMoveTimeoutRef.current) {
+        clearTimeout(botMoveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   async function makeBotMove(
     fen: string,
     depth: number
@@ -88,6 +99,61 @@ export function ChessboardGame() {
       return null;
     }
   }
+
+  // Function to execute bot move with animation
+  const executeBotMove = async (from: Square, to: Square, promotion?: string, bestMoveSan?: string, evaluation?: number) => {
+    // Create a temporary game instance to validate the move
+    const tempGame = new Chess(game.fen());
+    const move = tempGame.move({
+      from,
+      to,
+      promotion: promotion || undefined,
+    });
+
+    if (!move) {
+      console.error("Invalid bot move:", from, to);
+      setBotMoveInProgress(false);
+      return;
+    }
+
+    // Update the game state and FEN
+    const newGame = new Chess(game.fen());
+    const validMove = newGame.move({
+      from,
+      to,
+      promotion: promotion || undefined,
+    });
+
+    if (validMove) {
+      setGame(newGame);
+      setFen(newGame.fen());
+      setPlayerTurn(true);
+      setBotMoveInProgress(false);
+      localStorage.setItem("fen", newGame.fen());
+
+      // Update last move highlight for bot move
+      setLastMove({
+        from: from,
+        to: to
+      });
+
+      // Clear player selection when bot moves
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+
+      setGameOver('bot');
+      setMoves((prev) => [
+        ...prev,
+        {
+          move: from + to + (promotion || ''),
+          moveSan: bestMoveSan || validMove.san,
+          by: "bot",
+          score: evaluation || 0,
+          fen: newGame.fen()
+        },
+      ]);
+    }
+  };
 
   useEffect(() => {
     if (moves.length === 0) return;
@@ -160,8 +226,8 @@ export function ChessboardGame() {
 
   // Handle square click for piece selection and move execution
   const handleSquareClick = (square: Square) => {
-    if (!playerTurn) {
-      console.log("It's not your turn.");
+    if (!playerTurn || botMoveInProgress) {
+      console.log("It's not your turn or bot move is in progress.");
       return;
     }
 
@@ -234,6 +300,10 @@ export function ChessboardGame() {
   }
 
   function handleMove(sourceSquare: Square, targetSquare: Square): boolean {
+    if (!playerTurn || botMoveInProgress) {
+      return false;
+    }
+
     const success = makeMove(sourceSquare, targetSquare);
     
     if (success) {
@@ -252,55 +322,36 @@ export function ChessboardGame() {
   }
 
   useEffect(() => {
-    async function  runBotMove() {
-      // If it's bot's turn, make a move
-      if (!playerTurn && game.turn() === (orientation === "white" ? "b" : "w")) {
+    async function runBotMove() {
+      // If it's bot's turn and no bot move is in progress, make a move
+      if (!playerTurn && 
+          !botMoveInProgress && 
+          game.turn() === (orientation === "white" ? "b" : "w")) {
+        
+        setBotMoveInProgress(true);
+        
         const response = await makeBotMove(fen, depth);
-        console.log(response)
-        if (!response || !response.success) return;
+        console.log(response);
+        
+        if (!response || !response.success) {
+          setBotMoveInProgress(false);
+          return;
+        }
 
         const { bestMove, evaluation, bestMoveSan } = response;
         const from = bestMove.slice(0, 2) as Square;
         const to = bestMove.slice(2, 4) as Square;
         const promotion = bestMove.slice(4) || undefined;
 
-        const move = game.move({
-          from,
-          to,
-          promotion: promotion,
-        });
-        if (move) {
-          setFen(game.fen());
-          setPlayerTurn(true);
-          localStorage.setItem("fen", game.fen());
-
-          // Update last move highlight for bot move
-          setLastMove({
-            from: from,
-            to: to
-          });
-
-          // Clear player selection when bot moves
-          setSelectedSquare(null);
-          setPossibleMoves([]);
-
-          setGameOver('bot');
-          setMoves((prev) => [
-            ...prev,
-            {
-              move: bestMove,
-              moveSan: bestMoveSan,
-              by: "bot",
-              score: evaluation || 0,
-              fen: game.fen()
-            },
-          ]);
-        }
+        // Execute bot move with 1 second delay
+        botMoveTimeoutRef.current = setTimeout(() => {
+          executeBotMove(from, to, promotion, bestMoveSan, evaluation);
+        }, 1000);
       }
     }
 
     runBotMove();
-  }, [fen, playerTurn, game, orientation, depth, lastPlayerMove]);
+  }, [fen, playerTurn, game, orientation, depth, lastPlayerMove, botMoveInProgress]);
 
   useEffect(() => {
   if (localStorage.getItem("resigned") === "true") {
@@ -392,7 +443,7 @@ export function ChessboardGame() {
               left: '50%',
               width: '22%',
               height: '22%',
-              backgroundColor: 'rgba(227, 223, 211, 0.3)',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
               borderRadius: '50%',
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'none',
@@ -425,20 +476,10 @@ export function ChessboardGame() {
       <Chessboard
         id="BasicBoard"
         position={fen}
-        arePiecesDraggable={playerTurn}
+        arePiecesDraggable={playerTurn && !botMoveInProgress}
         onPieceDrop={handleMove}
         onSquareClick={handleSquareClick}
         boardOrientation={orientation}
-        customDarkSquareStyle={{
-          background: "rgba(0, 0, 0, 0.3)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-        }}
-        customLightSquareStyle={{
-          background: "rgba(255, 255, 255, 0.1)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-        }}
         customPieces={customPieces}
         customSquareStyles={customSquareStyles}
         customSquare={customSquare}

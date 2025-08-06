@@ -20,12 +20,7 @@ export function PlayPage() {
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
-        style={{
-          backgroundImage: `url('/images/chess-background.png')`,
-        }}
       />
-      <div className="absolute inset-0 bg-black/60 z-10 lg:ml-10" />
-
       {/* Main Content */}
       <div className="relative z-20 flex flex-col lg:flex-row w-full min-h-[100dvh] lg:gap-4 justify-center items-center px-2 sm:px-4 lg:px-10 py-4 lg:py-8">
         

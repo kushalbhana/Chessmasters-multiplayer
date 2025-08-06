@@ -24,11 +24,7 @@ export function GameReviewPage() {
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
-        style={{
-          backgroundImage: `url('/images/chess-background.png')`,
-        }}
       />
-      <div className="absolute inset-0 bg-black/60 z-10 lg:ml-10"/>
 
       {/* Main Content */}
       <div className="relative z-20 flex flex-col lg:flex-row w-full gap-4 lg:gap-2 justify-center items-center px-4 lg:px-10 py-6 lg:py-10">

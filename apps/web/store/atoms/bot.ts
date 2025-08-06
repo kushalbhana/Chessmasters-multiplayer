@@ -53,7 +53,7 @@ export const classificationAtom = atom<ClassificationCounts>({
 
 export const differentPeices = atom({
   key: 'differentPeices',
-  default: peicesVariety.dubrovny
+  default: peicesVariety.cburnett
 })
 
 export const isBotChoosen = atom({

@@ -25,7 +25,7 @@ export function PeicesCategoryDropdown() {
 
   return (
     <Select value={selectedKey} onValueChange={handleChange}>
-      <SelectTrigger className="w-full lg:w-[300px] bg-slate-600/60">
+      <SelectTrigger className="w-full lg:w-[150px] bg-slate-600/60">
         <SelectValue placeholder="Select a style" className="bg-slate-600" />
       </SelectTrigger>
       <SelectContent>

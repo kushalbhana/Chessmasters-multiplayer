@@ -96,8 +96,6 @@ export async function postGameOverCleanup(roomId: string) {
     return;
 }
 
-
-
 export function calculateUpdatedRemainingTime( roomId: string,){
     const room = webSocketManager.gameRoom[roomId];
     if (!room) {

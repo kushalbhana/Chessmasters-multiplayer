@@ -46,30 +46,46 @@ export function ChessboardGame() {
     ])
   );
 
-  // Define move type colors like Chess.com
+  // Define move type colors like Chess.com with background colors
   const moveTypeConfig: Record<string, { 
     bgColor: string;
+    squareBgColor: string;
+    opacity: number;
   }> = {
     blunder: { 
       bgColor: "#dc2626", // red-600
+      squareBgColor: "#C22828", // red-200 for light background
+      opacity: 0.8
     },
     book: { 
       bgColor: "#3b82f6", // blue-500
+      squareBgColor: "#bfdbfe", // blue-200
+      opacity: 0.8
     },
     brilliant: { 
       bgColor: "#22c55e", // green-500
+      squareBgColor: "#bbf7d0", // green-200
+      opacity: 0.8
     },
     good: { 
       bgColor: "#22c55e", // green-500
+      squareBgColor: "#bbf7d0", // green-200
+      opacity: 0.8
     },
     great: { 
       bgColor: "#a855f7", // purple-500
+      squareBgColor: "#ddd6fe", // purple-200
+      opacity: 0.8
     },
     inaccuracy: { 
       bgColor: "#fb923c", // orange-400
+      squareBgColor: "#FEC567", // orange-200
+      opacity: 0.8
     },
     mistake: { 
       bgColor: "#facc15", // yellow-400
+      squareBgColor: "#DEA441", // yellow-200
+      opacity: 0.9
     },
   };
 
@@ -161,7 +177,7 @@ export function ChessboardGame() {
   const customSquareStyles: { [square: string]: React.CSSProperties } = useMemo(() => {
     const styles: { [square: string]: React.CSSProperties } = {};
 
-    // Only show icon if we have valid data
+    // Only show styling if we have valid data
     if (
       analyticsData.currentMoveIndex >= 0 &&
       analyticsData.data?.moves?.[analyticsData.currentMoveIndex]
@@ -171,16 +187,20 @@ export function ChessboardGame() {
       const toSquare = currentMove?.move?.slice(-2);
 
       if (toSquare && classification && moveTypeConfig[classification]) {
+        const config = moveTypeConfig[classification];
         const iconUrl = createCornerIcon(classification);
         
-        if (iconUrl) {
-          styles[toSquare] = {
+        // Combine background color and icon
+        styles[toSquare] = {
+          backgroundColor: config.squareBgColor,
+          opacity: config.opacity,
+          ...(iconUrl && {
             backgroundImage: `url("${iconUrl}")`,
             backgroundSize: "20px 20px",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "top 4px right 4px",
-          };
-        }
+          })
+        };
       }
     }
 
@@ -194,16 +214,6 @@ export function ChessboardGame() {
         position={fen}
         arePiecesDraggable={playerTurn}
         boardOrientation={orientat}
-        customDarkSquareStyle={{
-          background: "rgba(0, 0, 0, 0.3)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-        }}
-        customLightSquareStyle={{
-          background: "rgba(255, 255, 255, 0.1)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-        }}
         customSquareStyles={customSquareStyles}
         customPieces={customPieces}
         // @ts-expect-error
