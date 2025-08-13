@@ -2,7 +2,6 @@
 import { FaArrowLeft } from "react-icons/fa";
 import { useRecoilState } from "recoil";
 import { prevMove } from "@/store/atoms/bot";
-import { useRouter } from "next/navigation";
 import { useResetGame } from "@/hooks/useResetGame";
 
 
@@ -10,17 +9,14 @@ export function PrevUtility() {
   const [, setPrev] = useRecoilState(prevMove);
   const resetGame = useResetGame();
 
-
-  const router = useRouter();
-
   const handlePrev = () => {
     setPrev((prev) => prev - 1);
   };
 
    const handleResign = () => {
-    resetGame();
-    router.push("/");  
-  };
+      resetGame();
+      window.location.reload(); // Hard refresh
+    };
 
 
   return (

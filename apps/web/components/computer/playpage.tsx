@@ -1,20 +1,13 @@
-"use client";
 import React from "react";
 import { ChessboardGame } from "./chessboard-game";
-import { useRecoilState } from "recoil";
 import { PlayerScreen } from "./playerScreen";
 import { MovesSection } from "./movesboard";
 import { PeicesCategoryDropdown } from "./selectpeices";
 import DownloadPGNButton from "./downloadPGN";
-import { VictoryDialog } from "../shared/victoryDialog";
-import { useSession } from "next-auth/react";
-import { gameResult } from "@/store/atoms/sharedGame";
 import { PrevUtility } from "./prevMoveAndresign";
+import { GameOverDialog } from "../shared/gameOverDialogBox";
 
 export function PlayPage() {
-  const [gameStat, setGameStat] = useRecoilState(gameResult);
-  const { data: session } = useSession();
-
   return (
     <div className="relative w-full min-h-[100dvh] overflow-auto">
       {/* Background */}
@@ -29,14 +22,7 @@ export function PlayPage() {
           <div className="relative w-full flex justify-center items-center">
             {/* Wrapper to maintain full size */}
             <div className="w-full max-w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
-              <VictoryDialog
-                open={gameStat.isGameOver}
-                onClose={() =>
-                  setGameStat((prev) => ({ ...prev, isGameOver: false }))
-                }
-                myImg={session?.user?.image || ""}
-                oppositeImg="/images/bot.gif"
-              />
+              <GameOverDialog/>
               <ChessboardGame />
             </div>
           </div>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { AboutButtons } from "./about-buttons";
 
 export function AboutGame() {
   return (
@@ -22,10 +23,7 @@ export function AboutGame() {
         </h1>
 
         {/* Buttons */}
-        <div className="mt-8 flex sm:flex-row justify-center lg:justify-start gap-4">
-          <Button className="w-32 h-10">Play Game</Button>
-          <Button className="w-32 h-10">Spectate Game</Button>
-        </div>
+        <AboutButtons/>
       </div>
 
       {/* Image Section - Hidden on screens smaller than lg */}

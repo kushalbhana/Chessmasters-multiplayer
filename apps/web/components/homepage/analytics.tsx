@@ -135,8 +135,8 @@ const AnalyticsSection = () => {
             data={moveAccuracyData}
             cx="50%"
             cy="50%"
-            innerRadius="35%"      // ✅ Use % for responsive scaling
-            outerRadius="70%"      // ✅ Scales with container
+            innerRadius="35%"      
+            outerRadius="70%"      
             dataKey="value"
           >
             {moveAccuracyData.map((entry, index) => (

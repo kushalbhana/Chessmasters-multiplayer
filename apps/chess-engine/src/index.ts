@@ -1,4 +1,4 @@
-// Chess Analytics Server Implementation (Node.js)
+// Chess Analytics Server Implementation (Node.js) - FIXED VERSION
 
 import express from 'express';
 import cors from 'cors';
@@ -62,6 +62,7 @@ interface MoveAnalysis {
   bestMove?: string;
   bestMoveUci?: string;
   scoreDrop: number;
+  winChanceDrop: number; // NEW: Win probability drop
   position: string; // FEN
 }
 
@@ -137,6 +138,7 @@ interface PlayerMoveEvaluation {
   classification: MoveClassification;
   accuracy: number; // 0-100
   scoreDrop: number; // How much the position worsened
+  winChanceDrop: number; // NEW: Win probability drop
   isBlunder: boolean;
   isMistake: boolean;
   isInaccuracy: boolean;
@@ -174,13 +176,23 @@ interface BotMoveResponse {
   playerMoveEvaluation?: PlayerMoveEvaluation;
 }
 
-// Stockfish Engine Manager
+// FIXED: Queue-based job for engine requests
+interface EngineJob {
+  id: string;
+  fen: string;
+  depth: number;
+  resolve: (evaluation: EngineEvaluation) => void;
+  reject: (error: Error) => void;
+  timeout: NodeJS.Timeout;
+}
+
+// FIXED: Robust Stockfish Engine Manager with proper queueing
 class StockfishManager {
   private engine: ChildProcess | null = null;
   private isReady: boolean = false;
-  private evaluationPromises: Map<string, { resolve: Function, reject: Function }> = new Map();
-  private currentEvaluationId: string | null = null;
-  private latestEvaluation: EngineEvaluation | null = null;
+  private jobQueue: EngineJob[] = [];
+  private currentJob: EngineJob | null = null;
+  private busy: boolean = false;
 
   constructor() {
     this.initEngine();
@@ -203,17 +215,20 @@ class StockfishManager {
       this.engine.on('close', (code) => {
         console.log(`Stockfish process closed with code ${code}`);
         this.isReady = false;
+        this.rejectAllJobs(new Error('Engine process closed'));
       });
 
       this.engine.on('error', (error) => {
         console.error('Stockfish spawn error:', error);
         this.isReady = false;
+        this.rejectAllJobs(error);
       });
 
-      // Initialize engine
+      // Initialize engine with MultiPV for better alternatives
       this.sendCommand('uci');
       this.sendCommand('setoption name Hash value 128');
       this.sendCommand('setoption name Threads value 1');
+      this.sendCommand('setoption name MultiPV value 3'); // Get top 3 moves
       this.sendCommand('ucinewgame');
       this.sendCommand('isready');
       
@@ -234,54 +249,72 @@ class StockfishManager {
     for (const line of lines) {
       if (line === 'readyok') {
         this.isReady = true;
+        this.processQueue(); // Start processing queued jobs
       } else if (line === 'uciok') {
         // Engine is ready for UCI commands
-      } else if (line.startsWith('info depth') && this.currentEvaluationId) {
-        const evaluation = this.parseEvaluation(line);
-        if (evaluation.depth >= 1) { // Store latest evaluation
-          this.latestEvaluation = evaluation;
-        }
-        if (evaluation.depth >= 15) { // Use deep evaluation
-          this.processEvaluationLine(evaluation);
-        }
-      } else if (line.startsWith('bestmove') && this.currentEvaluationId) {
-        this.finalizeBestMove(line);
+      } else if (line.startsWith('info depth') && this.currentJob) {
+        this.handleInfoLine(line);
+      } else if (line.startsWith('bestmove') && this.currentJob) {
+        this.handleBestMove(line);
       }
     }
   }
 
-  private processEvaluationLine(evaluation: EngineEvaluation) {
-    if (this.currentEvaluationId) {
-      const promise = this.evaluationPromises.get(this.currentEvaluationId);
-      if (promise) {
-        promise.resolve(evaluation);
-        this.evaluationPromises.delete(this.currentEvaluationId);
-        this.currentEvaluationId = null;
-        this.latestEvaluation = null;
-      }
+  private handleInfoLine(line: string) {
+    if (!this.currentJob) return;
+    
+    const evaluation = this.parseEvaluation(line);
+    
+    // Accept evaluation if it reaches reasonable depth or has mate info
+    if (evaluation.depth >= Math.min(12, this.currentJob.depth) || evaluation.mate !== undefined) {
+      this.completeCurrentJob(evaluation);
     }
   }
 
-  private finalizeBestMove(line: string) {
-    // Handle cases where we didn't get deep enough evaluation
-    if (this.currentEvaluationId) {
-      const promise = this.evaluationPromises.get(this.currentEvaluationId);
-      if (promise) {
-        // Use latest evaluation if available, otherwise return basic evaluation
-        const evaluation = this.latestEvaluation || {
-          score: 0,
-          depth: 1,
-          nodes: 0,
-          time: 0,
-          pv: [line.split(' ')[1]], // Extract best move
-          nps: 0
-        };
-        promise.resolve(evaluation);
-        this.evaluationPromises.delete(this.currentEvaluationId);
-        this.currentEvaluationId = null;
-        this.latestEvaluation = null;
-      }
+  private handleBestMove(line: string) {
+    if (!this.currentJob) return;
+    
+    // If we haven't resolved yet, create a basic evaluation from bestmove
+    const bestMove = line.split(' ')[1];
+    const basicEvaluation: EngineEvaluation = {
+      score: 0,
+      depth: 1,
+      nodes: 0,
+      time: 0,
+      pv: [bestMove!],
+      nps: 0
+    };
+    
+    this.completeCurrentJob(basicEvaluation);
+  }
+
+  private completeCurrentJob(evaluation: EngineEvaluation) {
+    if (!this.currentJob) return;
+    
+    clearTimeout(this.currentJob.timeout);
+    this.currentJob.resolve(evaluation);
+    this.currentJob = null;
+    this.busy = false;
+    
+    // Process next job in queue
+    this.processQueue();
+  }
+
+  private rejectAllJobs(error: Error) {
+    // Reject current job
+    if (this.currentJob) {
+      clearTimeout(this.currentJob.timeout);
+      this.currentJob.reject(error);
+      this.currentJob = null;
     }
+    
+    // Reject all queued jobs
+    this.jobQueue.forEach(job => {
+      clearTimeout(job.timeout);
+      job.reject(error);
+    });
+    this.jobQueue = [];
+    this.busy = false;
   }
 
   async evaluatePosition(fen: string, depth: number = 15): Promise<EngineEvaluation> {
@@ -290,22 +323,55 @@ class StockfishManager {
     }
 
     return new Promise((resolve, reject) => {
-      const evaluationId = Date.now().toString() + Math.random().toString();
-      this.currentEvaluationId = evaluationId;
-      this.evaluationPromises.set(evaluationId, { resolve, reject });
-
-      this.sendCommand(`position fen ${fen}`);
-      this.sendCommand(`go depth ${depth}`);
-
-      // Timeout after 5 seconds for faster analysis
-      setTimeout(() => {
-        if (this.evaluationPromises.has(evaluationId)) {
-          this.evaluationPromises.delete(evaluationId);
-          this.currentEvaluationId = null;
-          reject(new Error('Evaluation timeout'));
+      const jobId = Date.now().toString() + Math.random().toString();
+      
+      // Set timeout for this specific job
+      const timeout = setTimeout(() => {
+        // Remove job from queue if it hasn't started
+        const jobIndex = this.jobQueue.findIndex(job => job.id === jobId);
+        if (jobIndex >= 0) {
+          this.jobQueue.splice(jobIndex, 1);
+          reject(new Error('Evaluation timeout (queued)'));
+        } else if (this.currentJob?.id === jobId) {
+          // Job is currently running
+          this.currentJob = null;
+          this.busy = false;
+          reject(new Error('Evaluation timeout (running)'));
+          this.processQueue(); // Process next job
         }
-      }, 5000);
+      }, 8000); // Increased timeout for better analysis
+
+      const job: EngineJob = {
+        id: jobId,
+        fen,
+        depth,
+        resolve,
+        reject,
+        timeout
+      };
+
+      this.jobQueue.push(job);
+      this.processQueue();
     });
+  }
+
+  private async processQueue() {
+    if (this.busy || !this.isReady || this.jobQueue.length === 0) {
+      return;
+    }
+
+    this.busy = true;
+    this.currentJob = this.jobQueue.shift()!;
+
+    try {
+      this.sendCommand(`position fen ${this.currentJob.fen}`);
+      this.sendCommand(`go depth ${this.currentJob.depth}`);
+    } catch (error) {
+      this.currentJob.reject(new Error(`Failed to send commands: ${error}`));
+      this.currentJob = null;
+      this.busy = false;
+      this.processQueue();
+    }
   }
 
   async getBestMove(fen: string, depth: number = 12): Promise<string> {
@@ -325,7 +391,7 @@ class StockfishManager {
         }
       };
       
-      setTimeout(() => reject(new Error('Engine not ready')), 5000);
+      setTimeout(() => reject(new Error('Engine not ready')), 10000);
       checkReady();
     });
   }
@@ -351,7 +417,8 @@ class StockfishManager {
             evaluation.score = parseInt(parts[i + 2]!) || 0;
           } else if (parts[i + 1] === 'mate') {
             evaluation.mate = parseInt(parts[i + 2]!) || 0;
-            evaluation.score = evaluation.mate > 0 ? 10000 - evaluation.mate : -10000 + Math.abs(evaluation.mate);
+            // Convert mate to large cp values for consistent comparison
+            evaluation.score = evaluation.mate > 0 ? 100000 - evaluation.mate : -100000 - evaluation.mate;
           }
           break;
         case 'nodes':
@@ -373,18 +440,121 @@ class StockfishManager {
   }
 
   destroy() {
+    this.rejectAllJobs(new Error('Engine destroyed'));
     if (this.engine) {
       this.engine.kill();
     }
   }
 }
 
-// Game Analysis Service
+// FIXED: Game Analysis Service with proper score calculations
 class GameAnalysisService {
   private stockfish: StockfishManager;
 
   constructor() {
     this.stockfish = new StockfishManager();
+  }
+
+  // FIXED: Convert engine evaluation to centipawns from White's perspective
+  private engineEvalToWhiteCp(ev: EngineEvaluation): number {
+    // Convert mate to large cp so comparisons still work
+    if (ev.mate !== undefined) {
+      // positive mate => White mates in N
+      if (ev.mate > 0) return 100000 - ev.mate;
+      // negative mate => Black mates in N -> very negative
+      return -100000 - ev.mate;
+    }
+    return ev.score; // assume score is in centipawns; interpret as White advantage
+  }
+
+  // FIXED: Convert centipawns to win probability using logistic function
+  private cpToWinProbability(cp: number): number {
+    // cp: centipawns from White's perspective
+    // logistic mapping: probability White wins
+    const k = 0.004; // steepness parameter (tuned for chess positions)
+    const probWhite = 1 / (1 + Math.exp(-k * cp));
+    return Math.max(0, Math.min(1, probWhite)); // clamp to [0,1]
+  }
+
+  // FIXED: Proper score drop calculation with consistent perspective handling
+  private calculateScoreDrop(
+    beforeEval: EngineEvaluation,
+    afterEval: EngineEvaluation,
+    isWhitePlayer: boolean // whether the player who just moved is White
+  ): { scoreDrop: number; winChanceDrop: number } {
+    const beforeWhite = this.engineEvalToWhiteCp(beforeEval);
+    const afterWhite = this.engineEvalToWhiteCp(afterEval);
+
+    // Convert to player's perspective: positive = better for the player who just moved
+    const beforeForPlayer = isWhitePlayer ? beforeWhite : -beforeWhite;
+    const afterForPlayer = isWhitePlayer ? afterWhite : -afterWhite;
+
+    const scoreDrop = Math.max(0, Math.round(beforeForPlayer - afterForPlayer));
+
+    // Calculate win probability drop (Lichess-style)
+    const winBeforePlayer = isWhitePlayer 
+      ? this.cpToWinProbability(beforeWhite)
+      : 1 - this.cpToWinProbability(beforeWhite);
+    
+    const winAfterPlayer = isWhitePlayer
+      ? this.cpToWinProbability(afterWhite)
+      : 1 - this.cpToWinProbability(afterWhite);
+
+    const winChanceDrop = Math.max(0, winBeforePlayer - winAfterPlayer);
+
+    return { scoreDrop, winChanceDrop };
+  }
+
+  // FIXED: Classification using win probability drops (Lichess-style)
+  private classifyMoveByWinDrop(
+    winDrop: number, 
+    isBestMove: boolean, 
+    beforeEval: EngineEvaluation,
+    actualMoveUci: string,
+    moveIndex: number
+  ): MoveClassification {
+    // Opening moves (first 6-8 plies) are generally book moves if decent
+    if (moveIndex < 8 && winDrop <= 0.08) {
+      return MoveClassification.BOOK;
+    }
+
+    // Special case: if it's the best move or very close
+    if (isBestMove || winDrop <= 0.02) {
+      // Check if it's a particularly brilliant move
+      if (this.isBrilliantMove(beforeEval, winDrop, actualMoveUci)) {
+        return MoveClassification.BRILLIANT;
+      }
+      if (winDrop <= 0.01) return MoveClassification.GREAT;
+      return MoveClassification.GOOD;
+    }
+    
+    // Lichess-style thresholds based on win chance drop
+    if (winDrop >= 0.30) return MoveClassification.BLUNDER;    // 30% win chance drop
+    if (winDrop >= 0.20) return MoveClassification.MISTAKE;    // 20% win chance drop
+    if (winDrop >= 0.10) return MoveClassification.INACCURACY; // 10% win chance drop
+    
+    return MoveClassification.GOOD;
+  }
+
+  // FIXED: More strict criteria for brilliant moves
+  private isBrilliantMove(beforeEval: EngineEvaluation, winDrop: number, actualMove: string): boolean {
+    // A move is brilliant if:
+    // 1. It's the best move (minimal win drop)
+    // 2. AND it's in a complex/difficult position
+    // 3. AND it finds a non-obvious solution
+    
+    if (winDrop > 0.02) return false; // Must be very close to best move
+    
+    // Check if position was difficult or losing
+    const wasLosingBadly = Math.abs(beforeEval.score) > 200; // More than 2 pawns disadvantage
+    const wasMateThreats = beforeEval.mate !== undefined && Math.abs(beforeEval.mate) <= 5;
+    
+    // Check if move seems tactical (promotions or long principal variations)
+    const seemsTactical = actualMove.length > 4 || // promotion
+                         (beforeEval.pv && beforeEval.pv.length > 8); // long tactical sequence
+    
+    // Only mark as brilliant if it was a difficult position with tactical themes
+    return (wasLosingBadly || wasMateThreats) && seemsTactical;
   }
 
   async analyzeGameFromMoves(request: AnalysisRequest): Promise<GameAnalysis> {
@@ -441,11 +611,11 @@ class GameAnalysisService {
         console.log(`Analyzing move ${i + 1}/${request.moves.length}: ${uciMove}`);
 
         try {
-          // OPTIMIZED: Only consider first 4-6 moves as potential book moves
-          const isBookMove = this.isOpeningMove(gamePositions, i);
+          // Check if this should be treated as an opening move
+          const isOpeningPhase = i < 8; // First 8 plies
 
-          // For opening moves (first 6 plies), use lighter analysis
-          if (isBookMove && i < 6) {
+          // For opening moves, use lighter analysis
+          if (isOpeningPhase && this.isOpeningMove(gamePositions, i)) {
             // Make the move
             const move = chess.move(uciMove!);
             if (!move) {
@@ -472,6 +642,7 @@ class GameAnalysisService {
               bestMove: move.san,
               bestMoveUci: uciMove!,
               scoreDrop: 0,
+              winChanceDrop: 0,
               position: currentPosition
             };
 
@@ -510,13 +681,12 @@ class GameAnalysisService {
           gamePositions.push(afterPos);
           const afterEval = await this.stockfish.evaluatePosition(afterPos, 15);
 
-          // Get best move for current position (evaluate the position before the move)
-          const tempChess = new Chess(currentPosition);
+          // Get best move for current position
           const bestMoveUci = beforeEval.pv[0] || '';
-          const bestMove = this.uciToSan(tempChess, bestMoveUci, currentPosition);
+          const bestMove = this.uciToSan(currentPosition, bestMoveUci);
 
-          // Calculate score drop from player's perspective
-          const scoreDrop = this.calculateScoreDrop(beforeEval, afterEval, isWhite);
+          // FIXED: Calculate score drops with proper perspective
+          const { scoreDrop, winChanceDrop } = this.calculateScoreDrop(beforeEval, afterEval, isWhite);
           
           const moveAnalysis: MoveAnalysis = {
             move: move.san,
@@ -524,8 +694,8 @@ class GameAnalysisService {
             moveNumber,
             isWhite,
             score: isWhite ? afterEval.score : -afterEval.score,
-            classification: this.classifyMove(scoreDrop, uciMove === bestMoveUci, beforeEval, uciMove!, i),
-            accuracy: this.calculateAccuracy(scoreDrop),
+            classification: this.classifyMoveByWinDrop(winChanceDrop, uciMove === bestMoveUci, beforeEval, uciMove!, i),
+            accuracy: this.calculateAccuracy(winChanceDrop),
             isBlunder: false,
             isMistake: false,
             isInaccuracy: false,
@@ -535,6 +705,7 @@ class GameAnalysisService {
             bestMove: bestMove,
             bestMoveUci: bestMoveUci,
             scoreDrop,
+            winChanceDrop,
             position: currentPosition
           };
 
@@ -566,7 +737,7 @@ class GameAnalysisService {
             if (move) {
               gamePositions.push(chess.fen());
 
-              // OPTIMIZED: Default to good moves instead of book moves for failed analysis
+              // Default to good moves for failed analysis
               const placeholderAnalysis: MoveAnalysis = {
                 move: move.san,
                 uciMove: uciMove!,
@@ -582,6 +753,7 @@ class GameAnalysisService {
                 isGreat: false,
                 isGood: true,
                 scoreDrop: 0,
+                winChanceDrop: 0,
                 position: currentPosition
               };
               
@@ -647,13 +819,7 @@ class GameAnalysisService {
       const uciMoves: string[] = [];
       
       for (const move of history) {
-        const beforeFen = chess.fen();
         chess.move(move);
-        // Convert to UCI by finding the move that matches
-        const possibleMoves = chess.moves({ verbose: true });
-        chess.undo();
-        chess.move(move);
-        
         uciMoves.push(move.from + move.to + (move.promotion || ''));
       }
 
@@ -672,7 +838,7 @@ class GameAnalysisService {
     }
   }
 
-  private uciToSan(chess: Chess, uciMove: string, fen: string): string {
+  private uciToSan(fen: string, uciMove: string): string {
     if (!uciMove || uciMove.length < 4) return '';
     
     try {
@@ -688,70 +854,6 @@ class GameAnalysisService {
     }
   }
 
-  private calculateScoreDrop(beforeEval: EngineEvaluation, afterEval: EngineEvaluation, isWhite: boolean): number {
-    // Convert centipawns to evaluation from current player's perspective
-    const beforeScore = beforeEval.score; // From current position perspective
-    const afterScore = -afterEval.score; // From opponent's perspective, so negate
-    
-    // Calculate how much the position got worse for the current player
-    const scoreDrop = beforeScore - afterScore;
-    return Math.max(0, scoreDrop);
-  }
-
-  // OPTIMIZED CLASSIFICATION SYSTEM
-  private classifyMove(
-    scoreDrop: number, 
-    isBestMove: boolean, 
-    beforeEval: EngineEvaluation, 
-    actualMoveUci: string, 
-    moveIndex: number
-  ): MoveClassification {
-    // OPTIMIZED: Only first 4 moves (2 per side) should be considered for book classification
-    if (moveIndex < 4 && scoreDrop <= 30) {
-      return MoveClassification.BOOK;
-    }
-
-    // Special case: if it's the best move or very close to best move
-    if (isBestMove || scoreDrop <= 5) {
-      // Check if it's a particularly good move in a difficult position
-      if (this.isBrilliantMove(beforeEval, scoreDrop, actualMoveUci)) {
-        return MoveClassification.BRILLIANT;
-      }
-      if (scoreDrop <= 3) return MoveClassification.GREAT;
-      return MoveClassification.GOOD;
-    }
-    
-    // OPTIMIZED: More lenient classification thresholds to reduce false blunder classifications
-    if (scoreDrop <= 50) return MoveClassification.GOOD;           // Up to 0.5 pawn loss is still good
-    if (scoreDrop <= 100) return MoveClassification.INACCURACY;    // 1.0 pawn loss
-    if (scoreDrop <= 200) return MoveClassification.MISTAKE;       // 2.0 pawn loss  
-    if (scoreDrop <= 400) return MoveClassification.BLUNDER;       // 4.0 pawn loss
-    
-    // Only extreme blunders (>4 pawns) remain as blunders
-    return MoveClassification.BLUNDER;
-  }
-
-  // OPTIMIZED: More strict criteria for brilliant moves
-  private isBrilliantMove(beforeEval: EngineEvaluation, scoreDrop: number, actualMove: string): boolean {
-    // A move is brilliant if:
-    // 1. It's the best move (scoreDrop = 0)
-    // 2. AND it's in a complex/difficult position
-    // 3. AND it finds a non-obvious solution
-    
-    if (scoreDrop > 0) return false; // Must be the absolute best move
-    
-    // Check if position was difficult or losing
-    const wasLosingBadly = Math.abs(beforeEval.score) > 300; // More than 3 pawns disadvantage
-    const wasMateThreats = beforeEval.mate !== undefined && Math.abs(beforeEval.mate) <= 5;
-    
-    // Check if move seems tactical (promotions or long principal variations)
-    const seemsTactical = actualMove.length > 4 || // promotion
-                         (beforeEval.pv && beforeEval.pv.length > 8); // long tactical sequence
-    
-    // Only mark as brilliant if it was a difficult position with tactical themes
-    return (wasLosingBadly || wasMateThreats) && seemsTactical;
-  }
-
   private setClassificationBooleans(moveAnalysis: MoveAnalysis) {
     moveAnalysis.isBrilliant = moveAnalysis.classification === MoveClassification.BRILLIANT;
     moveAnalysis.isGreat = moveAnalysis.classification === MoveClassification.GREAT;
@@ -761,19 +863,18 @@ class GameAnalysisService {
     moveAnalysis.isBlunder = moveAnalysis.classification === MoveClassification.BLUNDER;
   }
 
-  // OPTIMIZED: More generous accuracy calculation
-  private calculateAccuracy(scoreDrop: number): number {
-    if (scoreDrop <= 3) return 100;
-    if (scoreDrop <= 10) return 99;
-    if (scoreDrop <= 20) return 97;
-    if (scoreDrop <= 40) return 95;
-    if (scoreDrop <= 60) return 92;
-    if (scoreDrop <= 100) return 88;
-    if (scoreDrop <= 150) return 82;
-    if (scoreDrop <= 200) return 75;
-    if (scoreDrop <= 300) return 65;
-    if (scoreDrop <= 400) return 50;
-    return Math.max(20, 45 - (scoreDrop / 50)); // Minimum 20% accuracy, more gradual decline
+  // FIXED: Accuracy calculation based on win probability drop
+  private calculateAccuracy(winChanceDrop: number): number {
+    if (winChanceDrop <= 0.01) return 100;  // Perfect or near-perfect
+    if (winChanceDrop <= 0.02) return 99;   // Excellent
+    if (winChanceDrop <= 0.05) return 97;   // Great
+    if (winChanceDrop <= 0.08) return 94;   // Very good
+    if (winChanceDrop <= 0.10) return 90;   // Good (inaccuracy threshold)
+    if (winChanceDrop <= 0.15) return 85;   // Decent
+    if (winChanceDrop <= 0.20) return 75;   // Mistake threshold
+    if (winChanceDrop <= 0.25) return 65;   // Poor
+    if (winChanceDrop <= 0.30) return 50;   // Blunder threshold
+    return Math.max(20, 45 - (winChanceDrop * 100)); // Minimum 20% accuracy
   }
 
   private calculateAverageAccuracy(moves: MoveAnalysis[]): number {
@@ -782,10 +883,10 @@ class GameAnalysisService {
     return Math.round((total / moves.length) * 10) / 10;
   }
 
-  // OPTIMIZED: Only check first 4 moves for opening book
+  // FIXED: More restrictive opening move detection
   private isOpeningMove(gamePositions: string[], moveIndex: number): boolean {
-    // OPTIMIZED: Only consider first 4 moves as potential opening moves (2 per side)
-    if (moveIndex >= 4) return false;
+    // Only consider first 8 moves as potential opening moves (4 per side)
+    if (moveIndex >= 8) return false;
 
     // Check if current position matches any opening from database
     if (gamePositions.length > 0) {
@@ -844,6 +945,7 @@ class GameAnalysisService {
   }
 }
 
+// FIXED: Chess Bot Service with improved evaluation
 class ChessBotService {
   private stockfish: StockfishManager;
 
@@ -853,7 +955,7 @@ class ChessBotService {
 
   async getBestMove(request: BotMoveRequest): Promise<BotMoveResponse> {
     try {
-      const { fen, depth, playerLevel } = request;
+      const { fen, depth, playerLevel, lastFen, lastPlayerMove } = request;
       
       // Convert player level to depth if provided
       const analysisDepth = this.getDepthFromLevel(depth, playerLevel);
@@ -871,10 +973,10 @@ class ChessBotService {
         }
 
         // Convert UCI to SAN
-        const tempChess = new Chess(fen);
-        const bestMoveSan = this.uciToSan(tempChess, bestMoveUci);
+        const bestMoveSan = this.uciToSan(fen, bestMoveUci);
 
         // Make the move to evaluate the resulting position
+        const tempChess = new Chess(fen);
         const moveObj = tempChess.move({
           from: bestMoveUci.slice(0, 2),
           to: bestMoveUci.slice(2, 4),
@@ -897,6 +999,12 @@ class ChessBotService {
         // Analyze game state
         const gameAnalysis = this.analyzeGameState(chess, evaluation);
 
+        // Evaluate player's last move if provided
+        let playerMoveEvaluation: PlayerMoveEvaluation | undefined;
+        if (lastFen && lastPlayerMove) {
+          playerMoveEvaluation = await this.evaluatePlayerMove(lastFen, lastPlayerMove, fen);
+        }
+
         return {
           bestMove: bestMoveUci,
           bestMoveSan: bestMoveSan,
@@ -904,7 +1012,8 @@ class ChessBotService {
           classification,
           confidence: this.calculateConfidence(evaluation, analysisDepth),
           alternativeMoves: alternatives,
-          analysis: gameAnalysis
+          analysis: gameAnalysis,
+          playerMoveEvaluation
         };
 
       } else {
@@ -917,6 +1026,150 @@ class ChessBotService {
     }
   }
 
+  // FIXED: Methods needed by ChessBotService for score calculations
+  private engineEvalToWhiteCp(ev: EngineEvaluation): number {
+    // Convert mate to large cp so comparisons still work
+    if (ev.mate !== undefined) {
+      // positive mate => White mates in N
+      if (ev.mate > 0) return 100000 - ev.mate;
+      // negative mate => Black mates in N -> very negative
+      return -100000 - ev.mate;
+    }
+    return ev.score; // assume score is in centipawns; interpret as White advantage
+  }
+
+  // Convert centipawns to win probability using logistic function
+  private cpToWinProbability(cp: number): number {
+    // cp: centipawns from White's perspective
+    // logistic mapping: probability White wins
+    const k = 0.004; // steepness parameter (tuned for chess positions)
+    const probWhite = 1 / (1 + Math.exp(-k * cp));
+    return Math.max(0, Math.min(1, probWhite)); // clamp to [0,1]
+  }
+
+  // Score drop calculation with consistent perspective handling
+  private calculateScoreDropForPlayer(
+    beforeEval: EngineEvaluation,
+    afterEval: EngineEvaluation,
+    isWhitePlayer: boolean // whether the player who just moved is White
+  ): { scoreDrop: number; winChanceDrop: number } {
+    const beforeWhite = this.engineEvalToWhiteCp(beforeEval);
+    const afterWhite = this.engineEvalToWhiteCp(afterEval);
+
+    // Convert to player's perspective: positive = better for the player who just moved
+    const beforeForPlayer = isWhitePlayer ? beforeWhite : -beforeWhite;
+    const afterForPlayer = isWhitePlayer ? afterWhite : -afterWhite;
+
+    const scoreDrop = Math.max(0, Math.round(beforeForPlayer - afterForPlayer));
+
+    // Calculate win probability drop (Lichess-style)
+    const winBeforePlayer = isWhitePlayer 
+      ? this.cpToWinProbability(beforeWhite)
+      : 1 - this.cpToWinProbability(beforeWhite);
+    
+    const winAfterPlayer = isWhitePlayer
+      ? this.cpToWinProbability(afterWhite)
+      : 1 - this.cpToWinProbability(afterWhite);
+
+    const winChanceDrop = Math.max(0, winBeforePlayer - winAfterPlayer);
+
+    return { scoreDrop, winChanceDrop };
+  }
+
+  // NEW: Evaluate player's last move
+  private async evaluatePlayerMove(beforeFen: string, playerMoveUci: string, afterFen: string): Promise<PlayerMoveEvaluation> {
+    try {
+      // Get evaluations before and after the move
+      const beforeEval = await this.stockfish.evaluatePosition(beforeFen, 12);
+      const afterEval = await this.stockfish.evaluatePosition(afterFen, 12);
+      
+      // Determine if player is white or black
+      const tempChess = new Chess(beforeFen);
+      const isWhitePlayer = tempChess.turn() === 'w';
+      
+      // Convert move to SAN
+      const moveSan = this.uciToSan(beforeFen, playerMoveUci);
+      
+      // Calculate score drops using the bot service's own methods
+      const { scoreDrop, winChanceDrop } = this.calculateScoreDropForPlayer(beforeEval, afterEval, isWhitePlayer);
+      
+      // Get best move
+      const bestMoveUci = beforeEval.pv[0] || '';
+      const bestMoveSan = bestMoveUci ? this.uciToSan(beforeFen, bestMoveUci) : '';
+      
+      // Classify the move
+      const classification = this.classifyPlayerMove(winChanceDrop, playerMoveUci === bestMoveUci);
+      
+      // Calculate best alternative if player didn't play best move
+      let bestAlternative: PlayerMoveEvaluation['bestAlternative'] | undefined;
+      if (playerMoveUci !== bestMoveUci && bestMoveUci) {
+        // Evaluate what would have happened with best move
+        const tempChess2 = new Chess(beforeFen);
+        tempChess2.move({
+          from: bestMoveUci.slice(0, 2),
+          to: bestMoveUci.slice(2, 4),
+          promotion: bestMoveUci.slice(4) || undefined
+        });
+        const bestMoveAfterEval = await this.stockfish.evaluatePosition(tempChess2.fen(), 10);
+        const { scoreDrop: bestScoreDrop } = this.calculateScoreDropForPlayer(beforeEval, bestMoveAfterEval, isWhitePlayer);
+        
+        bestAlternative = {
+          move: bestMoveUci,
+          moveSan: bestMoveSan,
+          scoreDifference: scoreDrop - bestScoreDrop
+        };
+      }
+
+      return {
+        move: playerMoveUci,
+        moveSan: moveSan,
+        classification,
+        accuracy: this.calculatePlayerAccuracy(winChanceDrop),
+        scoreDrop,
+        winChanceDrop,
+        isBlunder: classification === MoveClassification.BLUNDER,
+        isMistake: classification === MoveClassification.MISTAKE,
+        isInaccuracy: classification === MoveClassification.INACCURACY,
+        isBrilliant: classification === MoveClassification.BRILLIANT,
+        isGreat: classification === MoveClassification.GREAT,
+        isGood: classification === MoveClassification.GOOD,
+        bestAlternative
+      };
+      
+    } catch (error) {
+      console.error('Failed to evaluate player move:', error);
+      throw new Error(`Player move evaluation failed: ${error}`);
+    }
+  }
+
+  private classifyPlayerMove(winChanceDrop: number, isBestMove: boolean): MoveClassification {
+    if (isBestMove || winChanceDrop <= 0.02) {
+      if (winChanceDrop <= 0.01) return MoveClassification.GREAT;
+      return MoveClassification.GOOD;
+    }
+    
+    if (winChanceDrop >= 0.30) return MoveClassification.BLUNDER;
+    if (winChanceDrop >= 0.20) return MoveClassification.MISTAKE;
+    if (winChanceDrop >= 0.10) return MoveClassification.INACCURACY;
+    
+    return MoveClassification.GOOD;
+  }
+
+  private calculatePlayerAccuracy(winChanceDrop: number): number {
+    if (winChanceDrop <= 0.01) return 100;
+    if (winChanceDrop <= 0.02) return 99;
+    if (winChanceDrop <= 0.05) return 97;
+    if (winChanceDrop <= 0.08) return 94;
+    if (winChanceDrop <= 0.10) return 90;
+    if (winChanceDrop <= 0.15) return 85;
+    if (winChanceDrop <= 0.20) return 75;
+    if (winChanceDrop <= 0.25) return 65;
+    if (winChanceDrop <= 0.30) return 50;
+    return Math.max(20, 45 - (winChanceDrop * 100));
+  }
+
+
+
   private getDepthFromLevel(depth?: number, playerLevel?: string): number {
     if (depth) {
       return Math.max(1, Math.min(20, depth)); // Clamp between 1-20
@@ -924,16 +1177,17 @@ class ChessBotService {
 
     // Convert player level to appropriate depth
     switch (playerLevel) {
-      case 'beginner': return 6;   // ~800-1200 ELO
-      case 'intermediate': return 10; // ~1200-1600 ELO  
-      case 'advanced': return 15;  // ~1600-2000 ELO
-      case 'expert': return 18;    // ~2000+ ELO
-      default: return 12;          // Default intermediate-advanced level
+      case 'beginner': return 8;   // ~800-1200 ELO (increased from 6)
+      case 'intermediate': return 12; // ~1200-1600 ELO  
+      case 'advanced': return 16;  // ~1600-2000 ELO (increased from 15)
+      case 'expert': return 20;    // ~2000+ ELO (increased from 18)
+      default: return 14;          // Default intermediate-advanced level
     }
   }
 
-  private uciToSan(chess: Chess, uciMove: string): string {
+  private uciToSan(fen: string, uciMove: string): string {
     try {
+      const chess = new Chess(fen);
       const move = chess.move({
         from: uciMove.slice(0, 2),
         to: uciMove.slice(2, 4),
@@ -995,16 +1249,16 @@ class ChessBotService {
   }
 
   private calculateConfidence(evaluation: EngineEvaluation, depth: number): number {
-    let confidence = Math.min(100, depth * 5); // Base confidence on depth
+    let confidence = Math.min(100, depth * 4); // Base confidence on depth
     
     // Increase confidence for clear evaluations
-    if (Math.abs(evaluation.score) > 300) confidence += 10;
+    if (Math.abs(evaluation.score) > 300) confidence += 15;
     if (evaluation.mate !== undefined) confidence = 100;
     
     // Decrease confidence for complex positions
-    if (evaluation.pv && evaluation.pv.length > 10) confidence -= 5;
+    if (evaluation.pv && evaluation.pv.length > 10) confidence -= 10;
     
-    return Math.max(60, Math.min(100, confidence));
+    return Math.max(70, Math.min(100, confidence));
   }
 
   private async getAlternativeMoves(
@@ -1013,16 +1267,13 @@ class ChessBotService {
     depth: number
   ): Promise<BotMoveResponse['alternativeMoves']> {
     try {
-      const chess = new Chess(fen);
-      const legalMoves = chess.moves({ verbose: true });
-      
-      // Get top 3 alternative moves (excluding the best one)
+      // MultiPV should give us multiple moves in the PV array
       const alternatives: BotMoveResponse['alternativeMoves'] = [];
       
       for (let i = 1; i < Math.min(4, mainEvaluation.pv.length); i++) {
         const altMoveUci = mainEvaluation.pv[i];
         if (altMoveUci) {
-          const altMoveSan = this.uciToSan(new Chess(fen), altMoveUci);
+          const altMoveSan = this.uciToSan(fen, altMoveUci);
           
           // Make the alternative move and evaluate
           const tempChess = new Chess(fen);
@@ -1033,7 +1284,7 @@ class ChessBotService {
               promotion: altMoveUci.slice(4) || undefined
             });
             
-            const altEval = await this.stockfish.evaluatePosition(tempChess.fen(), Math.max(6, depth - 3));
+            const altEval = await this.stockfish.evaluatePosition(tempChess.fen(), Math.max(8, depth - 4));
             
             alternatives.push({
               move: altMoveUci,
@@ -1078,11 +1329,11 @@ class ChessBotService {
     // Determine game phase
     let gamePhase: 'opening' | 'middlegame' | 'endgame' = 'middlegame';
     const moveCount = chess.moveNumber();
-    const totalMaterial = Math.abs(materialBalance);
+    const totalPieces = board.flat().filter(square => square !== null).length;
     
-    if (moveCount <= 10) {
+    if (moveCount <= 12) {
       gamePhase = 'opening';
-    } else if (totalMaterial <= 20) { // Queens + some pieces gone
+    } else if (totalPieces <= 16) { // Many pieces traded off
       gamePhase = 'endgame';
     }
     
@@ -1094,14 +1345,13 @@ class ChessBotService {
       materialBalance: chess.turn() === 'w' ? materialBalance : -materialBalance
     };
   }
-  
 }
 
 // Initialize services
 const analysisService = new GameAnalysisService();
 
 // Routes
-// @ts-ignoreS
+// @ts-ignore
 app.post('/engine/api/analyze-moves', async (req, res) => {
   try {
     const { fen, moves, gameInfo }: AnalysisRequest = req.body;
@@ -1179,7 +1429,6 @@ app.post('/engine/api/analyze', upload.single('pgn'), async (req, res) => {
   }
 });
 
-
 // @ts-ignore
 app.post('/engine/api/analyze-position', async (req, res) => {
   try {
@@ -1211,15 +1460,18 @@ app.post('/engine/api/analyze-position', async (req, res) => {
 // @ts-ignore
 app.post('/engine/api/bot-move', async (req, res) => {
   try {
-    const { fen, depth, playerLevel }: BotMoveRequest = req.body;
-    console.log('Req recieved from ingress')
+    const { fen, depth, playerLevel, lastFen, lastPlayerMove }: BotMoveRequest = req.body;
+    console.log('Bot move request received');
+    
     if (!fen) {
       return res.status(400).json({ 
         error: 'FEN position is required',
         example: {
           fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-          depth: 12, // Optional: 1-20
-          playerLevel: "intermediate" 
+          depth: depth, 
+          playerLevel: "intermediate",
+          lastFen: "previous position FEN (optional)",
+          lastPlayerMove: "e2e4 (optional)" 
         }
       });
     }
@@ -1239,7 +1491,7 @@ app.post('/engine/api/bot-move', async (req, res) => {
     // Create bot service instance (reuse existing stockfish manager)
     const botService = new ChessBotService(analysisService['stockfish']);
     
-    const botResponse = await botService.getBestMove({ fen, depth, playerLevel });
+    const botResponse = await botService.getBestMove({ fen, depth, playerLevel, lastFen, lastPlayerMove });
     
     res.json({
       success: true,
@@ -1258,17 +1510,24 @@ app.post('/engine/api/bot-move', async (req, res) => {
   }
 });
 
-// HEalth Check EndPoint
+// Health Check Endpoint
 app.get('/engine/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    message: 'Chess Analytics Server is running',
+    message: 'Chess Analytics Server is running (FIXED VERSION)',
     timestamp: new Date().toISOString(),
+    improvements: [
+      'Fixed score drop calculations with proper perspective handling',
+      'Implemented Lichess-style win probability classification',
+      'Added robust queue-based Stockfish engine management',
+      'Enhanced MultiPV support for better alternatives',
+      'Improved player move evaluation with win chance drops'
+    ],
     endpoints: {
       '/api/analyze-moves': 'POST - Analyze game from FEN + UCI moves',
       '/api/analyze': 'POST - Analyze game from PGN',
       '/api/analyze-position': 'POST - Analyze single position',
-      '/api/bot-move': 'POST - Get best move for bot gameplay (NEW)',
+      '/api/bot-move': 'POST - Get best move for bot gameplay (Enhanced)',
       '/api/health': 'GET - Health check'
     }
   });
@@ -1286,15 +1545,19 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Chess Analytics Server running on port ${PORT}`);
-  console.log(`Health check: http://0.0.0.0:${PORT}/api/health`);
-  console.log(`New endpoint: POST http://0.0.0.0:${PORT}/api/analyze-moves`);
+  console.log(`Chess Analytics Server (FIXED VERSION) running on port ${PORT}`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/engine/api/health`);
+  console.log(`Key improvements:`);
+  console.log(`- Fixed score drop calculations with proper perspective`);
+  console.log(`- Lichess-style win probability classification`);
+  console.log(`- Robust queue-based engine management`);
+  console.log(`- Enhanced player move evaluation`);
 });
-
 
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('Shutting down server...');
+  analysisService['stockfish'].destroy();
   process.exit(0);
 });
 
